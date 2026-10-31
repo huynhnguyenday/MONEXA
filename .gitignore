@@ -31,6 +31,15 @@ test-results/
 blob-report/
 *.log
 
+# Local rules, documentation and development tools (not deployed)
+*.md
+docs/
+tests/
+scripts/
+.prettierignore
+.prettierrc*
+prettier.config.*
+
 # Hosting, agent and editor state on this machine
 .vercel/
 .codex/
