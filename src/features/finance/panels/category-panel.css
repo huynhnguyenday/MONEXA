@@ -1,0 +1,170 @@
+.compact-layout .category-panel {
+  height: 100%;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  padding: 14px 16px;
+  gap: 10px;
+}
+.category-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex: none;
+  min-height: 36px;
+}
+.category-toolbar h2 {
+  font-size: 13px;
+  white-space: nowrap;
+}
+.category-toolbar h2 span {
+  color: #64748b;
+  font-weight: 400;
+}
+.category-toolbar .search-box {
+  width: 260px;
+}
+.category-table-viewport {
+  flex: 1;
+  min-height: 0;
+  --row-height: 72px;
+  --table-header-height: 32px;
+}
+.category-table {
+  width: 100%;
+  table-layout: fixed;
+  border-collapse: collapse;
+}
+.category-usage-column {
+  width: 30%;
+}
+.category-action-column {
+  width: 108px;
+}
+.category-table thead tr {
+  height: 32px;
+}
+.category-table th {
+  text-align: left;
+  color: #64748b;
+  font-size: 10px;
+  font-weight: 500;
+  border-bottom: 1px solid #e2e8f0;
+  padding: 0 8px;
+}
+.category-table tbody tr {
+  height: 72px;
+}
+.category-table td {
+  padding: 7px 8px;
+  border-bottom: 1px solid #edf2f8;
+  vertical-align: middle;
+}
+.category-identity {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+}
+.category-symbol {
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+  font-size: 16px;
+}
+.category-identity > div {
+  min-width: 0;
+}
+.category-color {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 9px;
+  color: #64748b;
+  margin-top: 4px;
+}
+.category-color i {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+}
+.category-table td > strong {
+  font-size: 12px;
+  overflow-wrap: anywhere;
+  display: block;
+}
+.category-table td > small {
+  display: block;
+  font-size: 10px;
+  color: #64748b;
+  margin-top: 5px;
+}
+.category-table .table-actions button {
+  width: 40px;
+  height: 40px;
+}
+@media (max-width: 600px) {
+  .compact-layout .category-panel {
+    padding: 10px;
+    gap: 8px;
+  }
+  .category-toolbar {
+    gap: 8px;
+  }
+  .category-toolbar h2 {
+    font-size: 11px;
+  }
+  .category-toolbar .search-box {
+    width: 58%;
+    min-width: 0;
+  }
+  .category-table-viewport {
+    --row-height: 100px;
+  }
+  .category-table tbody tr {
+    height: 100px;
+  }
+  .category-table th {
+    font-size: 9px;
+    padding: 0 3px;
+  }
+  .category-table td {
+    padding: 4px 3px;
+  }
+  .category-usage-column {
+    width: 96px;
+  }
+  .category-action-column {
+    width: 48px;
+  }
+  .category-identity {
+    gap: 6px;
+  }
+  .category-symbol {
+    width: 25px;
+    height: 30px;
+    font-size: 13px;
+    border-radius: 7px;
+  }
+  .category-table td > strong {
+    font-size: 11px;
+  }
+  .category-table td > small {
+    font-size: 9px;
+  }
+  .category-color {
+    font-size: 8px;
+  }
+  .category-table .table-actions {
+    flex-direction: column;
+    gap: 1px;
+  }
+  .category-table .table-actions button {
+    width: 44px;
+    height: 44px;
+  }
+}

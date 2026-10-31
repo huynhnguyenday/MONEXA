@@ -1,0 +1,1345 @@
+/* Viewport-first workspace. Pagination controls content length instead of scroll areas. */
+:root {
+  --bg: #dce5f1;
+  --line: #d4deed;
+}
+.compact-layout .workspace-header {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+  gap: 12px;
+  align-items: center;
+}
+.compact-layout .workspace-header .menu-toggle {
+  width: 44px;
+  min-width: 44px;
+  height: 44px;
+  min-height: 44px;
+  color: #fff;
+  background: #1d4ed8;
+  border: 1px solid #173fb1;
+  border-radius: 10px;
+  box-shadow: 0 3px 9px #1d4ed838;
+}
+.compact-layout .workspace-header .menu-toggle:hover {
+  background: #1e40af;
+}
+.compact-layout .workspace-header .menu-toggle[aria-expanded='true'] {
+  background: #142d4e;
+  border-color: #142d4e;
+}
+.header-center {
+  display: flex;
+  justify-content: center;
+  min-width: 0;
+}
+.header-primary-action {
+  display: flex;
+  justify-content: flex-end;
+  min-width: 0;
+}
+.header-primary-action .button {
+  min-height: 40px;
+  padding: 9px 14px;
+  white-space: nowrap;
+}
+.header-debt-context {
+  font-size: 12px;
+  font-weight: 550;
+  text-align: center;
+  color: #42618b;
+}
+.header-debt-context small {
+  display: block;
+  font-size: 9px;
+  font-weight: 400;
+  margin-top: 2px;
+}
+.header-month-picker .react-datepicker-wrapper {
+  width: auto;
+}
+.month-picker-button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 9px;
+  min-height: 40px;
+  width: 158px;
+  max-width: 100%;
+  padding: 8px 10px;
+  border: 1px solid #c6d4e8;
+  border-radius: 8px;
+  background: #fff;
+  color: #142d4e;
+  font-size: 12px;
+  font-weight: 500;
+  white-space: nowrap;
+}
+.month-picker-button svg {
+  color: #526581;
+}
+.month-picker-year {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 15px;
+  padding: 0 8px 5px;
+}
+.month-picker-year button {
+  width: 36px;
+  height: 36px;
+  border: 0;
+  border-radius: 7px;
+  background: transparent;
+  color: #1d4ed8;
+  font-size: 24px;
+}
+.month-picker-year strong {
+  font-size: 12px;
+}
+.header-month-picker .react-datepicker-popper {
+  z-index: 45;
+}
+.sidebar-data {
+  margin-top: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+.sidebar-section-label {
+  padding: 4px 12px;
+  font-size: 10px;
+  color: #64748b;
+}
+.compact-layout .sidebar-data .nav-button {
+  margin: 0;
+  min-height: 44px;
+  font-size: 11px;
+  padding: 10px 12px;
+}
+.compact-layout .sidebar-logout {
+  margin-top: 0 !important;
+}
+.compact-layout {
+  height: 100dvh;
+  min-height: 0;
+  max-width: none;
+  background: var(--bg);
+  gap: 0;
+}
+.compact-layout .workspace {
+  width: auto;
+  flex: 1;
+  min-width: 0;
+  height: 100%;
+  padding: 12px 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.workspace-header {
+  height: 44px;
+  min-height: 44px;
+  flex: none;
+  border: 0;
+  gap: 12px;
+}
+.workspace-navigation {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
+}
+.workspace-navigation {
+  flex: 1;
+}
+.workspace .icon-button {
+  width: 36px;
+  height: 36px;
+  min-width: 36px;
+  min-height: 36px;
+  color: #42618b;
+}
+.workspace .icon-button:hover {
+  background: #cbdaf0;
+}
+.compact-brand {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 17px;
+  letter-spacing: -0.7px;
+  font-weight: 700;
+  flex-shrink: 0;
+}
+.compact-brand img {
+  border-radius: 8px;
+}
+.workspace-content {
+  flex: 1;
+  min-height: 0;
+  min-width: 0;
+}
+.overview-panel {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
+.overview-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 7fr) minmax(0, 3fr);
+  gap: 12px;
+  height: 100%;
+  min-height: 0;
+  flex: 1;
+}
+.overview-main {
+  display: grid;
+  grid-template-rows: 90px minmax(0, 1fr) minmax(0, 1fr);
+  gap: 12px;
+  min-height: 0;
+  min-width: 0;
+}
+.overview-aside.right-column {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  grid-template-rows: 132px minmax(0, 1fr);
+  gap: 12px;
+  min-height: 0;
+  min-width: 0;
+  align-items: stretch;
+}
+.compact-stats {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+  min-height: 0;
+}
+.compact-layout .compact-stats .stat {
+  border-radius: 12px;
+  padding: 13px 15px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 6px;
+  min-width: 0;
+}
+.compact-stats .stat-label {
+  font-size: 11px;
+  margin: 0;
+}
+.compact-stats .stat > strong {
+  font-size: clamp(16px, 1.65vw, 26px);
+  letter-spacing: -0.5px;
+  line-height: 1.2;
+  white-space: normal;
+  overflow-wrap: anywhere;
+}
+.compact-stats .stat > small {
+  color: #64748b;
+  font-size: 9px;
+  line-height: 1.4;
+}
+.compact-stats .balance > small {
+  color: #dbeafe;
+}
+.compact-layout .card {
+  border-radius: 12px;
+  box-shadow: 0 2px 6px #142d4e03;
+}
+.compact-layout .chart-card {
+  padding: 12px 15px;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  min-width: 0;
+}
+.panel-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  min-height: 26px;
+  flex: none;
+}
+.panel-heading h2 {
+  font-size: 12px;
+  line-height: 1.4;
+  font-weight: 600;
+  min-width: 0;
+}
+.chart-card .chart {
+  position: relative;
+  height: auto;
+  min-height: 0;
+  min-width: 0;
+  flex: 1;
+  margin: 8px 0 0;
+}
+.chart-card .chart canvas {
+  max-width: 100%;
+}
+.chart-card .badge {
+  font-size: 8px;
+  padding: 4px 6px;
+  white-space: nowrap;
+}
+.chart-card .pagination {
+  padding: 0;
+  border: 0;
+  min-height: 26px;
+  width: auto;
+  gap: 6px;
+}
+.chart-card .pagination > span {
+  font-size: 9px;
+}
+.chart-card .pagination button {
+  width: 26px;
+  min-width: 26px;
+  height: 26px;
+  min-height: 26px;
+}
+.compact-layout .budget-card {
+  padding: 13px 15px;
+  border-radius: 12px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 11px;
+  min-width: 0;
+}
+.budget-summary {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+.budget-summary h2 {
+  font-size: 11px;
+  color: #526581;
+}
+.budget-summary strong {
+  display: block;
+  font-size: 24px;
+  letter-spacing: -0.6px;
+  margin-top: 7px;
+  line-height: 1.2;
+  overflow-wrap: anywhere;
+}
+.budget-card .progress {
+  height: 4px;
+  flex: none;
+}
+.budget-caption {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+  font-size: 8px;
+  color: #64748b;
+  line-height: 1.4;
+}
+.budget-caption span:last-child {
+  text-align: right;
+}
+.expense-panel {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  padding: 10px 12px !important;
+  gap: 8px;
+}
+.expense-panel .panel-heading {
+  min-height: 28px;
+}
+.expense-panel .panel-heading .icon-button {
+  width: 28px;
+  min-width: 28px;
+  height: 28px;
+  min-height: 28px;
+}
+.compact-layout .search-box {
+  margin: 0;
+  min-height: 32px;
+  height: 32px;
+  border-radius: 7px;
+  flex: none;
+  font-size: 10px;
+  background: #f5f8fd;
+}
+.compact-layout .search-box input {
+  padding: 7px 0;
+}
+.expense-table-viewport,
+.debt-table-viewport {
+  flex: 1;
+  min-height: 0;
+  min-width: 0;
+}
+.expense-table {
+  width: 100%;
+  table-layout: fixed;
+  border-collapse: collapse;
+  font-size: 10px;
+}
+.expense-table .amount-column {
+  width: 92px;
+}
+.expense-table .action-column {
+  width: 36px;
+}
+.expense-table thead tr {
+  height: 30px;
+}
+.expense-table th {
+  text-align: left;
+  font-weight: 500;
+  font-size: 9px;
+  color: #64748b;
+  border-bottom: 1px solid #e2e8f0;
+  padding: 0 3px;
+}
+.expense-table th:nth-child(2) {
+  text-align: right;
+  padding-right: 5px;
+}
+.expense-table tbody tr {
+  height: 66px;
+}
+.expense-table td {
+  padding: 4px 3px;
+  border-bottom: 1px solid #edf2f8;
+  vertical-align: middle;
+}
+.expense-name {
+  display: block;
+  max-width: 100%;
+  width: 100%;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  border: 0;
+  background: transparent;
+  padding: 0;
+  text-align: left;
+  font-size: 11px;
+  line-height: 1.5;
+  color: #142d4e;
+  font-weight: 550;
+}
+.expense-name:hover {
+  color: #1d4ed8;
+  text-decoration: underline;
+}
+.expense-meta {
+  font-size: 9px;
+  color: #64748b;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  line-height: 1.5;
+  margin-top: 2px;
+}
+.expense-table time {
+  display: block;
+  font-size: 8px;
+  color: #64748b;
+  line-height: 1.5;
+  white-space: nowrap;
+}
+.amount-cell {
+  font-variant-numeric: tabular-nums;
+  text-align: right;
+  font-weight: 550;
+  overflow-wrap: anywhere;
+}
+.expense-table .amount-cell {
+  font-size: 11px;
+  padding-right: 5px;
+}
+.table-actions {
+  display: flex;
+  align-items: center;
+  gap: 3px;
+}
+.table-actions button {
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+  width: 28px;
+  height: 28px;
+  border: 0;
+  border-radius: 6px;
+  background: transparent;
+  color: #64748b;
+  font-size: 10px;
+  padding: 0;
+}
+.table-actions button:hover {
+  background: #eff6ff;
+  color: #1d4ed8;
+}
+.expense-table .table-actions {
+  flex-direction: column;
+  gap: 0;
+}
+.pagination {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  min-height: 32px;
+  flex: none;
+  border-top: 1px solid #e2e8f0;
+  padding-top: 3px;
+  color: #64748b;
+  font-size: 10px;
+}
+.pagination > div {
+  display: flex;
+  gap: 4px;
+}
+.pagination button {
+  border: 1px solid #d8e3f3;
+  background: #f7faff;
+  color: #42618b;
+  width: 28px;
+  min-width: 28px;
+  height: 28px;
+  min-height: 28px;
+  border-radius: 6px;
+  display: grid;
+  place-items: center;
+  font-size: 10px;
+}
+.pagination button:disabled {
+  opacity: 0.35;
+}
+.compact-empty {
+  height: 100%;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  text-align: center;
+  color: #64748b;
+  padding: 10px;
+  font-size: 11px;
+}
+.compact-empty > svg {
+  font-size: 20px;
+  color: #93aed2;
+}
+.compact-empty p {
+  margin: 0;
+  line-height: 1.6;
+}
+.compact-empty .inline-button {
+  padding: 7px;
+  min-height: 32px;
+}
+.mobile-panel-tabs {
+  display: none;
+}
+.compact-debts {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  height: 100%;
+  min-height: 0;
+}
+.compact-debts > .compact-stats {
+  height: 90px;
+  flex: none;
+}
+.compact-debt-card {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  padding: 12px 15px !important;
+  gap: 10px;
+}
+.compact-debt-toolbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  flex: none;
+}
+.compact-debt-toolbar .search-box {
+  width: 250px;
+}
+.compact-layout .filter-tabs {
+  display: flex;
+  flex-wrap: nowrap;
+  width: auto;
+  gap: 3px;
+}
+.compact-layout .filter-tabs button {
+  min-height: 34px;
+  padding: 6px 10px;
+  font-size: 10px;
+  white-space: nowrap;
+}
+.compact-debt-table {
+  width: 100%;
+  table-layout: fixed;
+  border-collapse: collapse;
+}
+.debt-money-column {
+  width: 15%;
+}
+.debt-date-column {
+  width: 25%;
+}
+.debt-status-column {
+  width: 104px;
+}
+.debt-actions-column {
+  width: 100px;
+}
+.compact-debt-table thead tr {
+  height: 32px;
+}
+.compact-debt-table th {
+  font-size: 10px;
+  color: #64748b;
+  font-weight: 500;
+  text-align: left;
+  border-bottom: 1px solid #e2e8f0;
+  padding: 0 8px;
+}
+.compact-debt-table th:nth-child(2) {
+  text-align: right;
+}
+.compact-debt-table tbody tr {
+  height: 82px;
+}
+.compact-debt-table td {
+  padding: 8px;
+  border-bottom: 1px solid #edf2f8;
+  font-size: 11px;
+  vertical-align: middle;
+}
+.compact-debt-table h3 {
+  font-size: 12px;
+  margin: 0;
+  font-weight: 550;
+}
+.compact-debt-table h3 button {
+  font-size: 12px;
+}
+.debt-person {
+  display: block;
+  color: #526581;
+  font-size: 10px;
+  margin-top: 5px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.compact-debt-table time,
+.compact-debt-table .debt-due,
+.compact-debt-table .overdue-text {
+  display: block;
+  font-size: 9px;
+  line-height: 1.6;
+}
+.compact-debt-table td > small {
+  display: block;
+  color: #64748b;
+  font-size: 9px;
+  margin-top: 7px;
+}
+.compact-debt-table .status-badge {
+  font-size: 9px;
+  padding: 4px 7px;
+}
+.compact-debt-table .settle-action {
+  color: #1d4ed8;
+  background: #eff6ff;
+}
+.mobile-debt-status {
+  display: none;
+}
+.workspace-messages {
+  position: fixed;
+  bottom: 12px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: min(440px, calc(100vw - 28px));
+  z-index: 40;
+  pointer-events: none;
+}
+.workspace-messages > * {
+  pointer-events: auto;
+  box-shadow: 0 5px 25px #142d4e20;
+  margin: 6px 0 0;
+}
+.workspace-messages .notice {
+  border: 1px solid #c7d8f2;
+  background: white;
+  font-size: 11px;
+  padding: 9px 12px;
+}
+.compact-layout .sidebar {
+  width: 190px;
+  height: 100%;
+  padding: 18px 12px;
+  position: relative;
+  flex-shrink: 0;
+  gap: 20px;
+}
+.compact-layout .sidebar .brand {
+  padding: 0 4px;
+  font-size: 19px;
+  gap: 8px;
+}
+.compact-layout .sidebar .brand img {
+  border-radius: 8px;
+}
+.compact-layout .sidebar .main-nav {
+  padding: 0;
+  border: 0;
+  order: 0;
+  flex-direction: column;
+  gap: 7px;
+}
+.compact-layout .sidebar .main-nav button {
+  min-height: 42px;
+  font-size: 11px;
+  padding: 10px 12px;
+  justify-content: flex-start;
+  border-radius: 8px;
+}
+.sidebar-logout {
+  margin-top: auto !important;
+  font-size: 11px;
+}
+.nav-backdrop {
+  display: none;
+}
+@media (min-width: 1600px) {
+  .compact-layout .workspace {
+    padding: 14px 24px;
+  }
+  .overview-main {
+    grid-template-rows: 100px minmax(0, 1fr) minmax(0, 1fr);
+  }
+}
+@media (max-width: 1200px) and (min-width: 1024px) {
+  .compact-layout .workspace {
+    padding: 10px 12px;
+  }
+  .overview-grid {
+    gap: 10px;
+  }
+  .overview-main {
+    gap: 10px;
+  }
+  .overview-aside.right-column {
+    gap: 10px;
+  }
+  .compact-layout .compact-stats .stat {
+    padding: 10px;
+  }
+  .compact-stats .stat > strong {
+    font-size: 18px;
+  }
+  .compact-layout.nav-expanded .overview-grid {
+    grid-template-columns: minmax(0, 65fr) minmax(0, 35fr);
+  }
+}
+@media (max-width: 1023px) {
+  .compact-layout .workspace {
+    padding: 8px 12px;
+    gap: 8px;
+  }
+  .workspace-header {
+    height: 44px;
+    min-height: 44px;
+    gap: 5px;
+  }
+  .workspace-navigation {
+    gap: 7px;
+  }
+  .workspace .icon-button {
+    min-width: 36px;
+    width: 36px;
+    min-height: 44px;
+    height: 44px;
+  }
+  .overview-panel {
+    gap: 8px;
+  }
+  .mobile-panel-tabs {
+    display: flex;
+    flex: none;
+    gap: 4px;
+    height: 34px;
+  }
+  .mobile-panel-tabs button {
+    flex: 1;
+    min-height: 34px;
+    border: 1px solid #c9d7ea;
+    border-radius: 7px;
+    background: #d3dfef;
+    font-size: 10px;
+    color: #526581;
+  }
+  .mobile-panel-tabs button[aria-pressed='true'] {
+    background: white;
+    color: #1d4ed8;
+    border-color: #b6cdf0;
+  }
+  .overview-grid {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+  .overview-main {
+    flex: 1;
+    grid-template-rows: 76px minmax(0, 1fr) minmax(0, 1fr);
+    gap: 8px;
+  }
+  .overview-aside.right-column {
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+    flex: none;
+  }
+  .mobile-view-charts .expense-panel {
+    display: none;
+  }
+  .mobile-view-expenses .overview-main,
+  .mobile-view-expenses .budget-card {
+    display: none;
+  }
+  .mobile-view-expenses .overview-aside {
+    flex: 1;
+    min-height: 0;
+  }
+  .mobile-view-expenses .expense-panel {
+    flex: 1;
+  }
+  .compact-layout .budget-card {
+    height: 82px;
+    padding: 9px 13px;
+    gap: 7px;
+  }
+  .budget-summary strong {
+    margin-top: 4px;
+    font-size: 20px;
+  }
+  .budget-summary h2 {
+    font-size: 10px;
+  }
+  .budget-summary .icon-button {
+    min-height: 36px;
+    height: 36px;
+  }
+  .budget-caption {
+    font-size: 8px;
+  }
+  .budget-summary {
+    align-items: center;
+  }
+  .compact-layout .compact-stats .stat {
+    padding: 9px 11px;
+    gap: 5px;
+  }
+  .compact-stats .stat > strong {
+    font-size: 19px;
+  }
+  .compact-stats .stat-label {
+    font-size: 10px;
+  }
+  .compact-stats .stat > small {
+    font-size: 8px;
+  }
+  .compact-layout .sidebar {
+    position: fixed;
+    top: 0;
+    bottom: 0;
+    left: 0;
+    z-index: 55;
+    flex-direction: column;
+    align-items: stretch;
+    justify-content: flex-start;
+    border: 0;
+    box-shadow: 8px 0 35px #142d4e22;
+    padding: 20px 12px;
+    gap: 22px;
+  }
+  .nav-backdrop {
+    display: block;
+    position: fixed;
+    inset: 0;
+    border: 0;
+    background: #142d4e55;
+    backdrop-filter: blur(2px);
+    z-index: 54;
+  }
+  .compact-layout .sidebar .main-nav > button {
+    flex: none;
+  }
+  .compact-layout .sidebar-logout {
+    display: flex;
+  }
+  .compact-debts {
+    gap: 8px;
+  }
+  .compact-debts > .compact-stats {
+    height: 76px;
+  }
+  .compact-debt-card {
+    padding: 10px !important;
+    gap: 8px;
+  }
+  .compact-debt-toolbar {
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+  .compact-debt-toolbar .search-box {
+    flex: 1;
+    min-width: 200px;
+  }
+  .compact-debt-toolbar .filter-tabs {
+    flex: 1;
+  }
+  .compact-layout .filter-tabs button {
+    flex: 1;
+    min-height: 40px;
+  }
+  .pagination {
+    min-height: 42px;
+  }
+  .pagination button {
+    width: 40px;
+    height: 40px;
+    min-height: 40px;
+    min-width: 40px;
+  }
+  .compact-layout .search-box {
+    height: 40px;
+    min-height: 40px;
+    font-size: 11px;
+  }
+  .expense-table-viewport {
+    --row-height: 72px;
+  }
+  .expense-table tbody tr {
+    height: 72px;
+  }
+  .expense-table .table-actions button {
+    width: 32px;
+    height: 32px;
+  }
+  .expense-table .action-column {
+    width: 38px;
+  }
+  .expense-table td {
+    padding-top: 3px;
+    padding-bottom: 3px;
+  }
+  .expense-table .amount-column {
+    width: 110px;
+  }
+  .expense-table .amount-cell {
+    font-size: 12px;
+  }
+  .expense-name {
+    font-size: 12px;
+  }
+  .expense-meta {
+    font-size: 10px;
+  }
+  .expense-table time {
+    font-size: 9px;
+  }
+}
+@media (max-width: 600px) {
+  .compact-layout .workspace {
+    padding: 7px 9px;
+    gap: 6px;
+  }
+  .compact-brand > span {
+    display: none;
+  }
+  .workspace-navigation {
+    gap: 4px;
+  }
+  .workspace .menu-toggle {
+    min-width: 34px;
+    width: 34px;
+  }
+  .compact-brand {
+    margin-right: 3px;
+  }
+  .compact-brand img {
+    width: 26px;
+    height: 26px;
+  }
+  .overview-panel {
+    gap: 6px;
+  }
+  .overview-grid {
+    gap: 6px;
+  }
+  .overview-main {
+    grid-template-rows: 72px minmax(0, 1fr) minmax(0, 1fr);
+    gap: 6px;
+  }
+  .compact-stats {
+    gap: 6px;
+  }
+  .compact-layout .compact-stats .stat {
+    padding: 8px;
+    border-radius: 9px;
+    gap: 5px;
+  }
+  .compact-stats .stat-label {
+    font-size: 9px;
+  }
+  .compact-stats .stat > strong {
+    font-size: clamp(12px, 3.65vw, 18px);
+    letter-spacing: -0.5px;
+  }
+  .compact-stats .stat > small {
+    font-size: 7px;
+    line-height: 1.4;
+  }
+  .compact-layout .chart-card {
+    padding: 9px 10px;
+    border-radius: 10px;
+  }
+  .panel-heading h2 {
+    font-size: 11px;
+  }
+  .chart-card .chart {
+    margin-top: 5px;
+  }
+  .chart-card .pagination > span {
+    font-size: 8px;
+  }
+  .chart-card .pagination button {
+    width: 30px;
+    height: 30px;
+    min-width: 30px;
+    min-height: 30px;
+  }
+  .chart-card .badge {
+    font-size: 7px;
+  }
+  .panel-heading {
+    min-height: 24px;
+  }
+  .chart-card .pagination {
+    min-height: 30px;
+    gap: 3px;
+  }
+  .compact-layout .budget-card {
+    height: 77px;
+    border-radius: 10px;
+  }
+  .budget-summary strong {
+    font-size: 19px;
+  }
+  .budget-caption {
+    font-size: 7px;
+  }
+  .compact-debts > .compact-stats {
+    height: 72px;
+  }
+  .compact-debts {
+    gap: 6px;
+  }
+  .compact-debt-toolbar {
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 6px;
+  }
+  .compact-debt-toolbar .search-box {
+    width: 100%;
+    min-width: 0;
+    flex: none;
+  }
+  .compact-debt-toolbar .filter-tabs {
+    width: 100%;
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+  .compact-layout .filter-tabs button {
+    padding: 5px 3px;
+    font-size: 9px;
+    min-height: 38px;
+  }
+  .debt-table-viewport {
+    --row-height: 112px;
+    --table-header-height: 0;
+  }
+  .compact-debt-table,
+  .compact-debt-table tbody {
+    display: block;
+    width: 100%;
+  }
+  .compact-debt-table colgroup,
+  .compact-debt-table thead {
+    display: none;
+  }
+  .compact-debt-table tbody tr {
+    height: 112px;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 94px 30px;
+    grid-template-rows: 54px 42px;
+    gap: 2px 5px;
+    padding: 7px 0;
+    border-bottom: 1px solid #e2e8f0;
+  }
+  .compact-debt-table td {
+    border: 0;
+    padding: 0;
+    min-width: 0;
+  }
+  .compact-debt-table td:nth-child(1) {
+    grid-column: 1;
+    grid-row: 1;
+  }
+  .compact-debt-table td:nth-child(2) {
+    grid-column: 2;
+    grid-row: 1;
+    align-self: center;
+    font-size: 12px;
+  }
+  .compact-debt-table td:nth-child(3) {
+    grid-column: 1/3;
+    grid-row: 2;
+    align-self: center;
+  }
+  .compact-debt-table td:nth-child(4) {
+    display: none;
+  }
+  .compact-debt-table td:nth-child(5) {
+    grid-column: 3;
+    grid-row: 1/3;
+    align-self: center;
+  }
+  .compact-debt-table .table-actions {
+    flex-direction: column;
+    gap: 3px;
+  }
+  .compact-debt-table .table-actions button {
+    width: 30px;
+    height: 30px;
+  }
+  .compact-debt-table h3 button {
+    font-size: 11px;
+  }
+  .debt-person {
+    font-size: 9px;
+    margin-top: 2px;
+  }
+  .mobile-debt-status {
+    display: block;
+    font-size: 8px;
+    color: #64748b;
+    margin-top: 2px;
+  }
+  .compact-debt-table time,
+  .compact-debt-table .debt-due,
+  .compact-debt-table .overdue-text {
+    font-size: 9px;
+    line-height: 1.6;
+  }
+}
+@media (max-height: 650px) and (min-width: 1024px) {
+  .compact-layout .workspace {
+    padding-top: 6px;
+    padding-bottom: 6px;
+    gap: 6px;
+  }
+  .overview-main {
+    grid-template-rows: 72px minmax(0, 1fr) minmax(0, 1fr);
+    gap: 8px;
+  }
+  .overview-grid {
+    gap: 8px;
+  }
+  .overview-aside.right-column {
+    grid-template-rows: 108px minmax(0, 1fr);
+    gap: 8px;
+  }
+  .compact-layout .compact-stats .stat {
+    padding: 8px 11px;
+    gap: 4px;
+  }
+  .compact-stats .stat > strong {
+    font-size: 19px;
+  }
+  .compact-layout .chart-card {
+    padding: 9px 12px;
+  }
+  .budget-summary strong {
+    font-size: 21px;
+  }
+  .compact-layout .budget-card {
+    padding: 10px 12px;
+    gap: 7px;
+  }
+  .compact-debts > .compact-stats {
+    height: 72px;
+  }
+}
+@media (max-width: 1023px) {
+  .mobile-panel-tabs {
+    height: 44px;
+  }
+  .mobile-panel-tabs button {
+    min-height: 44px;
+  }
+  .pagination {
+    min-height: 46px;
+  }
+  .pagination button {
+    width: 44px;
+    min-width: 44px;
+    height: 44px;
+    min-height: 44px;
+  }
+  .chart-card .pagination {
+    min-height: 44px;
+  }
+  .chart-card .pagination button {
+    width: 44px;
+    min-width: 44px;
+    height: 44px;
+    min-height: 44px;
+  }
+  .chart-card .pagination-total {
+    display: none;
+  }
+  .expense-panel .panel-heading .icon-button {
+    width: 44px;
+    min-width: 44px;
+    height: 44px;
+    min-height: 44px;
+  }
+  .expense-table-viewport {
+    --row-height: 98px;
+  }
+  .expense-table tbody tr {
+    height: 98px;
+  }
+  .expense-table .table-actions button {
+    width: 44px;
+    height: 44px;
+  }
+  .expense-table .action-column {
+    width: 48px;
+  }
+}
+@media (max-width: 600px) {
+  .debt-table-viewport {
+    --row-height: 148px;
+  }
+  .compact-debt-table tbody tr {
+    height: 148px;
+    grid-template-columns: minmax(0, 1fr) 94px 44px;
+    grid-template-rows: 68px 62px;
+  }
+  .compact-debt-table .table-actions button {
+    width: 44px;
+    height: 44px;
+  }
+  .compact-layout .filter-tabs button {
+    min-height: 44px;
+  }
+}
+
+@media (max-width: 600px) {
+  .compact-layout .workspace-header {
+    gap: 6px;
+    grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+  }
+  .workspace-header .workspace-navigation {
+    gap: 4px;
+  }
+  .workspace-header .compact-brand > span {
+    display: inline;
+  }
+  .workspace-header .compact-brand > img {
+    display: none;
+  }
+  .workspace-header .compact-brand {
+    font-size: 14px;
+    letter-spacing: -0.6px;
+    margin: 0;
+  }
+  .workspace-header .menu-toggle {
+    width: 40px;
+    min-width: 40px;
+  }
+  .month-picker-button {
+    width: 126px;
+    font-size: 11px;
+    gap: 6px;
+    padding: 8px;
+    min-height: 44px;
+  }
+  .header-primary-action .button {
+    font-size: 10px;
+    min-height: 44px;
+    padding: 8px 9px;
+    gap: 5px;
+  }
+  .month-picker-year button {
+    width: 44px;
+    height: 44px;
+  }
+}
+@media (max-width: 380px) {
+  .compact-layout .workspace-header {
+    gap: 4px;
+  }
+  .workspace-header .workspace-navigation {
+    gap: 2px;
+  }
+  .workspace-header .compact-brand {
+    font-size: 11px;
+    letter-spacing: -0.5px;
+  }
+  .workspace-header .menu-toggle {
+    width: 40px;
+    min-width: 40px;
+  }
+  .month-picker-button {
+    width: 102px;
+    font-size: 10px;
+    gap: 3px;
+    padding: 6px 5px;
+  }
+  .header-primary-action .button {
+    font-size: 9px;
+    padding: 7px 7px;
+    gap: 4px;
+  }
+}
+
+@media (max-width: 1023px) {
+  .compact-layout .sidebar {
+    top: 60px;
+    bottom: 0;
+    height: calc(100dvh - 60px);
+  }
+  .nav-backdrop {
+    inset: 60px 0 0;
+  }
+  .nav-expanded .workspace-header {
+    position: relative;
+    z-index: 56;
+  }
+}

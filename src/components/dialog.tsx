@@ -1,0 +1,45 @@
+'use client';
+import { useEffect, useRef } from 'react';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faXmark } from '@fortawesome/free-solid-svg-icons';
+export default function Dialog({
+  title,
+  children,
+  onClose,
+  busy = false,
+}: {
+  title: string;
+  children: React.ReactNode;
+  onClose: () => void;
+  busy?: boolean;
+}) {
+  const ref = useRef<HTMLDialogElement>(null);
+  useEffect(() => {
+    const dialog = ref.current;
+    dialog?.showModal();
+    return () => dialog?.close();
+  }, []);
+  return (
+    <dialog
+      ref={ref}
+      aria-labelledby="dialog-title"
+      onCancel={(e) => {
+        e.preventDefault();
+        if (!busy) onClose();
+      }}
+      onClick={(e) => {
+        if (e.target === ref.current && !busy) onClose();
+      }}
+    >
+      <div className="dialog-content">
+        <div className="dialog-heading">
+          <h2 id="dialog-title">{title}</h2>
+          <button type="button" aria-label="Đóng" disabled={busy} onClick={onClose}>
+            <FontAwesomeIcon icon={faXmark} />
+          </button>
+        </div>
+        {children}
+      </div>
+    </dialog>
+  );
+}

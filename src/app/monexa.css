@@ -1,0 +1,947 @@
+/* MONEXA components and responsive additions. */
+.password-field {
+  position: relative;
+}
+.password-field input {
+  padding-right: 54px;
+}
+.password-toggle {
+  position: absolute;
+  right: 3px;
+  top: 50%;
+  transform: translateY(-50%);
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  border: 0;
+  border-radius: 8px;
+  background: transparent;
+  color: var(--green);
+  font-size: 16px;
+}
+.password-toggle:hover {
+  background: #eff6ff;
+}
+:root {
+  --green: #1d4ed8;
+  --ink: #142d4e;
+}
+.brand {
+  font-size: 21px;
+  letter-spacing: -0.8px;
+}
+.brand-image {
+  border-radius: 12px;
+  flex-shrink: 0;
+}
+.brand-dot {
+  color: #3b82f6;
+}
+.main-nav {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+}
+.main-nav > button {
+  display: flex;
+  width: 100%;
+  border: 0;
+  min-height: 46px;
+  margin: 0;
+  text-align: left;
+}
+.nav-count {
+  margin-left: auto;
+  font-size: 10px;
+}
+.header-actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.icon-button {
+  width: 44px;
+  height: 44px;
+  display: inline-grid;
+  place-items: center;
+  background: transparent;
+  border: 0;
+  color: #64748b;
+  border-radius: 9px;
+  font-size: 13px;
+  flex-shrink: 0;
+}
+.icon-button:hover {
+  background: #eff6ff;
+}
+.offline {
+  background: #bd9572;
+}
+.profile .icon-button {
+  margin-left: auto;
+  width: 32px;
+  font-size: 12px;
+}
+.profile .avatar {
+  width: 32px;
+  flex-shrink: 0;
+}
+fieldset {
+  border: 0;
+  margin: 0;
+  padding: 0;
+  min-width: 0;
+}
+fieldset:disabled {
+  opacity: 0.65;
+}
+form textarea {
+  display: block;
+  width: 100%;
+  margin-top: 8px;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  background: #ffffff;
+  padding: 12px;
+  resize: vertical;
+  font: inherit;
+  outline-color: #60a5fa;
+}
+form label,
+.field-label {
+  font-size: 12px;
+}
+.optional {
+  color: #64748b;
+  font-weight: 400;
+  font-size: 10px;
+}
+.form-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+.form-row > * {
+  min-width: 0;
+}
+.amount-preview {
+  font-size: 12px;
+  color: var(--green);
+  text-align: right;
+  margin: 6px 0;
+}
+.date-time-field {
+  margin-top: 16px;
+}
+.date-time-field > label {
+  display: block;
+  font-weight: 500;
+  margin-bottom: 8px;
+}
+.react-datepicker-wrapper {
+  width: 100%;
+}
+.date-time-field input {
+  margin: 0;
+  width: 100%;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  background: #ffffff;
+  padding: 12px;
+  min-height: 46px;
+  color: var(--ink);
+  outline-color: #60a5fa;
+  font-size: 12px;
+}
+.react-datepicker-popper {
+  z-index: 20;
+}
+.react-datepicker {
+  font-family: 'Be Vietnam Pro', sans-serif !important;
+  font-size: 11px !important;
+  border-color: #e2e8f0 !important;
+  box-shadow: 0 10px 35px #142d4e20;
+}
+.react-datepicker__header {
+  background: #eff6ff !important;
+  border-color: #e2e8f0 !important;
+}
+.react-datepicker__day--selected,
+.react-datepicker__day--keyboard-selected,
+.react-datepicker__time-list-item--selected {
+  background: var(--green) !important;
+  color: white !important;
+}
+.react-datepicker__time-container {
+  border-color: #e2e8f0 !important;
+}
+.react-datepicker__time-list-item {
+  font-size: 11px;
+}
+.react-datepicker__close-icon::after {
+  background-color: var(--green) !important;
+}
+.react-datepicker__input-container > input:disabled {
+  cursor: not-allowed;
+}
+.react-datepicker__navigation {
+  min-width: 32px;
+  min-height: 32px;
+}
+.icon-picker {
+  display: grid;
+  grid-template-columns: repeat(6, 1fr);
+  gap: 7px;
+  margin-top: 8px;
+}
+.icon-picker button {
+  height: 44px;
+  border: 1px solid #e2e8f0;
+  background: #ffffff;
+  border-radius: 8px;
+  color: #64748b;
+  font-size: 17px;
+}
+.icon-picker button.selected {
+  background: #eff6ff;
+  border-color: #60a5fa;
+  color: #1d4ed8;
+}
+.field-label {
+  margin-top: 20px;
+}
+.category-editor-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 20px 0;
+  max-height: 180px;
+  overflow: auto;
+}
+.category-editor-list button {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  border: 1px solid var(--line);
+  background: #fff;
+  padding: 10px 12px;
+  min-height: 44px;
+  border-radius: 9px;
+  font-size: 11px;
+  color: #64748b;
+}
+.category-editor-list button > svg:last-child {
+  font-size: 9px;
+  opacity: 0.5;
+}
+.category-editor-list button.selected {
+  background: #eff6ff;
+  border-color: #dbeafe;
+}
+.editor-subheading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.editor-subheading h3 {
+  font-size: 12px;
+  margin: 4px 0;
+}
+.search-box {
+  margin-top: 18px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 0 10px;
+  background: #eff6ff;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  min-height: 42px;
+  color: #64748b;
+  font-size: 11px;
+}
+.search-box input {
+  width: 100%;
+  min-width: 0;
+  background: transparent;
+  border: 0;
+  padding: 11px 0;
+  outline: none;
+  font: inherit;
+  color: var(--ink);
+}
+.search-box:focus-within {
+  outline: 2px solid #60a5fa;
+  outline-offset: 2px;
+}
+.transaction-list {
+  max-height: 540px;
+}
+.transaction-info small {
+  line-height: 1.5;
+}
+.row-actions {
+  display: flex;
+  gap: 3px;
+  margin-top: 4px;
+}
+.row-actions button {
+  border: 0;
+  background: transparent;
+  color: #64748b;
+  border-radius: 7px;
+  min-width: 36px;
+  min-height: 36px;
+  font-size: 11px;
+}
+.row-actions button:hover {
+  background: #eff6ff;
+}
+.transaction-note {
+  font-size: 10px;
+  color: #64748b;
+  margin: 6px 0;
+  line-height: 1.6;
+  overflow-wrap: anywhere;
+}
+.transaction {
+  align-items: flex-start;
+}
+.transaction-end {
+  padding-top: 4px;
+  max-width: 45%;
+}
+.transaction-end strong {
+  white-space: normal;
+  overflow-wrap: anywhere;
+  font-size: 11px;
+}
+.transaction-info strong {
+  font-size: 11px;
+}
+.transaction-info small {
+  font-size: 9px;
+}
+.transaction-info .row-actions {
+  margin-left: -8px;
+}
+.debt-overview {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 15px;
+}
+.debt-overview p {
+  font-size: 10px;
+  color: #64748b;
+  margin-top: 9px;
+  line-height: 1.8;
+}
+.migration-banner {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  background: #eff6ff;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  padding: 16px 20px;
+  margin-bottom: 22px;
+}
+.migration-banner > div {
+  flex: 1;
+}
+.migration-banner strong {
+  font-size: 12px;
+}
+.migration-banner p {
+  font-size: 10px;
+  color: #64748b;
+  margin: 7px 0 0;
+  line-height: 1.8;
+}
+.loading-state {
+  padding: 100px 20px;
+  text-align: center;
+  color: #64748b;
+}
+.loading-state svg {
+  margin-right: 10px;
+}
+.debt-stats {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 18px;
+  margin-bottom: 24px;
+}
+.debt-stats .stat {
+  padding: 25px;
+}
+.debt-stats .stat-label {
+  font-size: 12px;
+}
+.debt-stats .stat > strong {
+  font-size: 27px;
+  margin-top: 16px;
+}
+.debt-stats .stat-foot {
+  font-size: 10px;
+}
+.debt-toolbar {
+  display: flex;
+  gap: 14px;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  margin-bottom: 16px;
+}
+.debt-toolbar .search-box {
+  margin: 0;
+  min-width: 230px;
+}
+.filter-tabs {
+  display: flex;
+  gap: 5px;
+  flex-wrap: wrap;
+}
+.filter-tabs button {
+  padding: 10px 13px;
+  min-height: 44px;
+  border: 1px solid transparent;
+  background: transparent;
+  border-radius: 8px;
+  color: #64748b;
+  font-size: 11px;
+}
+.filter-tabs button.selected {
+  background: #eff6ff;
+  border-color: #e2e8f0;
+  color: #1d4ed8;
+}
+.debt-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 16px;
+  border-top: 1px solid #e2e8f0;
+  padding: 24px 0;
+}
+.debt-symbol {
+  width: 42px;
+  height: 42px;
+  border-radius: 13px;
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+  background: #f0fdf4;
+  color: #059669;
+}
+.debt-symbol.payable {
+  background: #faf0e3;
+  color: #b68a54;
+}
+.debt-info {
+  min-width: 0;
+  flex: 1;
+}
+.debt-title {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 9px;
+  margin-bottom: 9px;
+}
+.debt-title h3 {
+  font-size: 14px;
+  font-weight: 550;
+  margin: 0;
+  overflow-wrap: anywhere;
+}
+.status-badge {
+  font-size: 9px;
+  padding: 5px 8px;
+  background: #eff6ff;
+  color: #3b82f6;
+  border-radius: 6px;
+  white-space: nowrap;
+}
+.status-badge.overdue {
+  background: #f9ece5;
+  color: #b66b50;
+}
+.status-badge.settled {
+  background: #f0fdf4;
+  color: #059669;
+}
+.person-name {
+  font-size: 11px;
+  font-weight: 500;
+  color: #3b82f6;
+}
+.debt-info p {
+  font-size: 10px;
+  color: #64748b;
+  margin: 8px 0 0;
+  line-height: 1.8;
+}
+.debt-info .debt-note {
+  color: #64748b;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+.debt-info .overdue-text {
+  color: #b66b50;
+}
+.debt-end {
+  text-align: right;
+  flex-shrink: 0;
+}
+.debt-end > strong {
+  font-size: 18px;
+  font-weight: 550;
+  letter-spacing: -0.4px;
+}
+.debt-end .row-actions {
+  justify-content: flex-end;
+}
+.settle-button {
+  font-size: 10px;
+  min-height: 38px;
+  margin-top: 9px;
+}
+.alert .inline-button {
+  display: block;
+  color: #8b633d;
+  text-align: left;
+  text-decoration: underline;
+  font-size: 11px;
+}
+.alert {
+  line-height: 1.9;
+}
+.notice {
+  line-height: 1.8;
+}
+.login-page {
+  width: 100%;
+  padding: 50px 20px;
+  min-height: 100dvh;
+  display: grid;
+  place-items: center;
+  background: radial-gradient(ellipse at 50% 20%, #eff6ff, transparent 65%), #f7faff;
+}
+.login-card {
+  width: min(450px, 100%);
+  background: #ffffffde;
+  border: 1px solid #e2e8f0;
+  border-radius: 24px;
+  padding: 40px;
+  box-shadow: 0 20px 70px #1d4ed810;
+}
+.login-card > img {
+  border-radius: 19px;
+  margin-bottom: 25px;
+}
+.login-card .eyebrow {
+  font-size: 9px;
+  letter-spacing: 1px;
+}
+.login-card h1 {
+  font-size: 26px;
+  line-height: 1.6;
+}
+.login-card > p {
+  font-size: 12px;
+  color: #64748b;
+  line-height: 1.9;
+  margin-bottom: 30px;
+}
+.login-card form label {
+  font-size: 12px;
+}
+.login-card form input {
+  min-height: 48px;
+}
+.login-card .primary {
+  min-height: 48px;
+  font-size: 12px;
+}
+.login-hint {
+  display: block;
+  text-align: center;
+  font-size: 10px;
+  color: #64748b;
+  line-height: 1.8;
+  margin-top: 20px;
+}
+.setup-message {
+  background: #eff6ff;
+  border: 1px solid #e2e8f0;
+  padding: 20px;
+  border-radius: 12px;
+  margin-top: 25px;
+}
+.setup-message h2 {
+  font-size: 13px;
+}
+.setup-message p {
+  font-size: 11px;
+  line-height: 1.9;
+  color: #64748b;
+}
+.setup-message code {
+  display: block;
+  font-size: 11px;
+  line-height: 1.9;
+  overflow-wrap: anywhere;
+  color: #1d4ed8;
+}
+.budget-card .card-heading > svg {
+  color: #3b82f6;
+}
+.storage-note {
+  line-height: 1.8;
+}
+@media (min-width: 1024px) {
+  .main-nav {
+    margin-top: 0;
+  }
+  .transaction-end {
+    max-width: 48%;
+  }
+}
+@media (max-width: 1270px) {
+  .brand {
+    font-size: 18px;
+  }
+  .brand-image {
+    width: 36px;
+    height: 36px;
+  }
+  .transaction {
+    flex-wrap: nowrap;
+    gap: 7px;
+  }
+  .transaction-end strong {
+    font-size: 10px;
+  }
+  .transaction-info strong {
+    font-size: 10px;
+  }
+  .debt-stats .stat > strong {
+    font-size: 23px;
+  }
+  .debt-stats .stat {
+    padding: 22px 17px;
+  }
+}
+@media (max-width: 1023px) {
+  .debt-stats {
+    gap: 12px;
+  }
+  .debt-stats .stat > strong {
+    font-size: 21px;
+  }
+  .debt-stats .stat-label {
+    font-size: 10px;
+  }
+  .debt-stats .stat-foot {
+    font-size: 9px;
+  }
+  .debt-item {
+    gap: 12px;
+  }
+  .debt-end > strong {
+    font-size: 16px;
+  }
+  .debt-overview p {
+    font-size: 9px;
+  }
+  .transactions .transaction-list {
+    max-height: 480px;
+  }
+}
+@media (max-width: 700px) {
+  .right-column {
+    align-items: stretch;
+  }
+  .sidebar {
+    flex-wrap: wrap;
+    gap: 14px;
+    padding: 15px 18px 0;
+  }
+  .brand {
+    font-size: 21px;
+  }
+  .brand-image {
+    width: 38px;
+    height: 38px;
+  }
+  .side-label {
+    display: none;
+  }
+  .main-nav {
+    order: 2;
+    flex-direction: row;
+    width: 100%;
+    gap: 4px;
+    border-top: 1px solid #e2e8f0;
+    padding-top: 7px;
+  }
+  .main-nav > button {
+    font-size: 11px;
+    flex: 1;
+    justify-content: center;
+    padding: 10px 6px;
+    border-radius: 8px 8px 0 0;
+    min-width: 0;
+  }
+  .nav-count {
+    display: none;
+  }
+  .profile {
+    display: flex;
+    border: 0;
+    margin: 0;
+    padding: 0;
+  }
+  .profile > div {
+    display: none;
+  }
+  .profile .icon-button {
+    width: 44px;
+    height: 44px;
+  }
+  .header-actions {
+    gap: 0;
+  }
+  .header-actions .icon-button {
+    width: 38px;
+    height: 38px;
+  }
+  .private {
+    font-size: 9px;
+  }
+  .breadcrumb {
+    font-size: 9px;
+  }
+  .stat-label {
+    font-size: 9px;
+  }
+  .stat-foot {
+    font-size: 8px;
+  }
+  .card-heading p {
+    font-size: 10px;
+    line-height: 1.8;
+  }
+  h2 {
+    font-size: 13px;
+  }
+  .empty p {
+    font-size: 11px;
+  }
+  .empty h3 {
+    font-size: 13px;
+  }
+  .transaction-info strong,
+  .transaction-end strong {
+    font-size: 12px;
+  }
+  .transaction-info small {
+    font-size: 10px;
+  }
+  .transaction-info .row-actions button {
+    min-width: 44px;
+    min-height: 44px;
+  }
+  .category-mark {
+    width: 36px;
+    height: 36px;
+  }
+  .transaction-end {
+    max-width: 48%;
+  }
+  .debt-overview {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  .debt-overview p {
+    font-size: 10px;
+  }
+  .debt-overview .button {
+    width: 100%;
+  }
+  .migration-banner {
+    flex-wrap: wrap;
+    padding: 15px;
+    gap: 8px;
+    position: relative;
+  }
+  .migration-banner > div {
+    flex-basis: 100%;
+    padding-right: 25px;
+  }
+  .migration-banner > .icon-button {
+    position: absolute;
+    top: 7px;
+    right: 7px;
+  }
+  .migration-banner > .button {
+    width: 100%;
+  }
+  .debt-stats {
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+  }
+  .debt-stats .stat {
+    padding: 18px 14px;
+  }
+  .debt-stats .stat:last-child {
+    grid-column: 1/-1;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+  }
+  .debt-stats .stat:last-child .stat-foot {
+    display: none;
+  }
+  .debt-stats .stat:last-child strong {
+    margin: 0;
+    font-size: 24px;
+  }
+  .debt-stats .stat-label {
+    font-size: 10px;
+    line-height: 1.8;
+    margin: 0;
+  }
+  .debt-stats .stat > strong {
+    font-size: 22px;
+    margin-top: 12px;
+  }
+  .debt-stats .stat-foot {
+    font-size: 8px;
+    line-height: 1.8;
+  }
+  .debt-toolbar {
+    gap: 14px;
+  }
+  .debt-toolbar .search-box {
+    width: 100%;
+  }
+  .filter-tabs {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 3px;
+    width: 100%;
+  }
+  .filter-tabs button {
+    padding: 8px 5px;
+    font-size: 10px;
+  }
+  .debt-item {
+    gap: 10px;
+    flex-wrap: wrap;
+    padding: 22px 0;
+  }
+  .debt-symbol {
+    width: 34px;
+    height: 34px;
+    border-radius: 10px;
+  }
+  .debt-title h3 {
+    font-size: 13px;
+  }
+  .debt-info p {
+    font-size: 10px;
+  }
+  .debt-end {
+    margin-left: 44px;
+    width: calc(100% - 44px);
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    flex-wrap: wrap;
+    text-align: left;
+  }
+  .debt-end > strong {
+    font-size: 18px;
+    flex: 1;
+  }
+  .debt-end .row-actions button {
+    min-width: 44px;
+    min-height: 44px;
+  }
+  .settle-button {
+    width: 100%;
+    margin-top: 0;
+    min-height: 44px;
+  }
+  .status-badge {
+    font-size: 9px;
+  }
+  .form-row {
+    grid-template-columns: 1fr;
+    gap: 0;
+  }
+  .login-card {
+    padding: 30px 24px;
+  }
+  .login-card h1 {
+    font-size: 25px;
+  }
+  .dialog-heading h2 {
+    font-size: 18px;
+  }
+  .react-datepicker {
+    display: flex !important;
+    max-width: calc(100vw - 85px);
+  }
+  .react-datepicker__month-container {
+    float: none !important;
+    min-width: 0;
+  }
+  .react-datepicker__time-container {
+    width: 70px !important;
+    flex-shrink: 0;
+  }
+  .react-datepicker__time-box {
+    width: 69px !important;
+  }
+  .react-datepicker__day,
+  .react-datepicker__day-name {
+    width: 1.65rem !important;
+    line-height: 1.65rem !important;
+    margin: 0.1rem !important;
+  }
+  .react-datepicker__header {
+    padding-top: 8px !important;
+  }
+  .react-datepicker__current-month {
+    font-size: 12px !important;
+  }
+  .react-datepicker-time__header {
+    font-size: 11px !important;
+  }
+  .react-datepicker__navigation--next--with-time {
+    right: 72px !important;
+  }
+  .react-datepicker__month {
+    margin: 0.3rem !important;
+  }
+  .chart-note {
+    font-size: 9px;
+  }
+  .storage-note {
+    font-size: 9px;
+  }
+  footer button {
+    font-size: 11px;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  * {
+    scroll-behavior: auto !important;
+    transition: none !important;
+  }
+}

@@ -1,0 +1,48 @@
+# Dependencies and local caches
+node_modules/
+.npm-cache/
+.cache/
+.turbo/
+.pnpm-store/
+
+# Next.js / TypeScript generated output
+.next/
+out/
+dist/
+build/
+next-env.d.ts
+*.tsbuildinfo
+
+# Local secrets and private financial backups
+.env*
+*.pem
+*.key
+*.p12
+*.pfx
+backups/
+MONEXA-*.json
+vi-cua-toi-*.json
+
+# Test output, screenshots and logs
+artifacts/
+coverage/
+playwright-report/
+test-results/
+blob-report/
+*.log
+
+# Hosting, agent and editor state on this machine
+.vercel/
+.codex/
+.agents/
+.aws/
+.vscode/
+.idea/
+
+# Operating-system and temporary files
+.DS_Store
+Thumbs.db
+Desktop.ini
+*.tmp
+*.swp
+*~

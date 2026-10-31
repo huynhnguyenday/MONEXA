@@ -1,0 +1,25 @@
+# Quy tắc cho coding agents
+
+- Stack: Next.js App Router, React, TypeScript strict, Tailwind CSS, Chart.js và Font Awesome. Giao diện tiếng Việt, tiền VND.
+- Đọc `docs/UX_UI_RULES.md` trước khi sửa giao diện.
+- Header chỉ một hàng: MONEXA và nút navbar trái, tháng tiếng Việt chính giữa, nút tạo bên phải. Điều hướng và nhập/xuất/đăng xuất chỉ trong navbar; không lặp các nút này trên main, không thêm nút hoặc nhãn đồng bộ thường trực. Tự cập nhật dữ liệu nền và giữ nguyên các thông báo lỗi/kiểm tra revision cần thiết.
+- Chỉ có một nút bật/tắt navbar ở header, nền xanh tương phản, viền và shadow rõ. Không thêm nút đóng bên trong navbar; trên điện thoại header phải ở ngoài lớp phủ để nút này vẫn bấm được khi menu mở.
+- Các mục điều hướng nghiệp vụ có màn hình riêng: Tổng quan, Công nợ, Danh mục. Navbar Danh mục phải mở bảng quản lý danh mục; chỉ form tạo/sửa hoặc quản lý nhanh trong chi tiêu mới dùng dialog.
+- Tách theo trách nhiệm trong `features/finance`: `layout/` cho header/sidebar, `panels/` cho màn hình, `charts/` cho biểu đồ, `forms/` cho từng form và types chung, `dialogs/` cho điều phối dialog, `hooks/` cho state và dữ liệu, `components/` cho phản hồi dùng chung. Dashboard chỉ ghép các phần này; không dồn tất cả form/layout/logic vào một file.
+- Quy tắc cố định: màn hình nghiệp vụ phải vừa viewport, không kéo dài trang hoặc tạo vùng cuộn cho bảng/biểu đồ. Gom/bỏ tiêu đề phụ; dùng phân trang theo chiều cao, phân trang cột biểu đồ khi nhiều danh mục. Trên điện thoại dùng tab nội dung để giữ chữ và thao tác đủ lớn. Navbar phải đóng/mở được. Không dùng overflow:hidden để che phần dữ liệu chưa bố trí vừa; kiểm tra cả scrollHeight và scrollWidth ở laptop và điện thoại.
+- `src/app`: route, layout và CSS chung. `src/features/<feature>`: UI, logic và kiểu dữ liệu theo tính năng. `src/components`: thành phần dùng chung khi có nhu cầu thực tế. `src/lib`: tiện ích dùng chung.
+- MONEXA là ứng dụng cá nhân, triển khai Next.js trên Vercel, dùng MongoDB qua Route Handlers Node.js. Không tự thêm dịch vụ trả phí.
+- Dữ liệu chính ở MongoDB; localStorage chỉ dùng để chuyển dữ liệu v1, không tự động ghi đè cloud. API kiểm tra Zod và xác thực mọi yêu cầu đọc/ghi. Dùng revision để chặn ghi đè từ nhiều thiết bị.
+- Đọc `docs/DATA_MODEL.md` trước khi sửa database. Tách riêng collection `users`, `categories`, `expenses`, `people`, `debts`, `settings`; không lưu mảng dữ liệu nghiệp vụ gộp trong một document nữa.
+- Mỗi thực thể có ID cố định (`_id` ở MongoDB, `id` ở API). Chi tiêu lưu `categoryId` và `userId`; công nợ lưu `personId` và `userId`. Không đổi ID khi sửa tên/icon, không dùng name làm khóa liên kết.
+- User chỉ là bản ghi dự phòng với ID `personal`, không triển khai nhiều người dùng hoặc đăng ký. Server kiểm soát userId; luôn lọc dữ liệu theo owner này.
+- Thay đổi nhiều collection phải dùng transaction, đọc snapshot nhất quán và kiểm tra revision ở settings để tránh lưu dở dang hoặc ghi đè giữa thiết bị. Migration giữ nguyên ID, tiền và bản `finance/personal` cũ; không tự xóa bản đối chiếu.
+- Thời gian lưu ISO UTC, hiển thị và thống kê theo Asia/Ho_Chi_Minh. Bộ chọn thời gian dùng react-datepicker + date-fns locale vi.
+- Secrets chỉ trong .env.local và biến môi trường Vercel; không đưa vào NEXT_PUBLIC_, Git, log hoặc response. Không in nội dung .env.local khi kiểm tra.
+- Chỉ duy trì duy nhất một file môi trường `.env.local` trong dự án; không tạo `.env`, `.env.example`, `.env.development` hoặc `.env.production`. Khi chuyển máy, sao chép riêng `.env.local`; trên Vercel dùng Environment Variables tương ứng.
+- Mật khẩu cá nhân, session HttpOnly, kiểm tra Origin và giới hạn đăng nhập phải được giữ. Đổi APP_PASSWORD hoặc SESSION_SECRET sẽ vô hiệu phiên cũ.
+- Test DB thật phải dùng database monexa_verify_* riêng; không seed hoặc thay thế dữ liệu cá nhân. Không tự publish lên Sites; đích triển khai được người dùng chọn là Vercel.
+- Tính thống kê từ giao dịch thực; không đưa dữ liệu mẫu vào số dư thật. Ngày giao dịch dùng ngày địa phương.
+- Mọi form phải có label, validation và thông báo lỗi. Mọi nút icon phải có tên truy cập.
+- Không commit secrets, node_modules, .next. Chạy `npm test`, `npm run typecheck` và `npm run build` sau thay đổi chức năng; dùng `npm run test:e2e` khi đổi form/API, có MongoDB kết nối được.
+- Khi bàn giao, nêu thay đổi, kiểm tra đã chạy và giới hạn còn tồn tại.
