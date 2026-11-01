@@ -9,6 +9,7 @@ import { CategoryForm } from '../forms/category-form';
 import { CategoryManager } from '../forms/category-manager';
 import { BudgetForm } from '../forms/budget-form';
 import { PeopleForm } from '../forms/people-form';
+import { BudgetHistory } from '../forms/budget-history';
 
 type Props = {
   modal: FinanceModal;
@@ -17,6 +18,7 @@ type Props = {
   onClose: () => void;
   formProps: FormProps;
   error: ReactNode;
+  month: string;
 };
 export default function FinanceDialogs({
   modal,
@@ -25,6 +27,7 @@ export default function FinanceDialogs({
   onClose,
   formProps,
   error,
+  month,
 }: Props) {
   if (!modal) return null;
   const title = categoryOverlay
@@ -41,11 +44,13 @@ export default function FinanceDialogs({
           ? modal.category
             ? 'Sửa danh mục'
             : 'Thêm danh mục'
-          : modal.type === 'people'
+            : modal.type === 'budget-history'
+              ? 'Lịch sử ngân sách'
+              : modal.type === 'people'
             ? 'Người liên quan'
             : 'Ngân sách của bạn';
   return (
-    <Dialog title={title} onClose={onClose} busy={formProps.busy}>
+    <Dialog title={title} onClose={onClose} busy={formProps.busy} compact={modal.type === 'debt'} className={modal.type === 'budget-history' ? 'budget-history-dialog' : undefined}>
       {error}
       {modal.type === 'expense' && (
         <>
@@ -64,6 +69,7 @@ export default function FinanceDialogs({
       {modal.type === 'category' && <CategoryForm {...formProps} category={modal.category} />}
       {modal.type === 'debt' && <DebtForm {...formProps} debt={modal.debt} />}
       {modal.type === 'budget' && <BudgetForm {...formProps} />}
+      {modal.type === 'budget-history' && <BudgetHistory data={formProps.data} month={month} />}
       {modal.type === 'people' && <PeopleForm {...formProps} />}
     </Dialog>
   );

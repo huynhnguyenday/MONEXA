@@ -42,9 +42,17 @@ export const expenseSchema = z.object({
   userId: ownerId,
   title: text(100),
   amount,
+  paymentMethod: z.enum(['cash', 'bank']).default('cash'),
   categoryId: id,
   note: z.string().max(500),
   occurredAt: pastInstant,
+});
+export const budgetEntrySchema = z.object({
+  id,
+  userId: ownerId,
+  cash: z.number().int().min(0).max(1_000_000_000_000),
+  bank: z.number().int().min(0).max(1_000_000_000_000),
+  recordedAt: instant,
 });
 export const personSchema = z.object({ id, userId: ownerId, name: text(80) });
 export const debtSchema = z
@@ -66,13 +74,14 @@ export const financeSchema = z
   .object({
     schemaVersion: z.literal(2),
     budget: z.number().int().min(0).max(1_000_000_000_000),
+    budgets: z.array(budgetEntrySchema).max(5000).default([]),
     categories: z.array(categorySchema).min(1).max(100),
     expenses: z.array(expenseSchema).max(5000),
     people: z.array(personSchema).max(2000),
     debts: z.array(debtSchema).max(2000),
   })
   .superRefine((data, ctx) => {
-    for (const key of ['categories', 'expenses', 'people', 'debts'] as const) {
+    for (const key of ['categories', 'expenses', 'people', 'debts', 'budgets'] as const) {
       if (new Set(data[key].map((item) => item.id)).size !== data[key].length)
         ctx.addIssue({ code: 'custom', message: `ID trùng trong ${key}.`, path: [key] });
     }
@@ -93,6 +102,7 @@ export const financeSchema = z
   });
 export type Category = z.infer<typeof categorySchema>;
 export type Expense = z.infer<typeof expenseSchema>;
+export type BudgetEntry = z.infer<typeof budgetEntrySchema>;
 export type Person = z.infer<typeof personSchema>;
 export type Debt = z.infer<typeof debtSchema>;
 export type FinanceData = z.infer<typeof financeSchema>;
@@ -101,6 +111,7 @@ export const LEGACY_STORAGE_KEY = 'vi-cua-toi:v1';
 export const initialData: FinanceData = {
   schemaVersion: 2,
   budget: 0,
+  budgets: [],
   categories: [
     { id: 'food', userId: PERSONAL_USER_ID, name: 'Ăn uống', color: '#2563eb', icon: 'utensils' },
     { id: 'shopping', userId: PERSONAL_USER_ID, name: 'Mua sắm', color: '#f59e0b', icon: 'bag' },
@@ -154,13 +165,18 @@ const legacySchema = z.object({
   ),
 });
 export function parseBackup(raw: unknown): FinanceData {
-  if (raw && typeof raw === 'object' && 'schemaVersion' in raw) return financeSchema.parse(raw);
+  if (raw && typeof raw === 'object' && 'schemaVersion' in raw) {
+    const parsed = financeSchema.parse(raw);
+    if (!parsed.budgets.length && parsed.budget > 0) parsed.budgets.push({ id: 'budget-migration', userId: PERSONAL_USER_ID, cash: parsed.budget, bank: 0, recordedAt: new Date().toISOString() });
+    return parsed;
+  }
   const old = legacySchema.parse(raw);
   return financeSchema.parse({
     ...old,
     schemaVersion: 2,
     people: [],
     debts: [],
+    budgets: old.budget > 0 ? [{ id: 'budget-migration', userId: PERSONAL_USER_ID, cash: old.budget, bank: 0, recordedAt: new Date().toISOString() }] : [],
     categories: old.categories.map((c) => ({ ...c, icon: 'wallet' })),
     expenses: old.expenses.map((e) => ({
       id: e.id,

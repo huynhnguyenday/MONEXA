@@ -1,8 +1,9 @@
 'use client';
 import { useState } from 'react';
+import { FontAwesomeIcon as Icon } from '@fortawesome/react-fontawesome';
 import DateTimeField from '@/components/date-time-field';
-import { type Expense, money, PERSONAL_USER_ID } from '../model';
-import { iconLabels } from '../icons';
+import { type Expense, PERSONAL_USER_ID } from '../model';
+import { categoryIcons } from '../icons';
 import { type FormProps, field } from './types';
 export function ExpenseForm({
   data,
@@ -15,7 +16,8 @@ export function ExpenseForm({
   const [date, setDate] = useState<Date | null>(
     expense ? new Date(expense.occurredAt) : new Date(),
   );
-  const [amount, setAmount] = useState(expense?.amount.toString() || '');
+  const [amount, setAmount] = useState(expense ? new Intl.NumberFormat('vi-VN').format(expense.amount) : '');
+  const [categoryId, setCategoryId] = useState(expense?.categoryId || data.categories[0]?.id || '');
   const [error, setError] = useState('');
   return (
     <form
@@ -29,10 +31,11 @@ export function ExpenseForm({
           id: expense?.id || crypto.randomUUID(),
           userId: PERSONAL_USER_ID,
           title: field(f, 'title'),
-          amount: Number(amount),
+          amount: Number(amount.replace(/\D/g, '')),
+          paymentMethod: field(f, 'paymentMethod') as Expense['paymentMethod'],
           categoryId: field(f, 'categoryId'),
           occurredAt: date.toISOString(),
-          note: field(f, 'note'),
+          note: '',
         };
         if (
           await save({
@@ -48,13 +51,14 @@ export function ExpenseForm({
       <fieldset disabled={busy}>
         <label>
           Tên chi tiêu
-          <input
+          <textarea
             name="title"
             defaultValue={expense?.title}
             maxLength={100}
             placeholder="Ví dụ: Ăn trưa, mua sách…"
             autoFocus
             required
+            rows={2}
           />
         </label>
         <DateTimeField
@@ -68,43 +72,36 @@ export function ExpenseForm({
           Số tiền (VND)
           <input
             name="amount"
-            type="number"
+            type="text"
             inputMode="numeric"
-            min="1"
-            max="1000000000000"
-            step="1"
             value={amount}
-            onChange={(e) => setAmount(e.target.value)}
+            onChange={(e) => {
+              const digits = e.target.value.replace(/\D/g, '').slice(0, 13);
+              setAmount(digits ? new Intl.NumberFormat('vi-VN').format(Number(digits)) : '');
+            }}
             required
             placeholder="Ví dụ: 50000"
           />
         </label>
-        {Number(amount) > 0 && <div className="amount-preview">{money(Number(amount))}</div>}
-        <label htmlFor="expense-category">Danh mục</label>
-        <select
-          id="expense-category"
-          name="categoryId"
-          defaultValue={expense?.categoryId || data.categories[0].id}
-        >
+        <label>Danh mục</label>
+        <input type="hidden" name="categoryId" value={categoryId} />
+        <div className="expense-category-picker" role="group" aria-label="Chọn danh mục chi tiêu">
           {data.categories.map((c) => (
-            <option key={c.id} value={c.id}>
-              {iconLabels[c.icon]} · {c.name}
-            </option>
+            <button type="button" key={c.id} className={categoryId === c.id ? 'selected' : ''} aria-pressed={categoryId === c.id} onClick={() => setCategoryId(c.id)}>
+              <Icon icon={categoryIcons[c.icon]} style={{ color: c.color }} /> <span>{c.name}</span>
+            </button>
           ))}
-        </select>
+        </div>
+        <label>
+          Hình thức thanh toán
+          <select name="paymentMethod" defaultValue={expense?.paymentMethod || 'cash'}>
+            <option value="cash">Tiền mặt</option>
+            <option value="bank">Chuyển khoản</option>
+          </select>
+        </label>
         <button type="button" className="inline-button" onClick={onCategory}>
           + Quản lý / thêm danh mục
         </button>
-        <label>
-          Ghi chú <span className="optional">(không bắt buộc)</span>
-          <textarea
-            name="note"
-            defaultValue={expense?.note}
-            maxLength={500}
-            rows={3}
-            placeholder="Thêm một chút thông tin…"
-          />
-        </label>
         {error && (
           <p role="alert" className="form-error">
             {error}

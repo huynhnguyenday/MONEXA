@@ -674,6 +674,12 @@ dialog::backdrop {
 .dialog-content {
   padding: 28px;
 }
+dialog.compact-dialog { width: min(380px, calc(100% - 28px)); }
+dialog.compact-dialog .dialog-content { padding: 20px; }
+dialog.compact-dialog .dialog-heading { margin-bottom: 0; }
+dialog.compact-dialog form label { margin-top: 10px; }
+dialog.compact-dialog form input,
+dialog.compact-dialog form select { margin-top: 5px; padding: 9px 11px; }
 .dialog-heading {
   display: flex;
   justify-content: space-between;

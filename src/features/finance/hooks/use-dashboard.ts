@@ -1,5 +1,6 @@
 'use client';
 import { useEffect, useMemo, useRef, useState } from 'react';
+import { usePathname, useRouter } from 'next/navigation';
 import { useFinance } from './use-finance';
 import type { FinanceView, FinanceModal } from '../types';
 import {
@@ -14,8 +15,10 @@ import {
   LEGACY_STORAGE_KEY,
 } from '../model';
 export function useDashboard() {
-  const [month, setMonth] = useState(''),
-    [tab, setTab] = useState<FinanceView>('overview');
+  const router = useRouter();
+  const pathname = usePathname();
+  const [month, setMonth] = useState('');
+  const tab: FinanceView = pathname === '/debts' ? 'debts' : pathname === '/categories' ? 'categories' : 'overview';
   const [modal, setModal] = useState<FinanceModal>(null),
     [categoryOverlay, setCategoryOverlay] = useState(false);
   const [notice, setNotice] = useState(''),
@@ -66,7 +69,7 @@ export function useDashboard() {
     navToggleRef.current?.focus();
   }
   function navigate(value: FinanceView) {
-    setTab(value);
+    router.push(value === 'overview' ? '/overview' : `/${value}`);
     if (window.innerWidth < 1024) setNavOpen(false);
   }
   function open(value: FinanceModal) {

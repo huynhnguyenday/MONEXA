@@ -9,7 +9,7 @@ import {
   type Snapshot,
 } from './model';
 
-type EntityKey = 'categories' | 'expenses' | 'people' | 'debts';
+type EntityKey = 'categories' | 'expenses' | 'people' | 'debts' | 'budgets';
 type Entity = FinanceData[EntityKey][number];
 type EntityDocument = {
   _id: string;
@@ -29,7 +29,7 @@ type SettingsDocument = {
   migratedAt?: Date;
 };
 type LegacyDocument = { _id: string; data: unknown; revision: number };
-const entityKeys: EntityKey[] = ['categories', 'expenses', 'people', 'debts'];
+const entityKeys: EntityKey[] = ['categories', 'expenses', 'people', 'debts', 'budgets'];
 const transactions: TransactionOptions & { timeoutMS: number } = {
   readConcern: { level: 'snapshot' },
   writeConcern: { w: 'majority' },
@@ -106,6 +106,11 @@ async function initialize(db: Db, session: ClientSession) {
   if (existing) {
     if (existing.storageVersion !== 1 || existing.userId !== PERSONAL_USER_ID)
       throw new Error('UNSUPPORTED_STORAGE_VERSION');
+    const hasBudget = await entities(db, 'budgets').findOne({ userId: PERSONAL_USER_ID }, { session });
+    if (!hasBudget && existing.budget > 0) {
+      const now = new Date();
+      await entities(db, 'budgets').insertOne({ _id: 'budget-migration', userId: PERSONAL_USER_ID, cash: existing.budget, bank: 0, recordedAt: now.toISOString(), createdAt: now, updatedAt: now }, { session });
+    }
     return existing;
   }
   // A completed settings record is the migration marker. Never overwrite partial/manual data.
@@ -117,6 +122,10 @@ async function initialize(db: Db, session: ClientSession) {
     .collection<LegacyDocument>('finance')
     .findOne({ _id: 'personal' }, { session });
   const data = financeSchema.parse(legacy?.data || initialData);
+  if (!data.budgets.length && data.budget > 0) data.budgets.push({
+    id: 'budget-migration', userId: PERSONAL_USER_ID, cash: data.budget, bank: 0,
+    recordedAt: new Date().toISOString(),
+  });
   if (legacy && (!Number.isSafeInteger(legacy.revision) || legacy.revision < 0))
     throw new Error('INVALID_LEGACY_REVISION');
   const now = new Date();

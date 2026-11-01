@@ -79,15 +79,13 @@ export default function Dashboard() {
               onEdit={(expense) => dashboard.open({ type: 'expense', expense })}
               onDelete={(expense) => void dashboard.deleteExpense(expense)}
               onBudget={() => dashboard.open({ type: 'budget' })}
+              onBudgetHistory={() => dashboard.open({ type: 'budget-history' })}
             />
           ) : dashboard.tab === 'debts' ? (
             <DebtPanel
               data={dashboard.data}
               ready={dashboard.ready}
               onAdd={() => dashboard.open({ type: 'debt' })}
-              onEdit={(debt) => dashboard.open({ type: 'debt', debt })}
-              onDelete={(debt) => void dashboard.deleteDebt(debt)}
-              onSettle={(debt) => void dashboard.settle(debt)}
             />
           ) : (
             <CategoryPanel
@@ -122,6 +120,7 @@ export default function Dashboard() {
         onClose={dashboard.close}
         formProps={dashboard.formProps}
         error={error}
+        month={dashboard.month}
       />
     </div>
   );

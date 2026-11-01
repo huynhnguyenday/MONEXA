@@ -7,11 +7,15 @@ export default function Dialog({
   children,
   onClose,
   busy = false,
+  compact = false,
+  className,
 }: {
   title: string;
   children: React.ReactNode;
   onClose: () => void;
   busy?: boolean;
+  compact?: boolean;
+  className?: string;
 }) {
   const ref = useRef<HTMLDialogElement>(null);
   useEffect(() => {
@@ -21,6 +25,7 @@ export default function Dialog({
   }, []);
   return (
     <dialog
+      className={[compact ? 'compact-dialog' : '', className || ''].filter(Boolean).join(' ') || undefined}
       ref={ref}
       aria-labelledby="dialog-title"
       onCancel={(e) => {

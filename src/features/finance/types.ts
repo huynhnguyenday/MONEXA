@@ -11,4 +11,5 @@ export type FinanceModal =
   | { type: 'debt'; debt?: Debt }
   | { type: 'category'; category?: Category }
   | { type: 'budget' | 'people' }
+  | { type: 'budget-history' }
   | null;

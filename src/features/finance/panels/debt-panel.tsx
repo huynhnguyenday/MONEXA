@@ -1,51 +1,35 @@
 'use client';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { FontAwesomeIcon as Icon } from '@fortawesome/react-fontawesome';
+import DatePicker from 'react-datepicker';
 import {
-  faPen,
-  faTrashCan,
-  faCheck,
-  faRotate,
-  faMagnifyingGlass,
+  faArrowDown,
+  faArrowUp,
 } from '@fortawesome/free-solid-svg-icons';
-import Pagination, { useViewportRows } from '@/components/pagination';
-import { type Debt, type FinanceData, displayTime, money } from '../model';
+import { type Debt, type FinanceData, dateKey, money } from '../model';
+import { format, startOfMonth } from 'date-fns';
+import { vi } from 'date-fns/locale';
 export default function DebtPanel({
   data,
   ready,
   onAdd,
-  onEdit,
-  onDelete,
-  onSettle,
 }: {
   data: FinanceData;
   ready: boolean;
   onAdd: () => void;
-  onEdit: (debt: Debt) => void;
-  onDelete: (debt: Debt) => void;
-  onSettle: (debt: Debt) => void;
 }) {
-  const [filter, setFilter] = useState('open'),
-    [search, setSearch] = useState(''),
-    [page, setPage] = useState(0);
-  const { ref, size } = useViewportRows(82, 32);
+  const [month, setMonth] = useState<Date | null>(null);
+  useEffect(() => setMonth(startOfMonth(new Date())), []);
   const outstanding = data.debts.filter((d) => !d.settledAt);
   const overdue = (d: Debt) => !d.settledAt && !!d.dueAt && Date.parse(d.dueAt) < Date.now();
-  const filtered = [...data.debts]
-    .filter(
-      (d) =>
-        !(
-          (filter === 'open' && d.settledAt) ||
-          (filter === 'settled' && !d.settledAt) ||
-          (filter === 'overdue' && !overdue(d))
-        ) &&
-        `${d.title} ${d.note} ${data.people.find((p) => p.id === d.personId)?.name}`
-          .toLocaleLowerCase('vi')
-          .includes(search.toLocaleLowerCase('vi')),
-    )
-    .sort((a, b) => b.occurredAt.localeCompare(a.occurredAt));
-  const pages = Math.max(1, Math.ceil(filtered.length / size)),
-    activePage = Math.min(page, pages - 1);
+  const byDueDate = new Map<string, Debt[]>();
+  for (const debt of data.debts) {
+    if (!debt.dueAt || debt.settledAt) continue;
+    const key = dateKey(debt.dueAt);
+    byDueDate.set(key, [...(byDueDate.get(key) || []), debt]);
+  }
+  const today = month ? dateKey(new Date()) : '';
+  const dayClassName = (date: Date) => dateKey(date) === today ? 'debt-calendar-today' : '';
   return (
     <section className="compact-debts" aria-label="Quản lý công nợ">
       <div className="compact-stats">
@@ -78,152 +62,19 @@ export default function DebtPanel({
         </article>
       </div>
       <article className="card compact-debt-card">
-        <div className="compact-debt-toolbar">
-          <div className="filter-tabs" aria-label="Lọc công nợ">
-            {[
-              ['open', 'Chưa hoàn tất'],
-              ['overdue', 'Quá hạn'],
-              ['settled', 'Đã hoàn tất'],
-              ['all', 'Tất cả'],
-            ].map(([value, label]) => (
-              <button
-                key={value}
-                aria-pressed={filter === value}
-                className={filter === value ? 'selected' : ''}
-                onClick={() => {
-                  setFilter(value);
-                  setPage(0);
-                }}
-              >
-                {label}
-              </button>
-            ))}
-          </div>
-          <label className="search-box">
-            <Icon icon={faMagnifyingGlass} />
-            <span className="sr-only">Tìm công nợ</span>
-            <input
-              type="search"
-              placeholder="Tìm khoản nợ, người liên quan…"
-              value={search}
-              onChange={(e) => {
-                setSearch(e.target.value);
-                setPage(0);
-              }}
-            />
-          </label>
+        <div className="debt-table-viewport debt-calendar-viewport">
+          {month && <DatePicker inline locale={vi} selected={month} onChange={(date: Date | null) => date && setMonth(startOfMonth(date))}
+            openToDate={month} calendarClassName="debt-calendar" dayClassName={(date: Date) => dayClassName(date)}
+            renderCustomHeader={({ date, decreaseMonth, increaseMonth }) => (
+              <div className="debt-calendar-header"><button type="button" aria-label="Tháng trước" onClick={decreaseMonth}>‹</button><strong>{format(date, 'MMMM yyyy', { locale: vi })}</strong><button type="button" aria-label="Tháng sau" onClick={increaseMonth}>›</button></div>
+            )}
+            renderDayContents={(day: number, date: Date | null) => {
+              if (!date) return day;
+              const items = byDueDate.get(dateKey(date)) || [];
+              return <span className="debt-calendar-day"><span>{day}</span>{items.slice(0, 2).map((d) => <small key={d.id} className={d.direction}><Icon icon={d.direction === 'payable' ? faArrowDown : faArrowUp} />{money(d.amount)}</small>)}{items.length > 2 && <small>+{items.length - 2} khoản</small>}</span>;
+            }} />}
+          <div className="debt-calendar-legend"><span><Icon icon={faArrowUp} /> Người khác nợ tôi</span><span><Icon icon={faArrowDown} /> Tôi nợ người khác</span></div>
         </div>
-        <div className="debt-table-viewport" ref={ref}>
-          {!filtered.length ? (
-            <div className="compact-empty">
-              <p>Không có công nợ phù hợp.</p>
-              <button className="inline-button" disabled={!ready} onClick={onAdd}>
-                + Ghi công nợ
-              </button>
-            </div>
-          ) : (
-            <table className="compact-debt-table">
-              <caption className="sr-only">Danh sách công nợ</caption>
-              <colgroup>
-                <col />
-                <col className="debt-money-column" />
-                <col className="debt-date-column" />
-                <col className="debt-status-column" />
-                <col className="debt-actions-column" />
-              </colgroup>
-              <thead>
-                <tr>
-                  <th scope="col">Khoản nợ / Người</th>
-                  <th scope="col">Số tiền</th>
-                  <th scope="col">Thời gian</th>
-                  <th scope="col">Trạng thái</th>
-                  <th scope="col">Thao tác</th>
-                </tr>
-              </thead>
-              <tbody>
-                {filtered.slice(activePage * size, (activePage + 1) * size).map((debt) => (
-                  <tr key={debt.id}>
-                    <td>
-                      <h3>
-                        <button
-                          className="expense-name"
-                          disabled={!ready}
-                          title={`${debt.title}${debt.note ? ` · ${debt.note}` : ''}`}
-                          onClick={() => onEdit(debt)}
-                        >
-                          {debt.title}
-                        </button>
-                      </h3>
-                      <span
-                        className="debt-person"
-                        title={data.people.find((p) => p.id === debt.personId)!.name}
-                      >
-                        {data.people.find((p) => p.id === debt.personId)!.name}
-                      </span>
-                      <span className="mobile-debt-status">
-                        {debt.direction === 'receivable' ? 'Phải thu' : 'Phải trả'} ·{' '}
-                        {debt.settledAt ? 'Hoàn tất' : overdue(debt) ? 'Quá hạn' : 'Chưa hoàn tất'}
-                      </span>
-                    </td>
-                    <td className="amount-cell">{money(debt.amount)}</td>
-                    <td>
-                      <time dateTime={debt.occurredAt}>{displayTime(debt.occurredAt)}</time>
-                      <span className={overdue(debt) ? 'overdue-text' : 'debt-due'}>
-                        {debt.settledAt
-                          ? `Xong: ${displayTime(debt.settledAt)}`
-                          : debt.dueAt
-                            ? `Hạn: ${displayTime(debt.dueAt)}`
-                            : 'Chưa đặt hạn'}
-                      </span>
-                    </td>
-                    <td>
-                      <span
-                        className={`status-badge ${debt.settledAt ? 'settled' : overdue(debt) ? 'overdue' : ''}`}
-                      >
-                        {debt.settledAt ? 'Đã hoàn tất' : overdue(debt) ? 'Quá hạn' : 'Đang mở'}
-                      </span>
-                      <small>{debt.direction === 'receivable' ? 'Phải thu' : 'Phải trả'}</small>
-                    </td>
-                    <td>
-                      <div className="table-actions">
-                        <button
-                          aria-label={`Sửa ${debt.title}`}
-                          disabled={!ready}
-                          onClick={() => onEdit(debt)}
-                        >
-                          <Icon icon={faPen} />
-                        </button>
-                        <button
-                          aria-label={`Xóa ${debt.title}`}
-                          disabled={!ready}
-                          onClick={() => onDelete(debt)}
-                        >
-                          <Icon icon={faTrashCan} />
-                        </button>
-                        <button
-                          className="settle-action"
-                          title={debt.settledAt ? 'Mở lại' : 'Đã thanh toán'}
-                          aria-label={debt.settledAt ? 'Mở lại' : 'Đã thanh toán'}
-                          disabled={!ready}
-                          onClick={() => onSettle(debt)}
-                        >
-                          <Icon icon={debt.settledAt ? faRotate : faCheck} />
-                        </button>
-                      </div>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          )}
-        </div>
-        <Pagination
-          label="Công nợ"
-          page={activePage}
-          pages={pages}
-          total={filtered.length}
-          onChange={setPage}
-        />
       </article>
     </section>
   );

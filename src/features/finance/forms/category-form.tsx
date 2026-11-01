@@ -12,7 +12,13 @@ export function CategoryForm({
   done,
   category,
 }: { category?: Category } & FormProps) {
+  const suggestedColors: Record<Category['icon'], string> = {
+    utensils: '#f97316', bag: '#db2777', car: '#2563eb', receipt: '#7c3aed',
+    heart: '#e11d48', home: '#0891b2', coffee: '#92400e', plane: '#0284c7',
+    book: '#4f46e5', gift: '#c026d3', game: '#16a34a', wallet: '#ca8a04',
+  };
   const [icon, setIcon] = useState<Category['icon']>(category?.icon || 'wallet');
+  const [color, setColor] = useState(category?.color || suggestedColors[category?.icon || 'wallet']);
   const [error, setError] = useState('');
   const labelId = useId();
   return (
@@ -72,7 +78,7 @@ export function CategoryForm({
               aria-label={iconLabels[key]}
               aria-pressed={icon === key}
               className={icon === key ? 'selected' : ''}
-              onClick={() => setIcon(key)}
+              onClick={() => { setIcon(key); if (!category) setColor(suggestedColors[key]); }}
             >
               <Icon icon={categoryIcons[key]} />
             </button>
@@ -80,7 +86,7 @@ export function CategoryForm({
         </div>
         <label>
           Màu nhận diện
-          <input type="color" name="color" defaultValue={category?.color || '#2563eb'} />
+          <input type="color" name="color" value={color} onChange={(event) => setColor(event.target.value)} />
         </label>
         {error && (
           <p className="form-error" role="alert">
