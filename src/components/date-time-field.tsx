@@ -8,6 +8,7 @@ export default function DateTimeField({
   onChange,
   optional = false,
   past = false,
+  withTime = true,
 }: {
   id: string;
   label: string;
@@ -15,6 +16,7 @@ export default function DateTimeField({
   onChange: (value: Date | null) => void;
   optional?: boolean;
   past?: boolean;
+  withTime?: boolean;
 }) {
   return (
     <div className="date-time-field">
@@ -24,12 +26,12 @@ export default function DateTimeField({
         selected={value}
         onChange={onChange}
         locale={vi}
-        showTimeSelect
+        showTimeSelect={withTime}
         timeFormat="HH:mm"
         timeIntervals={15}
-        dateFormat="dd/MM/yyyy HH:mm"
+        dateFormat={withTime ? 'dd/MM/yyyy HH:mm' : 'dd/MM/yyyy'}
         timeCaption="Giờ"
-        placeholderText="Chọn ngày và giờ"
+        placeholderText={withTime ? 'Chọn ngày và giờ' : 'Chọn ngày'}
         required={!optional}
         isClearable={optional}
         maxDate={past ? new Date() : undefined}

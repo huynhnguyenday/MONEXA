@@ -4,6 +4,7 @@ import AppSidebar from './layout/app-sidebar';
 import OverviewPanel from './panels/overview-panel';
 import DebtPanel from './panels/debt-panel';
 import CategoryPanel from './panels/category-panel';
+import DebtSourcePanel from './panels/debt-source-panel';
 import FinanceDialogs from './dialogs/finance-dialogs';
 import { FinanceError, FinanceFeedback } from './components/finance-feedback';
 import { useDashboard } from './hooks/use-dashboard';
@@ -29,7 +30,6 @@ export default function Dashboard() {
           busy={dashboard.busy}
           canExport={!!dashboard.snapshot}
           onNavigate={dashboard.navigate}
-          onPeople={() => dashboard.open({ type: 'people' })}
           onExport={dashboard.exportData}
           onImport={() => dashboard.importRef.current?.click()}
           onLogout={() => void dashboard.logout()}
@@ -40,6 +40,8 @@ export default function Dashboard() {
         <h1 className="sr-only">MONEXA · {viewLabels[dashboard.tab]}</h1>
         <AppHeader
           view={dashboard.tab}
+          debtView={dashboard.debtView}
+          onDebtViewChange={dashboard.setDebtView}
           month={dashboard.month}
           onMonthChange={dashboard.setMonth}
           navOpen={dashboard.navOpen}
@@ -74,6 +76,7 @@ export default function Dashboard() {
               key={dashboard.month}
               data={dashboard.data}
               stats={dashboard.stats}
+              month={dashboard.month}
               ready={dashboard.ready}
               onAdd={() => dashboard.open({ type: 'expense' })}
               onEdit={(expense) => dashboard.open({ type: 'expense', expense })}
@@ -86,13 +89,28 @@ export default function Dashboard() {
               data={dashboard.data}
               ready={dashboard.ready}
               onAdd={() => dashboard.open({ type: 'debt' })}
+              view={dashboard.debtView}
+              onEdit={(debt) => dashboard.open({ type: 'debt', debt })}
+              onDelete={(debt) => void dashboard.deleteDebt(debt)}
+              onSettle={(debt) => void dashboard.settle(debt)}
             />
-          ) : (
+          ) : dashboard.tab === 'categories' ? (
             <CategoryPanel
               data={dashboard.data}
               ready={dashboard.ready}
+              month={dashboard.month}
+              onAdd={() => dashboard.open({ type: 'category' })}
               onEdit={(category) => dashboard.open({ type: 'category', category })}
               onDelete={(category) => void dashboard.deleteCategory(category)}
+            />
+          ) : (
+            <DebtSourcePanel
+              data={dashboard.data}
+              ready={dashboard.ready}
+              month={dashboard.month}
+              onAdd={() => dashboard.open({ type: 'debtSource' })}
+              onEdit={(debtSource) => dashboard.open({ type: 'debtSource', debtSource })}
+              onDelete={(debtSource) => void dashboard.deleteDebtSource(debtSource)}
             />
           )}
         </div>
@@ -115,8 +133,6 @@ export default function Dashboard() {
       />
       <FinanceDialogs
         modal={dashboard.modal}
-        categoryOverlay={dashboard.categoryOverlay}
-        onCategoryOverlay={dashboard.setCategoryOverlay}
         onClose={dashboard.close}
         formProps={dashboard.formProps}
         error={error}

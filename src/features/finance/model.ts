@@ -18,6 +18,7 @@ export const iconKeys = [
   'game',
   'wallet',
 ] as const;
+export const debtSourceIconKeys = ['tiktok', 'shopee', 'seasy', 'momo', 'bank', 'person'] as const;
 const id = z
   .string()
   .min(1)
@@ -26,6 +27,10 @@ const id = z
 const text = (max: number) => z.string().trim().min(1).max(max);
 const amount = z.number().int().positive().max(1_000_000_000_000);
 const instant = z.iso.datetime();
+const dateOnly = z.string().regex(/^\d{4}-\d{2}-\d{2}$/).refine((value) => {
+  const date = new Date(`${value}T00:00:00.000Z`);
+  return Number.isFinite(date.getTime()) && date.toISOString().slice(0, 10) === value;
+}, 'Ngày không hợp lệ.');
 const pastInstant = instant.refine(
   (value) => Date.parse(value) <= Date.now() + 60_000,
   'Thời gian không được ở tương lai.',
@@ -52,64 +57,105 @@ export const budgetEntrySchema = z.object({
   userId: ownerId,
   cash: z.number().int().min(0).max(1_000_000_000_000),
   bank: z.number().int().min(0).max(1_000_000_000_000),
+  month: z.string().regex(/^\d{4}-\d{2}$/).optional(),
   recordedAt: instant,
 });
-export const personSchema = z.object({ id, userId: ownerId, name: text(80) });
+export const debtSourceSchema = z.object({
+  id,
+  userId: ownerId,
+  name: text(80),
+  color: z.string().regex(/^#[0-9a-f]{6}$/i),
+  icon: z.enum(debtSourceIconKeys),
+});
+export const debtTypeSchema = z.object({
+  id,
+  userId: ownerId,
+  name: z.enum(['Mượn nợ', 'Cho mượn']),
+  direction: z.enum(['payable', 'receivable']),
+});
+export const defaultDebtTypes: z.infer<typeof debtTypeSchema>[] = [
+  { id: 'debt-type-borrow', userId: PERSONAL_USER_ID, name: 'Mượn nợ', direction: 'payable' },
+  { id: 'debt-type-lend', userId: PERSONAL_USER_ID, name: 'Cho mượn', direction: 'receivable' },
+];
+export function inferDebtSourceIcon(name: string): (typeof debtSourceIconKeys)[number] {
+  const value = name.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLocaleLowerCase('vi');
+  if (value.includes('tiktok')) return 'tiktok';
+  if (value.includes('seasy')) return 'seasy';
+  if (value.includes('shopee')) return 'shopee';
+  if (value.includes('momo')) return 'momo';
+  if (value.includes('ngan hang') || value.includes('bank')) return 'bank';
+  return 'person';
+}
+export const debtSourceIconColors: Record<(typeof debtSourceIconKeys)[number], string> = {
+  tiktok: '#111827', shopee: '#ee4d2d', seasy: '#1d4ed8', momo: '#a50064', bank: '#008a70', person: '#2563eb',
+};
 export const debtSchema = z
   .object({
     id,
     userId: ownerId,
     title: text(100),
-    personId: id,
-    direction: z.enum(['receivable', 'payable']),
+    debtSourceId: id,
+    debtTypeId: id,
     amount,
     occurredAt: pastInstant,
-    dueAt: instant.nullable(),
+    dueDate: dateOnly.nullable(),
     settledAt: pastInstant.nullable(),
     note: z.string().max(500),
   })
-  .refine((d) => !d.dueAt || d.dueAt >= d.occurredAt, 'Hạn thanh toán phải sau thời gian ghi nhận.')
+  .refine((d) => !d.dueDate || d.dueDate >= dateKey(d.occurredAt), 'Hạn thanh toán phải từ ngày ghi nhận trở đi.')
   .refine((d) => !d.settledAt || d.settledAt >= d.occurredAt, 'Thời gian hoàn tất không hợp lệ.');
 export const financeSchema = z
   .object({
-    schemaVersion: z.literal(2),
+    schemaVersion: z.literal(3),
     budget: z.number().int().min(0).max(1_000_000_000_000),
     budgets: z.array(budgetEntrySchema).max(5000).default([]),
     categories: z.array(categorySchema).min(1).max(100),
     expenses: z.array(expenseSchema).max(5000),
-    people: z.array(personSchema).max(2000),
+    debtSources: z.array(debtSourceSchema).max(2000),
+    debtTypes: z.array(debtTypeSchema).min(1).max(20),
     debts: z.array(debtSchema).max(2000),
   })
   .superRefine((data, ctx) => {
-    for (const key of ['categories', 'expenses', 'people', 'debts', 'budgets'] as const) {
+    for (const key of ['categories', 'expenses', 'debtSources', 'debtTypes', 'debts', 'budgets'] as const) {
       if (new Set(data[key].map((item) => item.id)).size !== data[key].length)
         ctx.addIssue({ code: 'custom', message: `ID trùng trong ${key}.`, path: [key] });
     }
     const categories = new Set(data.categories.map((c) => c.id));
-    const people = new Set(data.people.map((p) => p.id));
+    const debtSources = new Set(data.debtSources.map((source) => source.id));
+    const debtTypes = new Set(data.debtTypes.map((type) => type.id));
     if (data.expenses.some((e) => !categories.has(e.categoryId)))
       ctx.addIssue({
         code: 'custom',
         message: 'Chi tiêu tham chiếu danh mục không tồn tại.',
         path: ['expenses'],
       });
-    if (data.debts.some((d) => !people.has(d.personId)))
+    if (data.debts.some((d) => !debtSources.has(d.debtSourceId)))
       ctx.addIssue({
         code: 'custom',
-        message: 'Công nợ tham chiếu người không tồn tại.',
+        message: 'Công nợ tham chiếu nguồn không tồn tại.',
+        path: ['debts'],
+      });
+    if (data.debts.some((d) => !debtTypes.has(d.debtTypeId)))
+      ctx.addIssue({
+        code: 'custom',
+        message: 'Công nợ tham chiếu loại công nợ không tồn tại.',
         path: ['debts'],
       });
   });
 export type Category = z.infer<typeof categorySchema>;
 export type Expense = z.infer<typeof expenseSchema>;
 export type BudgetEntry = z.infer<typeof budgetEntrySchema>;
-export type Person = z.infer<typeof personSchema>;
+export type DebtSource = z.infer<typeof debtSourceSchema>;
+export type DebtType = z.infer<typeof debtTypeSchema>;
 export type Debt = z.infer<typeof debtSchema>;
 export type FinanceData = z.infer<typeof financeSchema>;
+export function debtDirection(data: Pick<FinanceData, 'debtTypes'>, debt: Pick<Debt, 'debtTypeId'>) {
+  return data.debtTypes.find((type) => type.id === debt.debtTypeId)?.direction || 'payable';
+}
 export type Snapshot = { data: FinanceData; revision: number };
 export const LEGACY_STORAGE_KEY = 'vi-cua-toi:v1';
 export const initialData: FinanceData = {
-  schemaVersion: 2,
+  schemaVersion: 3,
   budget: 0,
   budgets: [],
   categories: [
@@ -120,7 +166,8 @@ export const initialData: FinanceData = {
     { id: 'other', userId: PERSONAL_USER_ID, name: 'Khác', color: '#10b981', icon: 'wallet' },
   ],
   expenses: [],
-  people: [],
+  debtSources: [],
+  debtTypes: defaultDebtTypes,
   debts: [],
 };
 export const money = (n: number) =>
@@ -130,6 +177,7 @@ export const money = (n: number) =>
     maximumFractionDigits: 0,
   }).format(n);
 export function dateKey(value: string | Date = new Date()) {
+  if (typeof value === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(value)) return value;
   const parts = new Intl.DateTimeFormat('en-CA', {
     timeZone: 'Asia/Ho_Chi_Minh',
     year: 'numeric',
@@ -138,6 +186,17 @@ export function dateKey(value: string | Date = new Date()) {
   }).formatToParts(new Date(value));
   const get = (type: string) => parts.find((p) => p.type === type)!.value;
   return `${get('year')}-${get('month')}-${get('day')}`;
+}
+export function dateFromKey(value: string) {
+  const [year, month, day] = value.split('-').map(Number);
+  return new Date(year, month - 1, day, 12);
+}
+export function dateKeyFromLocal(value: Date) {
+  const pad = (part: number) => String(part).padStart(2, '0');
+  return `${value.getFullYear()}-${pad(value.getMonth() + 1)}-${pad(value.getDate())}`;
+}
+export function budgetMonth(entry: Pick<BudgetEntry, 'recordedAt' | 'month'>) {
+  return entry.month || dateKey(entry.recordedAt).slice(0, 7);
 }
 export const localDate = () => dateKey();
 export const displayTime = (value: string) =>
@@ -166,15 +225,38 @@ const legacySchema = z.object({
 });
 export function parseBackup(raw: unknown): FinanceData {
   if (raw && typeof raw === 'object' && 'schemaVersion' in raw) {
-    const parsed = financeSchema.parse(raw);
+    const source = raw as Record<string, unknown>;
+    if (source.schemaVersion !== 2 && source.schemaVersion !== 3) throw new Error('UNSUPPORTED_BACKUP_VERSION');
+    const modernSources = source.debtSources as Array<Record<string, unknown>> | undefined;
+    const debtSources = (modernSources?.length ? modernSources : source.people ?? modernSources ?? []) as Array<Record<string, unknown>>;
+    const debts = (source.debts ?? []) as Array<Record<string, unknown>>;
+    const sourceTypes = source.debtTypes as Array<Record<string, unknown>> | undefined;
+    const parsed = financeSchema.parse({
+      ...source,
+      debtSources: debtSources.map((item) => {
+        const icon = debtSourceIconKeys.includes(item.icon as (typeof debtSourceIconKeys)[number])
+          ? item.icon as (typeof debtSourceIconKeys)[number]
+          : inferDebtSourceIcon(String(item.name || ''));
+        return { ...item, icon, color: debtSourceIconColors[icon] };
+      }),
+      debtTypes: sourceTypes?.length ? sourceTypes : defaultDebtTypes,
+      debts: debts.map((item) => ({
+        ...item,
+        debtSourceId: item.debtSourceId ?? item.personId,
+        debtTypeId: item.debtTypeId ?? (item.direction === 'receivable' ? 'debt-type-lend' : 'debt-type-borrow'),
+        dueDate: item.dueDate ?? (typeof item.dueAt === 'string' ? dateKey(item.dueAt) : null),
+      })),
+      schemaVersion: 3,
+    });
     if (!parsed.budgets.length && parsed.budget > 0) parsed.budgets.push({ id: 'budget-migration', userId: PERSONAL_USER_ID, cash: parsed.budget, bank: 0, recordedAt: new Date().toISOString() });
     return parsed;
   }
   const old = legacySchema.parse(raw);
   return financeSchema.parse({
     ...old,
-    schemaVersion: 2,
-    people: [],
+    schemaVersion: 3,
+    debtSources: [],
+    debtTypes: defaultDebtTypes,
     debts: [],
     budgets: old.budget > 0 ? [{ id: 'budget-migration', userId: PERSONAL_USER_ID, cash: old.budget, bank: 0, recordedAt: new Date().toISOString() }] : [],
     categories: old.categories.map((c) => ({ ...c, icon: 'wallet' })),

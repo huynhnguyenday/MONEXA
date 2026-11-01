@@ -1,5 +1,5 @@
 'use client';
-import { useRef, useState } from 'react';
+import { Fragment, useRef, useState } from 'react';
 import { FontAwesomeIcon as Icon } from '@fortawesome/react-fontawesome';
 import {
   faPlus,
@@ -12,7 +12,7 @@ import {
   faClock,
 } from '@fortawesome/free-solid-svg-icons';
 import Charts from '../charts/finance-charts';
-import { type Expense, type FinanceData, type getStatistics, displayTime, money } from '../model';
+import { budgetMonth, dateKey, debtDirection, type Expense, type FinanceData, type getStatistics, displayTime, money } from '../model';
 import { categoryIcons } from '../icons';
 
 type Props = {
@@ -24,6 +24,7 @@ type Props = {
   onDelete: (expense: Expense) => void;
   onBudget: () => void;
   onBudgetHistory: () => void;
+  month: string;
 };
 export default function OverviewPanel({
   data,
@@ -34,6 +35,7 @@ export default function OverviewPanel({
   onDelete,
   onBudget,
   onBudgetHistory,
+  month,
 }: Props) {
   const [mobileView, setMobileView] = useState<'charts' | 'expenses'>('charts');
   const [search, setSearch] = useState('');
@@ -44,20 +46,24 @@ export default function OverviewPanel({
       .toLocaleLowerCase('vi')
       .includes(search.toLocaleLowerCase('vi')),
   );
-  const debtReserve = data.debts.filter((debt) => debt.direction === 'payable' && !debt.settledAt).reduce((sum, debt) => sum + debt.amount, 0);
-  const currentBudget = data.budgets[data.budgets.length - 1];
-  const cashBudget = data.budgets.reduce((sum, entry) => sum + entry.cash, 0);
-  const bankBudget = data.budgets.reduce((sum, entry) => sum + entry.bank, 0);
+  const selectedMonth = month || dateKey().slice(0, 7);
+  const debtReserve = data.debts
+    .filter((debt) => debtDirection(data, debt) === 'payable' && !debt.settledAt && !!debt.dueDate && debt.dueDate.slice(0, 7) === selectedMonth)
+    .reduce((sum, debt) => sum + debt.amount, 0);
+  const monthBudgets = data.budgets.filter((entry) => budgetMonth(entry) === selectedMonth);
+  const cashBudget = monthBudgets.reduce((sum, entry) => sum + entry.cash, 0);
+  const bankBudget = monthBudgets.reduce((sum, entry) => sum + entry.bank, 0);
+  const monthBudget = cashBudget + bankBudget;
   const cashSpent = stats.expenses.filter((expense) => expense.paymentMethod === 'cash').reduce((sum, expense) => sum + expense.amount, 0);
   const bankSpent = stats.expenses.filter((expense) => expense.paymentMethod === 'bank').reduce((sum, expense) => sum + expense.amount, 0);
   const cashRemaining = Math.max(cashBudget - cashSpent, 0);
   const bankRemaining = Math.max(bankBudget - bankSpent, 0);
   const remaining = cashRemaining + bankRemaining;
-  const netBudget = data.budget - stats.total - debtReserve;
-  const remainingPercent = data.budget ? Math.min((remaining / data.budget) * 100, 100) : 0;
-  const reservePercent = data.budget ? Math.min((debtReserve / data.budget) * 100, 100) : debtReserve > 0 ? 100 : 0;
-  const cashPercent = data.budget ? Math.min((cashRemaining / data.budget) * 100, 100) : 0;
-  const bankPercent = data.budget ? Math.min((bankRemaining / data.budget) * 100, 100) : 0;
+  const netBudget = monthBudget - stats.total - debtReserve;
+  const remainingPercent = monthBudget ? Math.min((remaining / monthBudget) * 100, 100) : 0;
+  const reservePercent = monthBudget ? Math.min((debtReserve / monthBudget) * 100, 100) : debtReserve > 0 ? 100 : 0;
+  const cashPercent = cashBudget ? Math.min((cashRemaining / cashBudget) * 100, 100) : 0;
+  const bankPercent = bankBudget ? Math.min((bankRemaining / bankBudget) * 100, 100) : 0;
   const availablePercent = Math.max(remainingPercent - reservePercent, 0);
   const cashSegment = remaining ? availablePercent * (cashRemaining / remaining) : 0;
   const bankSegment = Math.max(availablePercent - cashSegment, 0);
@@ -79,7 +85,7 @@ export default function OverviewPanel({
           <div className="compact-stats">
             <article className="stat balance">
               <span className="stat-label">Còn lại</span>
-              <strong>{money(data.budget - stats.total)}</strong>
+              <strong>{money(monthBudget - stats.total)}</strong>
               <small>Ngân sách − chi tiêu tháng</small>
             </article>
             <article className="stat">
@@ -102,18 +108,20 @@ export default function OverviewPanel({
                 <h2>Ngân sách tháng</h2>
                 <strong className={netBudget < 0 ? 'budget-negative' : ''}>{money(netBudget)}</strong>
               </div>
-              <button
-                className="icon-button budget-add-button"
-                aria-label="Thêm ngân sách"
-                title="Thêm ngân sách"
-                disabled={!ready}
-                onClick={onBudget}
-              >
-                <Icon icon={faCirclePlus} />
-              </button>
-              <button className="icon-button budget-history-button" aria-label="Lịch sử ngân sách" title="Lịch sử ngân sách" disabled={!ready} onClick={onBudgetHistory}>
-                <Icon icon={faClock} />
-              </button>
+              <div className="budget-actions">
+                <button
+                  className="button primary budget-action-button budget-add-button"
+                  aria-label="Thêm ngân sách"
+                  title="Thêm ngân sách"
+                  disabled={!ready}
+                  onClick={onBudget}
+                >
+                  <Icon icon={faCirclePlus} />
+                </button>
+                <button className="button secondary budget-action-button budget-history-button" aria-label="Lịch sử ngân sách" title="Lịch sử ngân sách" disabled={!ready} onClick={onBudgetHistory}>
+                  <Icon icon={faClock} />
+                </button>
+              </div>
             </div>
             <div className="progress">
               <span className={`budget-debt-progress ${availablePercent === 0 ? 'solo' : ''}`} style={{ width: `${reservePercent}%` }} />
@@ -128,8 +136,20 @@ export default function OverviewPanel({
           <article className="card expense-panel">
             <div className="panel-heading">
               <h2>Chi tiêu</h2>
+              <label className="search-box expense-search-box">
+                <Icon icon={faMagnifyingGlass} />
+                <span className="sr-only">Tìm chi tiêu</span>
+                <input
+                  type="search"
+                  value={search}
+                  placeholder="Tìm khoản chi…"
+                  onChange={(e) => {
+                    setSearch(e.target.value);
+                  }}
+                />
+              </label>
               <button
-                className="icon-button"
+                className="button primary expense-add-button"
                 aria-label="Thêm chi tiêu"
                 title="Thêm chi tiêu"
                 disabled={!ready}
@@ -138,18 +158,6 @@ export default function OverviewPanel({
                 <Icon icon={faPlus} />
               </button>
             </div>
-            <label className="search-box">
-              <Icon icon={faMagnifyingGlass} />
-              <span className="sr-only">Tìm chi tiêu</span>
-              <input
-                type="search"
-                value={search}
-                placeholder="Tìm khoản chi, danh mục…"
-                onChange={(e) => {
-                  setSearch(e.target.value);
-                }}
-              />
-            </label>
             <div className="expense-table-viewport" ref={ref}>
               {!filtered.length ? (
                 <div className="compact-empty">
@@ -186,38 +194,52 @@ export default function OverviewPanel({
                       const compactTitle = expense.title.trim().split(/\s+/).length > 40
                         ? `${expense.title.trim().split(/\s+/).slice(0, 40).join(' ')}…`
                         : expense.title;
+                      const expanded = expandedExpense === expense.id;
                       return (
-                        <tr key={expense.id}>
-                          <td colSpan={3} className="expense-row-cell">
-                            <div className={`expense-row-summary ${expandedExpense === expense.id ? 'expanded' : ''}`}>
-                              <button className="expense-row-main" title={expense.title} aria-expanded={expandedExpense === expense.id} onClick={() => setExpandedExpense(expandedExpense === expense.id ? null : expense.id)}>
-                                <span className="expense-name">{compactTitle}</span>
-                                <strong className="expense-amount-cell">{money(expense.amount)}</strong>
-                              </button>
-                            <div className="table-actions">
-                              <button aria-label={`Sửa ${expense.title}`}
-                                title="Sửa / xem chi tiết"
-                                disabled={!ready}
-                                onClick={() => onEdit(expense)}
-                              >
-                                <Icon icon={faPen} />
-                              </button>
-                              <button aria-label={`Xóa ${expense.title}`}
-                                title="Xóa"
-                                disabled={!ready}
-                                onClick={() => onDelete(expense)}
-                              >
-                                <Icon icon={faTrashCan} />
-                              </button>
+                        <Fragment key={expense.id}>
+                          <tr
+                            className={expanded ? 'expense-summary-row expanded' : 'expense-summary-row'}
+                            tabIndex={0}
+                            aria-label={`${expanded ? 'Thu gọn' : 'Xem chi tiết'} khoản chi ${expense.title}`}
+                            aria-expanded={expanded}
+                            aria-controls={`expense-details-${expense.id}`}
+                            onClick={() => setExpandedExpense(expanded ? null : expense.id)}
+                            onKeyDown={(event) => {
+                              if (event.target !== event.currentTarget) return;
+                              if (event.key === 'Enter' || event.key === ' ') {
+                                event.preventDefault();
+                                setExpandedExpense(expanded ? null : expense.id);
+                              }
+                            }}
+                          >
+                            <td className="expense-title-cell">
+                              <span className="expense-name" title={expense.title}>{compactTitle}</span>
+                            </td>
+                            <td className="expense-amount-td"><strong className="expense-amount-cell">{money(expense.amount)}</strong></td>
+                            <td className="expense-actions-td"><div className="table-actions">
+                              <button aria-label={`Sửa ${expense.title}`} title="Sửa / xem chi tiết" disabled={!ready} onClick={(event) => { event.stopPropagation(); onEdit(expense); }}><Icon icon={faPen} /></button>
+                              <button aria-label={`Xóa ${expense.title}`} title="Xóa" disabled={!ready} onClick={(event) => { event.stopPropagation(); onDelete(expense); }}><Icon icon={faTrashCan} /></button>
+                            </div></td>
+                          </tr>
+                          {expanded && <tr className="expense-details-row">
+                            <td colSpan={3}>
+                              <div className="expense-expanded-info" id={`expense-details-${expense.id}`}>
+                                <div className="expense-detail-item">
+                                  <small>Danh mục</small>
+                                  <span><Icon icon={categoryIcons[category.icon]} style={{ color: category.color }} /> {category.name}</span>
+                                </div>
+                                <div className="expense-detail-item">
+                                  <small>Thời gian</small>
+                                  <time dateTime={expense.occurredAt}>{displayTime(expense.occurredAt)}</time>
+                                </div>
+                                <div className="expense-detail-item">
+                                  <small>Thanh toán</small>
+                                  <span>{expense.paymentMethod === 'cash' ? 'Tiền mặt' : 'Chuyển khoản'}</span>
+                                </div>
                               </div>
-                            </div>
-                            {expandedExpense === expense.id && <div className="expense-expanded-info">
-                              <span><Icon icon={categoryIcons[category.icon]} style={{ color: category.color }} /> {category.name}</span>
-                              <time dateTime={expense.occurredAt}>{displayTime(expense.occurredAt)}</time>
-                              <span>{expense.paymentMethod === 'cash' ? 'Tiền mặt' : 'Chuyển khoản'}</span>
-                            </div>}
-                          </td>
-                        </tr>
+                            </td>
+                          </tr>}
+                        </Fragment>
                       );
                     })}
                   </tbody>

@@ -1,12 +1,13 @@
 'use client';
 import { useState } from 'react';
 import DateTimeField from '@/components/date-time-field';
-import { type Debt, PERSONAL_USER_ID } from '../model';
+import { dateFromKey, dateKeyFromLocal, type Debt, PERSONAL_USER_ID } from '../model';
 import { type FormProps, field } from './types';
 export function DebtForm({ data, save, done, busy, debt }: { debt?: Debt } & FormProps) {
   const [amount, setAmount] = useState(debt ? new Intl.NumberFormat('vi-VN').format(debt.amount) : '');
-  const [due, setDue] = useState<Date | null>(debt?.dueAt ? new Date(debt.dueAt) : null);
-  const [personId, setPersonId] = useState(debt?.personId || data.people[0]?.id || '');
+  const [due, setDue] = useState<Date | null>(debt?.dueDate ? dateFromKey(debt.dueDate) : null);
+  const [debtSourceId, setDebtSourceId] = useState(debt?.debtSourceId || data.debtSources[0]?.id || '');
+  const [debtTypeId, setDebtTypeId] = useState(debt?.debtTypeId || data.debtTypes[0]?.id || '');
   const [error, setError] = useState('');
   return (
     <form
@@ -15,17 +16,19 @@ export function DebtForm({ data, save, done, busy, debt }: { debt?: Debt } & For
         setError('');
         const f = new FormData(e.currentTarget);
         if (!due) return setError('Vui lòng chọn hạn thanh toán.');
-        const person = data.people.find((p) => p.id === personId);
-        if (!person) return setError('Vui lòng chọn người liên quan đã được tạo.');
+        const source = data.debtSources.find((item) => item.id === debtSourceId);
+        if (!source) return setError('Vui lòng chọn nguồn công nợ đã được tạo.');
+        const debtType = data.debtTypes.find((type) => type.id === debtTypeId);
+        if (!debtType) return setError('Vui lòng chọn loại công nợ.');
         const next: Debt = {
           userId: PERSONAL_USER_ID,
           id: debt?.id || crypto.randomUUID(),
           title: field(f, 'title'),
-          direction: field(f, 'direction') as Debt['direction'],
           amount: Number(String(f.get('amount')).replace(/\D/g, '')),
-          personId: person.id,
+          debtTypeId: debtType.id,
+          debtSourceId: source.id,
           occurredAt: debt?.occurredAt || new Date().toISOString(),
-          dueAt: due.toISOString(),
+          dueDate: dateKeyFromLocal(due),
           settledAt: debt?.settledAt || null,
           note: field(f, 'note'),
         };
@@ -55,16 +58,15 @@ export function DebtForm({ data, save, done, busy, debt }: { debt?: Debt } & For
         <div className="form-row">
           <label>
             Loại công nợ
-          <select name="direction" defaultValue={debt?.direction || 'payable'}>
-              <option value="receivable">Người khác nợ tôi</option>
-              <option value="payable">Tôi nợ người khác</option>
+          <select name="debtTypeId" value={debtTypeId} onChange={(event) => setDebtTypeId(event.target.value)} required disabled={!data.debtTypes.length}>
+              {data.debtTypes.map((type) => <option key={type.id} value={type.id}>{type.name}</option>)}
             </select>
           </label>
           <label>
-            Người liên quan
-            <select value={personId} onChange={(e) => setPersonId(e.target.value)} required disabled={!data.people.length}>
-              {!data.people.length && <option value="">Chưa có người liên quan</option>}
-              {data.people.map((p) => <option key={p.id} value={p.id}>{p.name}</option>)}
+            Nguồn công nợ
+            <select value={debtSourceId} onChange={(e) => setDebtSourceId(e.target.value)} required disabled={!data.debtSources.length}>
+              {!data.debtSources.length && <option value="">Chưa có nguồn công nợ</option>}
+              {data.debtSources.map((source) => <option key={source.id} value={source.id}>{source.name}</option>)}
             </select>
           </label>
         </div>
@@ -75,16 +77,18 @@ export function DebtForm({ data, save, done, busy, debt }: { debt?: Debt } & For
             setAmount(digits ? new Intl.NumberFormat('vi-VN').format(Number(digits)) : '');
           }} required aria-label="Số tiền (VND)" />
         </label>
-        {!data.people.length && (
+        {!data.debtSources.length && (
           <p role="alert" className="form-error">
-            Hãy tạo người liên quan trong navbar trước khi ghi công nợ.
+            Hãy tạo nguồn công nợ trong navbar trước khi ghi công nợ.
           </p>
         )}
+        {!data.debtTypes.length && <p role="alert" className="form-error">Chưa có loại công nợ để chọn.</p>}
         <DateTimeField
           id="debt-due"
           label="Hạn thanh toán"
           value={due}
           onChange={setDue}
+          withTime={false}
         />
         <label>
           Ghi chú <span className="optional">(không bắt buộc)</span>
@@ -95,7 +99,7 @@ export function DebtForm({ data, save, done, busy, debt }: { debt?: Debt } & For
             {error}
           </p>
         )}
-        <button className="button primary full" disabled={!data.people.length || busy}>
+        <button className="button primary full" disabled={!data.debtSources.length || !data.debtTypes.length || busy}>
           {busy ? 'Đang lưu…' : debt ? 'Lưu thay đổi' : 'Ghi công nợ'}
         </button>
       </fieldset>

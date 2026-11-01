@@ -3,7 +3,7 @@ import { FontAwesomeIcon as Icon } from '@fortawesome/react-fontawesome';
 import {
   faShapes,
   faHandshake,
-  faUsers,
+  faMoneyBillTransfer,
   faDownload,
   faUpload,
   faRightFromBracket,
@@ -15,7 +15,6 @@ type Props = {
   busy: boolean;
   canExport: boolean;
   onNavigate: (view: FinanceView) => void;
-  onPeople: () => void;
   onExport: () => void;
   onImport: () => void;
   onLogout: () => void;
@@ -27,7 +26,6 @@ export default function AppSidebar({
   busy,
   canExport,
   onNavigate,
-  onPeople,
   onExport,
   onImport,
   onLogout,
@@ -43,6 +41,7 @@ export default function AppSidebar({
               { id: 'overview', name: 'Tổng quan', icon: faShapes },
               { id: 'debts', name: 'Công nợ', icon: faHandshake },
               { id: 'categories', name: 'Danh mục', icon: faShapes },
+              { id: 'debt-sources', name: 'Nguồn công nợ', icon: faMoneyBillTransfer },
             ] as const
           ).map((item) => (
             <button
@@ -54,9 +53,6 @@ export default function AppSidebar({
               <Icon icon={item.icon} /> {item.name}
             </button>
           ))}
-          <button className="nav-button" disabled={!ready} onClick={onPeople}>
-            <Icon icon={faUsers} /> Người liên quan
-          </button>
         </nav>
         <div className="sidebar-data">
           <span className="sidebar-section-label">Dữ liệu</span>

@@ -3,13 +3,18 @@ import type { ClientSession, Collection, Db, TransactionOptions } from 'mongodb'
 import { getDatabase, getMongoClient } from '@/lib/mongodb';
 import {
   financeSchema,
+  defaultDebtTypes,
+  debtSourceIconColors,
+  inferDebtSourceIcon,
   initialData,
   PERSONAL_USER_ID,
+  dateKey,
+  parseBackup,
   type FinanceData,
   type Snapshot,
 } from './model';
 
-type EntityKey = 'categories' | 'expenses' | 'people' | 'debts' | 'budgets';
+type EntityKey = 'categories' | 'expenses' | 'debtSources' | 'debtTypes' | 'debts' | 'budgets';
 type Entity = FinanceData[EntityKey][number];
 type EntityDocument = {
   _id: string;
@@ -24,12 +29,12 @@ type SettingsDocument = {
   userId: string;
   budget: number;
   revision: number;
-  storageVersion: 1;
+  storageVersion: 1 | 2 | 3 | 4;
   updatedAt: Date;
   migratedAt?: Date;
 };
 type LegacyDocument = { _id: string; data: unknown; revision: number };
-const entityKeys: EntityKey[] = ['categories', 'expenses', 'people', 'debts', 'budgets'];
+const entityKeys: EntityKey[] = ['categories', 'expenses', 'debtSources', 'debtTypes', 'debts', 'budgets'];
 const transactions: TransactionOptions & { timeoutMS: number } = {
   readConcern: { level: 'snapshot' },
   writeConcern: { w: 'majority' },
@@ -40,7 +45,8 @@ const transactions: TransactionOptions & { timeoutMS: number } = {
 let indexesReady: Promise<void> | undefined;
 
 function entities(db: Db, key: EntityKey) {
-  return db.collection<EntityDocument>(key);
+  const collection = key === 'debtSources' ? 'debt_sources' : key === 'debtTypes' ? 'debt_types' : key;
+  return db.collection<EntityDocument>(collection);
 }
 function settings(db: Db) {
   return db.collection<SettingsDocument>('settings');
@@ -57,10 +63,12 @@ async function ensureIndexes(db: Db) {
           { key: { userId: 1, occurredAt: -1 } },
           { key: { userId: 1, categoryId: 1 } },
         ]),
-        entities(db, 'people').createIndex({ userId: 1, name: 1 }),
+        entities(db, 'debtSources').createIndex({ userId: 1, name: 1 }),
+        entities(db, 'debtTypes').createIndex({ userId: 1, name: 1 }),
         entities(db, 'debts').createIndexes([
-          { key: { userId: 1, personId: 1 } },
-          { key: { userId: 1, settledAt: 1, dueAt: 1 } },
+          { key: { userId: 1, debtSourceId: 1 } },
+          { key: { userId: 1, debtTypeId: 1 } },
+          { key: { userId: 1, settledAt: 1, dueDate: 1 } },
         ]),
       ]);
     })().catch((error) => {
@@ -101,19 +109,128 @@ async function syncEntities(
     await collection.deleteMany({ userId: PERSONAL_USER_ID, _id: { $in: removed } }, { session });
 }
 
+async function ensureDebtTypes(db: Db, session: ClientSession) {
+  const now = new Date();
+  for (const type of defaultDebtTypes) {
+    const { id, ...fields } = type;
+    await entities(db, 'debtTypes').updateOne(
+      { _id: id, userId: PERSONAL_USER_ID },
+      { $setOnInsert: { ...fields, userId: PERSONAL_USER_ID, createdAt: now, updatedAt: now } },
+      { upsert: true, session },
+    );
+  }
+}
+
+async function migrateDebtTypeReferences(db: Db, session: ClientSession) {
+  const oldDebts = await entities(db, 'debts').find({
+    userId: PERSONAL_USER_ID,
+    $or: [{ direction: { $exists: true } }, { debtTypeId: { $exists: false } }],
+  }, { session }).toArray();
+  for (const debt of oldDebts) {
+    const debtTypeId = debt.debtTypeId || (debt.direction === 'receivable' ? 'debt-type-lend' : 'debt-type-borrow');
+    await entities(db, 'debts').updateOne(
+      { _id: debt._id, userId: PERSONAL_USER_ID },
+      { $set: { debtTypeId }, $unset: { direction: '', personId: '' } },
+      { session },
+    );
+  }
+}
+
+async function migrateDebtDueDates(db: Db, session: ClientSession) {
+  const oldDebts = await entities(db, 'debts').find({
+    userId: PERSONAL_USER_ID,
+    $or: [{ dueAt: { $exists: true } }, { dueDate: { $exists: false } }],
+  }, { session }).toArray();
+  for (const debt of oldDebts) {
+    const currentDate = typeof debt.dueDate === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(debt.dueDate)
+      ? debt.dueDate
+      : typeof debt.dueAt === 'string' && debt.dueAt
+        ? dateKey(debt.dueAt)
+        : null;
+    await entities(db, 'debts').updateOne(
+      { _id: debt._id, userId: PERSONAL_USER_ID },
+      { $set: { dueDate: currentDate }, $unset: { dueAt: '' } },
+      { session },
+    );
+  }
+}
+
+async function styleDebtSources(db: Db, session: ClientSession) {
+  const sources = await entities(db, 'debtSources').find({ userId: PERSONAL_USER_ID }, { session }).toArray();
+  for (const source of sources) {
+    const icon = inferDebtSourceIcon(String(source.name || ''));
+    await entities(db, 'debtSources').updateOne(
+      { _id: source._id, userId: PERSONAL_USER_ID },
+      { $set: { icon, color: debtSourceIconColors[icon] } },
+      { session },
+    );
+  }
+}
+
 async function initialize(db: Db, session: ClientSession) {
   const existing = await settings(db).findOne({ _id: PERSONAL_USER_ID }, { session });
   if (existing) {
-    if (existing.storageVersion !== 1 || existing.userId !== PERSONAL_USER_ID)
+    if (![1, 2, 3, 4].includes(existing.storageVersion) || existing.userId !== PERSONAL_USER_ID)
       throw new Error('UNSUPPORTED_STORAGE_VERSION');
+    if (existing.storageVersion < 3) {
+      if (existing.storageVersion === 1) {
+        const oldSources = await db.collection<EntityDocument>('people').find({ userId: PERSONAL_USER_ID }, { session }).toArray();
+        for (const source of oldSources) {
+          const icon = inferDebtSourceIcon(String(source.name || ''));
+          const now = new Date();
+          await entities(db, 'debtSources').updateOne(
+            { _id: source._id, userId: PERSONAL_USER_ID },
+            { $setOnInsert: {
+              userId: PERSONAL_USER_ID,
+              name: source.name,
+              color: debtSourceIconColors[icon],
+              icon,
+              createdAt: source.createdAt || now,
+              updatedAt: source.updatedAt || now,
+            } },
+            { upsert: true, session },
+          );
+        }
+        const oldDebts = await entities(db, 'debts').find({ userId: PERSONAL_USER_ID, personId: { $exists: true } }, { session }).toArray();
+        for (const debt of oldDebts) {
+          await entities(db, 'debts').updateOne(
+            { _id: debt._id, userId: PERSONAL_USER_ID },
+            { $set: { debtSourceId: debt.debtSourceId || debt.personId }, $unset: { personId: '' } },
+            { session },
+          );
+        }
+      }
+      await styleDebtSources(db, session);
+      await ensureDebtTypes(db, session);
+      await migrateDebtTypeReferences(db, session);
+      const hasBudget = await entities(db, 'budgets').findOne({ userId: PERSONAL_USER_ID }, { session });
+      if (!hasBudget && existing.budget > 0) {
+        const now = new Date();
+        await entities(db, 'budgets').insertOne({
+          _id: 'budget-migration', userId: PERSONAL_USER_ID, cash: existing.budget, bank: 0,
+          recordedAt: now.toISOString(), createdAt: now, updatedAt: now,
+        }, { session });
+      }
+    }
+    if (existing.storageVersion < 4) await migrateDebtDueDates(db, session);
     const hasBudget = await entities(db, 'budgets').findOne({ userId: PERSONAL_USER_ID }, { session });
     if (!hasBudget && existing.budget > 0) {
       const now = new Date();
       await entities(db, 'budgets').insertOne({ _id: 'budget-migration', userId: PERSONAL_USER_ID, cash: existing.budget, bank: 0, recordedAt: now.toISOString(), createdAt: now, updatedAt: now }, { session });
     }
+    if (existing.storageVersion < 4) {
+      await settings(db).updateOne(
+        { _id: PERSONAL_USER_ID, userId: PERSONAL_USER_ID, storageVersion: existing.storageVersion },
+        { $set: { storageVersion: 4, updatedAt: new Date() } },
+        { session },
+      );
+      return { ...existing, storageVersion: 4 as const };
+    }
     return existing;
   }
   // A completed settings record is the migration marker. Never overwrite partial/manual data.
+  if (await db.collection('people').findOne({ userId: PERSONAL_USER_ID }, { session }))
+    throw new Error('UNINITIALIZED_EXISTING_DATA');
   for (const key of entityKeys) {
     if (await entities(db, key).findOne({ userId: PERSONAL_USER_ID }, { session }))
       throw new Error('UNINITIALIZED_EXISTING_DATA');
@@ -121,7 +238,7 @@ async function initialize(db: Db, session: ClientSession) {
   const legacy = await db
     .collection<LegacyDocument>('finance')
     .findOne({ _id: 'personal' }, { session });
-  const data = financeSchema.parse(legacy?.data || initialData);
+  const data = legacy ? parseBackup(legacy.data) : initialData;
   if (!data.budgets.length && data.budget > 0) data.budgets.push({
     id: 'budget-migration', userId: PERSONAL_USER_ID, cash: data.budget, bank: 0,
     recordedAt: new Date().toISOString(),
@@ -134,7 +251,7 @@ async function initialize(db: Db, session: ClientSession) {
     userId: PERSONAL_USER_ID,
     budget: data.budget,
     revision: legacy?.revision || 0,
-    storageVersion: 1,
+    storageVersion: 4,
     updatedAt: now,
     ...(legacy ? { migratedAt: now } : {}),
   };
@@ -178,7 +295,7 @@ export async function readFinance(): Promise<Snapshot> {
           const state = await initialize(db, session);
           const rows = await readEntities(db, session);
           return {
-            data: financeSchema.parse({ schemaVersion: 2, budget: state.budget, ...rows }),
+            data: financeSchema.parse({ schemaVersion: 3, budget: state.budget, ...rows }),
             revision: state.revision,
           };
         }, transactions),
@@ -205,7 +322,7 @@ export async function writeFinance(input: FinanceData, revision: number): Promis
   return (await getMongoClient()).withSession((session) =>
     session.withTransaction(async () => {
       const updated = await settings(db).findOneAndUpdate(
-        { _id: PERSONAL_USER_ID, userId: PERSONAL_USER_ID, storageVersion: 1, revision },
+        { _id: PERSONAL_USER_ID, userId: PERSONAL_USER_ID, storageVersion: 4, revision },
         { $set: { budget: data.budget, updatedAt: new Date() }, $inc: { revision: 1 } },
         { session, returnDocument: 'after' },
       );

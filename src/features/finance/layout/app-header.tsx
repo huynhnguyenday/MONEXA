@@ -8,6 +8,8 @@ import type { FinanceView } from '../types';
 
 type Props = {
   view: FinanceView;
+  debtView: 'calendar' | 'history';
+  onDebtViewChange: (view: 'calendar' | 'history') => void;
   month: string;
   onMonthChange: (month: string) => void;
   navOpen: boolean;
@@ -18,6 +20,8 @@ type Props = {
 };
 export default function AppHeader({
   view,
+  debtView,
+  onDebtViewChange,
   month,
   onMonthChange,
   navOpen,
@@ -48,22 +52,22 @@ export default function AppHeader({
       <div className="header-center">
         {view === 'overview' ? (
           <MonthPicker value={month} onChange={onMonthChange} />
+        ) : view === 'debts' ? (
+          <div className="header-debt-tabs" role="group" aria-label="Nội dung công nợ">
+            <button type="button" aria-pressed={debtView === 'calendar'} onClick={() => onDebtViewChange('calendar')}>Công nợ</button>
+            <button type="button" aria-pressed={debtView === 'history'} onClick={() => onDebtViewChange('history')}>Lịch sử</button>
+          </div>
+        ) : view === 'categories' ? (
+          <span className="header-page-context">Danh mục</span>
         ) : (
-          <span className="header-debt-context">
-            {view === 'debts' ? 'Công nợ' : 'Danh mục'}
-            <small>{view === 'debts' ? 'Tất cả thời gian' : 'Tên, icon và màu'}</small>
-          </span>
+          <span className="header-page-context">Nguồn công nợ</span>
         )}
       </div>
       <div className="header-primary-action">
-        <button className="button primary" disabled={!ready} onClick={onCreate}>
+        {view !== 'categories' && view !== 'debt-sources' && <button className="button primary" disabled={!ready} onClick={onCreate}>
           <Icon icon={faPlus} />
-          {view === 'overview'
-            ? 'Tạo chi tiêu'
-            : view === 'debts'
-              ? 'Ghi công nợ'
-              : 'Thêm danh mục'}
-        </button>
+          {view === 'overview' ? 'Tạo chi tiêu' : 'Ghi công nợ'}
+        </button>}
       </div>
     </header>
   );

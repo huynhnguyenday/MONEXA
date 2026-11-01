@@ -11,8 +11,7 @@ export function ExpenseForm({
   done,
   busy,
   expense,
-  onCategory,
-}: { expense?: Expense; onCategory: () => void } & FormProps) {
+}: { expense?: Expense } & FormProps) {
   const [date, setDate] = useState<Date | null>(
     expense ? new Date(expense.occurredAt) : new Date(),
   );
@@ -99,9 +98,6 @@ export function ExpenseForm({
             <option value="bank">Chuyển khoản</option>
           </select>
         </label>
-        <button type="button" className="inline-button" onClick={onCategory}>
-          + Quản lý / thêm danh mục
-        </button>
         {error && (
           <p role="alert" className="form-error">
             {error}

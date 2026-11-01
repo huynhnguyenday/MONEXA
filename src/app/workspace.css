@@ -42,18 +42,16 @@
   padding: 9px 14px;
   white-space: nowrap;
 }
-.header-debt-context {
+.header-page-context {
   font-size: 12px;
   font-weight: 550;
   text-align: center;
   color: #42618b;
 }
-.header-debt-context small {
-  display: block;
-  font-size: 9px;
-  font-weight: 400;
-  margin-top: 2px;
-}
+.header-debt-tabs { display: flex; align-items: center; gap: 4px; padding: 3px; border: 1px solid #cbd8ea; border-radius: 10px; background: #edf3fb; }
+.header-debt-tabs button { min-width: 82px; min-height: 44px; padding: 8px 12px; border: 1px solid transparent; border-radius: 7px; background: transparent; color: #526581; font-size: 11px; font-weight: 650; white-space: nowrap; }
+.header-debt-tabs button[aria-pressed='true'] { border-color: #1e40af; background: #1d4ed8; color: #fff; box-shadow: 0 2px 5px #1d4ed833; }
+.header-debt-tabs button:focus-visible { outline: 2px solid #142d4e; outline-offset: 2px; }
 .header-month-picker .react-datepicker-wrapper {
   width: auto;
 }
@@ -341,32 +339,40 @@
 .budget-card .progress .budget-bank-progress { border-radius: 0 8px 8px 0; }
 .budget-summary > div:first-child { min-width: 0; }
 .budget-summary .budget-negative { color: #dc2626; }
-.budget-summary .icon-button + .icon-button { margin-left: 2px; }
-.budget-summary .budget-add-button, .budget-summary .budget-history-button { width: 42px; min-width: 42px; height: 42px; min-height: 42px; padding: 0; border-radius: 12px; font-size: 16px; }
-.budget-summary .budget-add-button, .budget-summary .budget-history-button { flex: none; display: grid; place-items: center; line-height: 1; overflow: visible; }
 .budget-summary { justify-content: flex-start; }
 .budget-summary > div:first-child { flex: 1; }
-.budget-summary .budget-add-button { color: #fff; background: linear-gradient(145deg, #3b82f6, #1d4ed8); border: 1px solid #1e40af; box-shadow: 0 3px 8px #1d4ed855, inset 0 1px #ffffff55; }
-.budget-summary .budget-history-button { color: #713f12; background: linear-gradient(145deg, #fde047, #facc15); border: 1px solid #ca8a04; box-shadow: 0 3px 8px #ca8a0455, inset 0 1px #ffffff77; }
-.budget-summary .budget-add-button:hover { background: linear-gradient(145deg, #2563eb, #1e40af); transform: translateY(-1px); }
-.budget-summary .budget-history-button:hover { background: linear-gradient(145deg, #facc15, #eab308); transform: translateY(-1px); }
-.budget-summary .icon-button + .icon-button { margin-left: 0; }
+.budget-actions { display: flex; align-items: center; gap: 7px; flex: none; }
+.budget-summary .budget-action-button { width: 44px; min-width: 44px; min-height: 44px; height: 44px; padding: 0; border-radius: 9px; gap: 0; font-size: 16px; box-shadow: 0 2px 5px #142d4e20; }
+.budget-summary .budget-add-button { color: #fff; background: #1d4ed8; border: 1px solid #1e40af; }
+.budget-summary .budget-history-button { color: #713f12; background: #fef3c7; border: 1px solid #d4a72c; }
+.budget-summary .budget-add-button:hover { background: #1e40af; transform: translateY(-1px); }
+.budget-summary .budget-history-button:hover { background: #fde68a; border-color: #ca8a04; transform: translateY(-1px); }
 .budget-debt-caption, .budget-source-captions { color: #263f61; font-size: 10px; font-weight: 700; }
 .budget-history-dialog { width: min(520px, calc(100% - 28px)); height: min(620px, 82dvh); }
 .budget-history-dialog .dialog-content { height: 100%; display: flex; flex-direction: column; min-height: 0; }
 .budget-history-dialog .budget-history-list { flex: 1; min-height: 0; max-height: none; }
-.expense-row-cell { padding: 6px 4px !important; }
-.expense-row-summary { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 12px; align-items: center; min-height: 48px; margin: -3px -2px; padding: 4px 8px; border-radius: 9px; transition: background-color 120ms ease; }
-.expense-row-summary:hover, .expense-row-summary:focus-visible, .expense-row-summary.expanded { background: #eef1f5; outline: none; }
-.expense-row-summary .table-actions { cursor: default; }
-.expense-row-main { display: flex; align-items: center; justify-content: space-between; gap: 12px; width: 100%; min-width: 0; min-height: 44px; padding: 0; border: 0; background: transparent; text-align: left; cursor: pointer; }
-.expense-row-main:focus-visible { outline: 2px solid #1d4ed8; outline-offset: 2px; border-radius: 6px; }
-.expense-row-main .expense-name { min-height: 40px; font-size: 13px; font-weight: 700; }
-.expense-row-main .expense-amount-cell { min-width: 110px; text-align: right; font-size: 13px; }
-.expense-row-summary .table-actions { justify-content: flex-end; }
-.expense-expanded-info { display: flex; flex-wrap: wrap; align-items: center; gap: 14px; padding: 7px 4px 2px; color: #405a7c; font-size: 11px; font-weight: 600; }
-.expense-expanded-info span { display: inline-flex; align-items: center; gap: 5px; }
-dialog form textarea[name='title'] { display: block; width: 100%; min-height: 58px; margin-top: 7px; padding: 10px 12px; border: 1px solid #e2e8f0; border-radius: 8px; resize: vertical; font: inherit; }
+.budget-anchor-summary { display: grid; grid-template-columns: 1fr 1fr; gap: 6px 10px; padding: 10px 12px; border: 1px solid #dbe5f2; border-radius: 10px; background: #f5f8fd; }
+.budget-anchor-summary > strong { grid-column: 1 / -1; color: #263f61; font-size: 11px; }
+.budget-anchor-summary > span { display: flex; flex-direction: column; gap: 2px; color: #526581; font-size: 10px; }
+.budget-anchor-summary b { color: #142d4e; font-size: 13px; font-weight: 750; }
+.budget-card .budget-summary > div:first-child { min-width: 0; flex: 1; }
+.budget-card .budget-summary { justify-content: space-between; }
+.expense-summary-row:hover td { background: #f5f8fd; }
+.expense-summary-row.expanded td { border-bottom-color: transparent; }
+.expense-summary-row { cursor: pointer; }
+.expense-summary-row:focus-visible { outline: 2px solid #1d4ed8; outline-offset: -2px; }
+.expense-table .expense-summary-row .expense-name { margin: 0; color: #142d4e; font-size: 14px; line-height: 1.4; font-weight: 750; text-align: center; }
+.expense-amount-td { text-align: center; white-space: nowrap; }
+.expense-table .expense-amount-cell { color: #142d4e; font-size: 14px !important; font-weight: 800; font-variant-numeric: tabular-nums; }
+.expense-actions-td .table-actions { justify-content: flex-end; gap: 2px; }
+.expense-actions-td .table-actions button { width: 44px; min-width: 44px; height: 44px; min-height: 44px; }
+.expense-details-row td { padding: 0 8px 9px !important; background: #fff !important; }
+.expense-expanded-info { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; margin: 0; padding: 12px 14px; border-left: 3px solid #1d4ed8; border-radius: 0 0 9px 9px; color: #405a7c; }
+.expense-detail-item { display: flex; flex-direction: column; align-items: flex-start; gap: 4px; min-width: 0; }
+.expense-detail-item small { color: #64748b; font-size: 11px; font-weight: 650; }
+.expense-detail-item span, .expense-detail-item time { display: inline-flex; align-items: center; gap: 6px; min-width: 0; color: #263f61; font-size: 14px; font-weight: 700; line-height: 1.4; overflow-wrap: anywhere; }
+.expense-detail-item svg { flex: none; font-size: 16px; }
+dialog .dialog-content textarea { max-height: 150px; }
 .budget-history-list { display: grid; align-content: start; gap: 12px; margin: 0; padding: 0 3px 4px 0; max-height: 55vh; overflow-y: auto; }
 .budget-history-day { padding: 10px 12px; border: 1px solid #e2e8f0; border-radius: 10px; }
 .budget-history-day h3 { margin: 0 0 7px; color: #142d4e; font-size: 13px; font-weight: 750; text-transform: capitalize; }
@@ -395,13 +401,35 @@ dialog form textarea[name='title'] { display: block; width: 100%; min-height: 58
   gap: 8px;
 }
 .expense-panel .panel-heading {
-  min-height: 28px;
+  min-height: 44px;
 }
-.expense-panel .panel-heading .icon-button {
-  width: 28px;
-  min-width: 28px;
-  height: 28px;
-  min-height: 28px;
+.compact-layout .expense-panel .expense-search-box {
+  flex: 1 1 150px;
+  width: auto;
+  min-width: 80px;
+  max-width: 230px;
+  height: 36px;
+  min-height: 36px;
+  margin: 0;
+}
+.expense-add-button {
+  flex: none;
+  width: 44px;
+  min-width: 44px;
+  height: 44px;
+  min-height: 44px;
+  padding: 0;
+  border-radius: 10px;
+  font-size: 15px;
+  box-shadow: 0 2px 6px #1d4ed833;
+}
+.expense-add-button:hover:not(:disabled) {
+  background: #1e40af;
+  box-shadow: 0 3px 8px #1d4ed844;
+}
+.expense-add-button:focus-visible {
+  outline: 2px solid #142d4e;
+  outline-offset: 2px;
 }
 .compact-layout .search-box {
   margin: 0;
@@ -432,36 +460,30 @@ dialog form textarea[name='title'] { display: block; width: 100%; min-height: 58
   width: 112px;
 }
 .expense-table .action-column {
-  width: 84px;
+  width: 100px;
 }
 .expense-table thead tr {
-  height: 30px;
+  height: 44px;
 }
 .expense-table th {
-  text-align: left;
-  font-weight: 500;
-  font-size: 9px;
+  text-align: center;
+  font-weight: 700;
+  font-size: 14px;
   color: #64748b;
   border-bottom: 1px solid #e2e8f0;
-  padding: 0 3px;
-}
-.expense-table th:nth-child(2) {
-  text-align: right;
-  padding-right: 5px;
+  padding: 0 8px;
 }
 .expense-table tbody tr {
   height: 66px;
 }
 .expense-table td {
-  padding: 4px 3px;
+  padding: 4px 8px;
   border-bottom: 1px solid #edf2f8;
   vertical-align: middle;
 }
-.expense-table .expense-title-cell { width: 34%; }
-.expense-table .expense-category-time-cell { width: 34%; }
-.expense-table th:nth-child(2), .expense-table th:nth-child(3) { text-align: center; }
-.expense-table .expense-amount-cell { width: 16%; }
-.expense-table .expense-actions-cell { width: 16%; }
+.expense-title-cell, .expense-amount-td { text-align: center; }
+.expense-table th:nth-child(3) { text-align: center; }
+.expense-table .expense-title-cell { width: auto; }
 .expense-table .payment-method-cell { width: 14%; text-align: center; font-size: 10px; font-weight: 600; color: #405a7c; }
 .expense-name {
   display: block;
@@ -487,10 +509,6 @@ dialog form textarea[name='title'] { display: block; width: 100%; min-height: 58
 .expense-table .expense-time { display: block; margin-top: 4px; color: #526581; font-size: 10px; font-weight: 600; }
 .expense-table .table-actions button[aria-label^='Xóa']:hover,
 .expense-table .table-actions button[aria-label^='Xóa']:focus-visible { color: #fff; background: #dc2626; border-color: #b91c1c; }
-.expense-name:hover {
-  color: #1d4ed8;
-  text-decoration: underline;
-}
 .expense-meta {
   font-size: 9px;
   color: #64748b;
@@ -539,10 +557,7 @@ dialog form textarea[name='title'] { display: block; width: 100%; min-height: 58
   background: #eff6ff;
   color: #1d4ed8;
 }
-.expense-table .table-actions {
-  flex-direction: column;
-  gap: 0;
-}
+.expense-table .table-actions { flex-direction: row; }
 .pagination {
   display: flex;
   align-items: center;
@@ -623,6 +638,7 @@ dialog form textarea[name='title'] { display: block; width: 100%; min-height: 58
   gap: 10px;
 }
 .debt-calendar-viewport {
+  position: relative;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -630,6 +646,30 @@ dialog form textarea[name='title'] { display: block; width: 100%; min-height: 58
   overscroll-behavior: contain;
   padding: 0 4px 4px;
 }
+.compact-debts > .compact-stats.debt-overview-stats { height: 90px; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 6px; }
+.compact-debts > .compact-stats.debt-overview-stats .stat { min-height: 0; padding: 7px 8px; gap: 3px; border-radius: 9px; }
+.compact-debts > .compact-stats.debt-overview-stats .stat-label { font-size: 10px; }
+.compact-debts > .compact-stats.debt-overview-stats .stat > strong { font-size: clamp(12px, 1.2vw, 18px); }
+.compact-debts > .compact-stats.debt-overview-stats .stat > small { font-size: 8px; }
+.compact-debts > .compact-stats.debt-overview-stats .debt-stat { background: #fff; border: 1px solid #dbe4f0; color: #142d4e; box-shadow: 0 2px 7px #142d4e0a; }
+.compact-debts > .compact-stats.debt-overview-stats .debt-stat .stat-label { display: flex; align-items: center; gap: 5px; color: #526581; font-weight: 700; white-space: nowrap; }
+.compact-debts > .compact-stats.debt-overview-stats .debt-stat .stat-label svg { width: 11px; height: 11px; flex: none; }
+.compact-debts > .compact-stats.debt-overview-stats .debt-stat > strong { font-size: clamp(14px, 1.35vw, 20px); font-weight: 850; line-height: 1.1; letter-spacing: -0.35px; }
+.compact-debts > .compact-stats.debt-overview-stats .debt-stat > small { color: #64748b; }
+.compact-debts > .compact-stats.debt-overview-stats .debt-stat-receivable > strong,
+.compact-debts > .compact-stats.debt-overview-stats .debt-stat-receivable .stat-label svg { color: #16803c; }
+.compact-debts > .compact-stats.debt-overview-stats .debt-stat-payable > strong,
+.compact-debts > .compact-stats.debt-overview-stats .debt-stat-payable .stat-label svg { color: #c62828; }
+.compact-debts > .compact-stats.debt-overview-stats .debt-stat-overdue > strong,
+.compact-debts > .compact-stats.debt-overview-stats .debt-stat-overdue .stat-label svg { color: #a16207; }
+.debt-source-icon { display: block; width: 1em; height: 1em; flex: none; margin: auto; }
+.icon-picker button .debt-source-icon { transform: translateX(0); }
+.icon-picker button .debt-source-icon-shopee,
+.icon-picker button .debt-source-icon-seasy,
+.icon-picker button .debt-source-icon-momo,
+.category-symbol .debt-source-icon-shopee,
+.category-symbol .debt-source-icon-seasy,
+.category-symbol .debt-source-icon-momo { transform: translateX(1px); }
 .debt-calendar-viewport .react-datepicker {
   width: min(100%, 760px);
   border: 0;
@@ -651,11 +691,22 @@ dialog form textarea[name='title'] { display: block; width: 100%; min-height: 58
 .debt-calendar-day small svg { margin-right: 3px; transform: rotate(-45deg); }
 .debt-calendar-day small.receivable svg { transform: rotate(45deg); }
 .debt-calendar-viewport .react-datepicker__day--outside-month { opacity: .35; }
-.debt-calendar-viewport .react-datepicker__day.debt-calendar-today { background: #1d4ed8; color: white; border-color: #1d4ed8; }
-.debt-calendar-viewport .debt-calendar-today .debt-calendar-day small { color: white; }
-.debt-calendar-legend { display: flex; flex-wrap: wrap; justify-content: center; gap: 14px; padding: 8px; color: #526581; font-size: 11px; }
-.debt-calendar-legend svg { transform: rotate(45deg); color: #1d4ed8; }
-.debt-calendar-legend span:last-child svg { transform: rotate(-45deg); color: #b42318; }
+.debt-calendar-viewport .react-datepicker__day--keyboard-selected:not(.debt-calendar-selected) { background: transparent !important; color: inherit !important; border-color: #e2e8f0 !important; }
+.debt-calendar-viewport .react-datepicker__day.debt-calendar-selected { background: #1d4ed8 !important; color: #fff !important; border-color: #1d4ed8 !important; }
+.debt-calendar-viewport .debt-calendar-selected .debt-calendar-day > span,
+.debt-calendar-viewport .debt-calendar-selected .debt-calendar-day small { color: #fff !important; }
+.debt-day-tooltip { position: absolute; z-index: 15; top: 54px; right: max(12px, calc((100% - 760px) / 2)); width: min(380px, calc(100% - 24px)); padding: 9px 10px 10px; border: 1px solid #cbd8ea; border-radius: 12px; background: #fff; box-shadow: 0 12px 32px #142d4e30; }
+.debt-day-tooltip-header { display: flex; align-items: center; justify-content: space-between; gap: 12px; min-height: 38px; padding: 0 2px 6px; border-bottom: 1px solid #e2e8f0; color: #142d4e; font-size: 13px; font-weight: 750; }
+.debt-day-tooltip-header button { width: 44px; min-width: 44px; height: 40px; border: 0; border-radius: 8px; background: #f1f5f9; color: #405a7c; font-size: 22px; line-height: 1; }
+.debt-day-tooltip-list { display: grid; gap: 4px; max-height: 220px; overflow-y: auto; overscroll-behavior: contain; padding-top: 5px; }
+.debt-day-tooltip-entry { display: grid; grid-template-rows: repeat(2, minmax(26px, auto)); gap: 2px; min-width: 0; padding: 5px 4px; border-bottom: 1px solid #edf2f8; }
+.debt-day-tooltip-row { display: flex; align-items: center; justify-content: space-between; gap: 10px; min-width: 0; }
+.debt-day-tooltip-row:first-child { color: #142d4e; font-size: 12px; }
+.debt-day-tooltip-row:first-child strong { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-weight: 700; }
+.debt-day-tooltip-row:first-child b { flex: none; color: #142d4e; font-size: 13px; font-weight: 800; }
+.debt-day-tooltip-row:last-child { color: #526581; font-size: 10px; font-weight: 650; }
+.debt-day-tooltip-row:last-child span { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.debt-day-tooltip-empty { margin: 10px 2px 4px; color: #64748b; font-size: 12px; }
 .debt-calendar-empty { margin: 4px; color: #64748b; font-size: 12px; }
 .debt-calendar-entry { display: flex; align-items: center; gap: 10px; width: min(100%, 760px); min-height: 44px; padding: 4px 8px; border-top: 1px solid #edf2f8; font-size: 11px; }
 .debt-calendar-entry > time { flex: none; color: #1d4ed8; font-weight: 700; }
@@ -666,7 +717,7 @@ dialog form textarea[name='title'] { display: block; width: 100%; min-height: 58
 .expense-category-picker button svg { flex: none; font-size: 15px; }
 .expense-category-picker button span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .expense-category-picker button.selected { background: #eff6ff; border: 2px solid #1d4ed8; }
-@media (max-width: 600px) {
+@media (max-width: 1023px) {
   .compact-layout:has(.compact-debts) { height: auto; min-height: 100dvh; overflow: visible; }
   .compact-layout:has(.compact-debts) .workspace { height: auto; min-height: 100dvh; overflow: visible; }
   .compact-layout:has(.compact-debts) .workspace-content { overflow: visible; flex: none; }
@@ -716,6 +767,7 @@ dialog form textarea[name='title'] { display: block; width: 100%; min-height: 58
 .debt-money-column {
   width: 15%;
 }
+.debt-source-column { width: 18%; }
 .debt-date-column {
   width: 25%;
 }
@@ -736,11 +788,9 @@ dialog form textarea[name='title'] { display: block; width: 100%; min-height: 58
   border-bottom: 1px solid #e2e8f0;
   padding: 0 8px;
 }
-.compact-debt-table th:nth-child(2) {
-  text-align: right;
-}
+.compact-debt-table th:nth-child(3) { text-align: left; }
 .compact-debt-table tbody tr {
-  height: 82px;
+  height: 92px;
 }
 .compact-debt-table td {
   padding: 8px;
@@ -756,7 +806,7 @@ dialog form textarea[name='title'] { display: block; width: 100%; min-height: 58
 .compact-debt-table h3 button {
   font-size: 12px;
 }
-.debt-person {
+.debt-source {
   display: block;
   color: #526581;
   font-size: 10px;
@@ -786,6 +836,16 @@ dialog form textarea[name='title'] { display: block; width: 100%; min-height: 58
   color: #1d4ed8;
   background: #eff6ff;
 }
+.compact-debt-table td:nth-child(3) { text-align: left; }
+.debt-history-heading { display: flex; align-items: center; gap: 8px; color: #142d4e; font-size: 13px; font-weight: 700; }
+.debt-history-heading span { display: inline-grid; min-width: 24px; height: 24px; place-items: center; padding: 0 6px; border-radius: 12px; background: #eff6ff; color: #1d4ed8; font-size: 10px; }
+.debt-history-viewport { --row-height: 92px; --table-header-height: 32px; }
+.debt-history-viewport .compact-debt-table .status-badge.overdue { color: #b42318; background: #fee4e2; }
+.debt-history-viewport .compact-debt-table .receivable { color: #1d4ed8; }
+.debt-history-viewport .compact-debt-table .payable { color: #b42318; }
+.debt-history-viewport .compact-debt-table h3 { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.debt-history-viewport .table-actions { gap: 4px; }
+.debt-history-viewport .table-actions button { width: 30px; min-width: 30px; height: 32px; min-height: 32px; }
 .mobile-debt-status {
   display: none;
 }
@@ -932,7 +992,7 @@ dialog form textarea[name='title'] { display: block; width: 100%; min-height: 58
   .overview-aside.right-column {
     display: flex;
     flex-direction: column;
-    gap: 0;
+    gap: 8px;
     flex: none;
   }
   .mobile-view-charts .expense-panel {
@@ -950,9 +1010,10 @@ dialog form textarea[name='title'] { display: block; width: 100%; min-height: 58
     flex: 1;
   }
   .compact-layout .budget-card {
-    height: 82px;
-    padding: 9px 13px;
-    gap: 7px;
+    height: auto;
+    min-height: 108px;
+    padding: 12px 14px;
+    gap: 9px;
   }
   .budget-summary strong {
     margin-top: 4px;
@@ -1063,15 +1124,18 @@ dialog form textarea[name='title'] { display: block; width: 100%; min-height: 58
     height: 32px;
   }
   .expense-table .action-column {
-    width: 38px;
+    width: 96px;
   }
   .expense-table td {
     padding-top: 3px;
     padding-bottom: 3px;
   }
   .expense-table .amount-column {
-    width: 110px;
+    width: 104px;
   }
+  .expense-actions-td .table-actions { justify-content: flex-end; }
+  .expense-actions-td .table-actions button { width: 44px; min-width: 44px; height: 44px; min-height: 44px; }
+  .expense-expanded-info { gap: 8px; padding: 11px 12px; }
   .expense-table .amount-cell {
     font-size: 12px;
   }
@@ -1166,8 +1230,11 @@ dialog form textarea[name='title'] { display: block; width: 100%; min-height: 58
     gap: 3px;
   }
   .compact-layout .budget-card {
-    height: 77px;
+    height: auto;
+    min-height: 108px;
     border-radius: 10px;
+    padding: 11px 12px;
+    gap: 8px;
   }
   .budget-summary strong {
     font-size: 19px;
@@ -1203,9 +1270,16 @@ dialog form textarea[name='title'] { display: block; width: 100%; min-height: 58
     min-height: 38px;
   }
   .debt-table-viewport {
-    --row-height: 112px;
+    --row-height: 136px;
     --table-header-height: 0;
   }
+  .compact-debt-card .debt-month-stats { gap: 5px; }
+  .compact-debt-card .debt-month-stats .stat { min-height: 78px; padding: 7px; gap: 4px; }
+  .compact-debt-card .debt-month-stats .stat-label { font-size: 10px; }
+  .compact-debt-card .debt-month-stats .stat > strong { font-size: clamp(12px, 4vw, 17px); }
+  .compact-debt-card .debt-month-stats .stat > small { font-size: 8px; }
+  .debt-month-stats-wrap > h3 { font-size: 12px; }
+  .expense-expanded-info { grid-template-columns: minmax(0, 1fr); gap: 9px; }
   .compact-debt-table,
   .compact-debt-table tbody {
     display: block;
@@ -1216,10 +1290,10 @@ dialog form textarea[name='title'] { display: block; width: 100%; min-height: 58
     display: none;
   }
   .compact-debt-table tbody tr {
-    height: 112px;
+    height: 136px;
     display: grid;
     grid-template-columns: minmax(0, 1fr) 94px 30px;
-    grid-template-rows: 54px 42px;
+    grid-template-rows: 46px 30px 46px;
     gap: 2px 5px;
     padding: 7px 0;
     border-bottom: 1px solid #e2e8f0;
@@ -1234,22 +1308,27 @@ dialog form textarea[name='title'] { display: block; width: 100%; min-height: 58
     grid-row: 1;
   }
   .compact-debt-table td:nth-child(2) {
+    grid-column: 1;
+    grid-row: 2;
+    align-self: center;
+  }
+  .compact-debt-table td:nth-child(3) {
     grid-column: 2;
     grid-row: 1;
     align-self: center;
     font-size: 12px;
   }
-  .compact-debt-table td:nth-child(3) {
+  .compact-debt-table td:nth-child(4) {
     grid-column: 1/3;
-    grid-row: 2;
+    grid-row: 3;
     align-self: center;
   }
-  .compact-debt-table td:nth-child(4) {
+  .compact-debt-table td:nth-child(5) {
     display: none;
   }
-  .compact-debt-table td:nth-child(5) {
+  .compact-debt-table td:nth-child(6) {
     grid-column: 3;
-    grid-row: 1/3;
+    grid-row: 1/4;
     align-self: center;
   }
   .compact-debt-table .table-actions {
@@ -1263,7 +1342,7 @@ dialog form textarea[name='title'] { display: block; width: 100%; min-height: 58
   .compact-debt-table h3 button {
     font-size: 11px;
   }
-  .debt-person {
+  .debt-source {
     font-size: 9px;
     margin-top: 2px;
   }
@@ -1310,15 +1389,14 @@ dialog form textarea[name='title'] { display: block; width: 100%; min-height: 58
   .budget-summary strong {
     font-size: 21px;
   }
-  .compact-layout .budget-card {
-    padding: 10px 12px;
-    gap: 7px;
-  }
+  .compact-layout .budget-card { padding: 11px 12px; gap: 8px; }
   .compact-debts > .compact-stats {
     height: 72px;
   }
 }
 @media (max-width: 1023px) {
+  .compact-debts > .compact-stats.debt-overview-stats { height: auto; grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .compact-debts > .compact-stats.debt-overview-stats .stat { min-height: 70px; }
   .mobile-panel-tabs {
     height: 44px;
   }
@@ -1363,17 +1441,17 @@ dialog form textarea[name='title'] { display: block; width: 100%; min-height: 58
     height: 44px;
   }
   .expense-table .action-column {
-    width: 48px;
+    width: 96px;
   }
 }
 @media (max-width: 600px) {
   .debt-table-viewport {
-    --row-height: 148px;
+    --row-height: 164px;
   }
   .compact-debt-table tbody tr {
-    height: 148px;
+    height: 164px;
     grid-template-columns: minmax(0, 1fr) 94px 44px;
-    grid-template-rows: 68px 62px;
+    grid-template-rows: 70px 32px 48px;
   }
   .compact-debt-table .table-actions button {
     width: 44px;
@@ -1385,6 +1463,10 @@ dialog form textarea[name='title'] { display: block; width: 100%; min-height: 58
 }
 
 @media (max-width: 600px) {
+  .header-debt-tabs { gap: 2px; padding: 2px; }
+  .header-debt-tabs button { min-width: 0; min-height: 44px; padding: 6px; font-size: 9px; }
+  .debt-history-viewport { --row-height: 164px; --table-header-height: 0; }
+  .debt-history-viewport .compact-debt-table tbody tr { height: 164px; grid-template-rows: 70px 32px 48px; }
   .compact-layout .workspace-header {
     gap: 6px;
     grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
@@ -1426,6 +1508,7 @@ dialog form textarea[name='title'] { display: block; width: 100%; min-height: 58
   }
 }
 @media (max-width: 380px) {
+  .header-debt-tabs button { padding: 5px 4px; font-size: 9px; }
   .compact-layout .workspace-header {
     gap: 4px;
   }

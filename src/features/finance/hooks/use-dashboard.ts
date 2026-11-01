@@ -7,6 +7,7 @@ import {
   type Expense,
   type Debt,
   type Category,
+  type DebtSource,
   type FinanceData,
   initialData,
   getStatistics,
@@ -18,9 +19,9 @@ export function useDashboard() {
   const router = useRouter();
   const pathname = usePathname();
   const [month, setMonth] = useState('');
-  const tab: FinanceView = pathname === '/debts' ? 'debts' : pathname === '/categories' ? 'categories' : 'overview';
-  const [modal, setModal] = useState<FinanceModal>(null),
-    [categoryOverlay, setCategoryOverlay] = useState(false);
+  const [debtView, setDebtView] = useState<'calendar' | 'history'>('calendar');
+  const tab: FinanceView = pathname === '/debts' ? 'debts' : pathname === '/categories' ? 'categories' : pathname === '/debt-sources' ? 'debt-sources' : 'overview';
+  const [modal, setModal] = useState<FinanceModal>(null);
   const [notice, setNotice] = useState(''),
     [hasLegacy, setHasLegacy] = useState(false),
     [navOpen, setNavOpen] = useState(false);
@@ -70,17 +71,16 @@ export function useDashboard() {
   }
   function navigate(value: FinanceView) {
     router.push(value === 'overview' ? '/overview' : `/${value}`);
+    if (value === 'debts') setDebtView('calendar');
     if (window.innerWidth < 1024) setNavOpen(false);
   }
   function open(value: FinanceModal) {
-    setCategoryOverlay(false);
     setModal(value);
     setNotice('');
     if (window.innerWidth < 1024) setNavOpen(false);
   }
   function close() {
-    if (categoryOverlay) setCategoryOverlay(false);
-    else setModal(null);
+    setModal(null);
   }
   function done() {
     setModal(null);
@@ -113,6 +113,14 @@ export function useDashboard() {
       }))
     )
       setNotice('Đã xóa danh mục.');
+  }
+  async function deleteDebtSource(source: DebtSource) {
+    if (data.debts.some((debt) => debt.debtSourceId === source.id))
+      return setNotice('Không thể xóa nguồn đang được công nợ sử dụng.');
+    if (
+      window.confirm(`Xóa nguồn công nợ “${source.name}”?`) &&
+      (await save({ ...data, debtSources: data.debtSources.filter((item) => item.id !== source.id) }))
+    ) setNotice('Đã xóa nguồn công nợ.');
   }
   async function settle(debt: Debt) {
     if (
@@ -193,9 +201,9 @@ export function useDashboard() {
     month,
     setMonth,
     tab,
+    debtView,
+    setDebtView,
     modal,
-    categoryOverlay,
-    setCategoryOverlay,
     notice,
     setNotice,
     hasLegacy,
@@ -214,6 +222,7 @@ export function useDashboard() {
     deleteExpense,
     deleteDebt,
     deleteCategory,
+    deleteDebtSource,
     settle,
     importData,
     migrateLegacy,

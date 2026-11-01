@@ -2,11 +2,11 @@
 import { format } from 'date-fns';
 import { vi } from 'date-fns/locale';
 import type { FinanceData } from '../model';
-import { dateKey, money } from '../model';
+import { budgetMonth, dateKey, money } from '../model';
 
 export function BudgetHistory({ data, month }: { data: FinanceData; month: string }) {
   const entries = data.budgets
-    .filter((entry) => dateKey(entry.recordedAt).startsWith(month))
+    .filter((entry) => budgetMonth(entry) === month)
     .sort((a, b) => b.recordedAt.localeCompare(a.recordedAt));
   const grouped = new Map<string, typeof entries>();
   entries.forEach((entry) => {
