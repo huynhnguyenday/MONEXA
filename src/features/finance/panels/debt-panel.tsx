@@ -123,7 +123,14 @@ export default function DebtPanel({
                 renderDayContents={(day: number, date: Date | null) => {
                   if (!date) return day;
                   const items = byDueDate.get(dateKey(date)) || [];
-                  return <span className="debt-calendar-day"><span>{day}</span>{items.slice(0, 2).map((d) => <small key={d.id} className={direction(d)}><Icon icon={direction(d) === 'payable' ? faArrowDown : faArrowUp} />{money(d.amount)}</small>)}{items.length > 2 && <small>+{items.length - 2} khoản</small>}</span>;
+                  const totals = items.reduce((sum, debt) => {
+                    sum[direction(debt)] += debt.amount;
+                    return sum;
+                  }, { payable: 0, receivable: 0 });
+                  return <span className="debt-calendar-day"><span>{day}</span>
+                    {totals.receivable > 0 && <small className="receivable"><Icon icon={faArrowUp} />{money(totals.receivable)}</small>}
+                    {totals.payable > 0 && <small className="payable"><Icon icon={faArrowDown} />{money(totals.payable)}</small>}
+                  </span>;
                 }} />}
               {tooltipDate && <div className="debt-day-tooltip" ref={tooltipRef} role="dialog" aria-label={`Công nợ đến hạn ngày ${dateLabel(tooltipDate)}`}>
                 <div className="debt-day-tooltip-header">
