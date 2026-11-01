@@ -10,6 +10,9 @@ import {
   faClockRotateLeft,
   faCirclePlus,
   faClock,
+  faArrowUp,
+  faArrowDown,
+  faChartLine,
 } from '@fortawesome/free-solid-svg-icons';
 import Charts from '../charts/finance-charts';
 import { budgetMonth, dateKey, debtDirection, type Expense, type FinanceData, type getStatistics, displayTime, money } from '../model';
@@ -83,18 +86,18 @@ export default function OverviewPanel({
       <div className="overview-grid">
         <section className="overview-main">
           <div className="compact-stats">
-            <article className="stat balance">
-              <span className="stat-label">Còn lại</span>
+            <article className="stat overview-stat overview-stat-remaining">
+              <span className="stat-label"><Icon icon={faArrowUp} aria-hidden="true" />Còn lại</span>
               <strong>{money(monthBudget - stats.total)}</strong>
               <small>Ngân sách − chi tiêu tháng</small>
             </article>
-            <article className="stat">
-              <span className="stat-label">Đã chi tiêu</span>
+            <article className="stat overview-stat overview-stat-spent">
+              <span className="stat-label"><Icon icon={faArrowDown} aria-hidden="true" />Đã chi tiêu</span>
               <strong>{money(stats.total)}</strong>
               <small>{stats.expenses.length} khoản chi</small>
             </article>
-            <article className="stat">
-              <span className="stat-label">Trung bình / ngày</span>
+            <article className="stat overview-stat overview-stat-average">
+              <span className="stat-label"><Icon icon={faChartLine} aria-hidden="true" />Trung bình / ngày</span>
               <strong>{money(stats.average)}</strong>
               <small>Tính trên ngày đã qua</small>
             </article>

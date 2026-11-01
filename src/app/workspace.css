@@ -241,6 +241,44 @@
 .compact-stats .balance > small {
   color: #dbeafe;
 }
+.overview-main > .compact-stats .overview-stat {
+  background: #fff;
+  border: 1px solid #dbe4f0;
+  box-shadow: 0 2px 7px #142d4e0a;
+}
+.overview-main > .compact-stats .overview-stat .stat-label {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: #526581;
+  font-weight: 700;
+  white-space: nowrap;
+}
+.overview-main > .compact-stats .overview-stat .stat-label svg {
+  width: 12px;
+  height: 12px;
+  flex: none;
+}
+.overview-main > .compact-stats .overview-stat > strong {
+  font-weight: 850;
+  line-height: 1.1;
+  letter-spacing: -0.35px;
+}
+.overview-main > .compact-stats .overview-stat > small {
+  color: #64748b;
+}
+.overview-main > .compact-stats .overview-stat-remaining > strong,
+.overview-main > .compact-stats .overview-stat-remaining .stat-label svg {
+  color: #16803c;
+}
+.overview-main > .compact-stats .overview-stat-spent > strong,
+.overview-main > .compact-stats .overview-stat-spent .stat-label svg {
+  color: #c62828;
+}
+.overview-main > .compact-stats .overview-stat-average > strong,
+.overview-main > .compact-stats .overview-stat-average .stat-label svg {
+  color: #a16207;
+}
 .compact-layout .card {
   border-radius: 12px;
   box-shadow: 0 2px 6px #142d4e03;

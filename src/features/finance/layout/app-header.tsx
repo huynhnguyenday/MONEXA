@@ -64,9 +64,9 @@ export default function AppHeader({
         )}
       </div>
       <div className="header-primary-action">
-        {view !== 'categories' && view !== 'debt-sources' && <button className="button primary" disabled={!ready} onClick={onCreate}>
+        {view === 'debts' && <button className="button primary" disabled={!ready} onClick={onCreate}>
           <Icon icon={faPlus} />
-          {view === 'overview' ? 'Tạo chi tiêu' : 'Ghi công nợ'}
+          Ghi công nợ
         </button>}
       </div>
     </header>
