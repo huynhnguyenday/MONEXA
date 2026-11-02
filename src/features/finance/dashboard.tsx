@@ -2,6 +2,7 @@
 import AppHeader from './layout/app-header';
 import AppSidebar from './layout/app-sidebar';
 import OverviewPanel from './panels/overview-panel';
+import FinanceSkeleton from './panels/finance-skeleton';
 import DebtPanel from './panels/debt-panel';
 import CategoryPanel from './panels/category-panel';
 import DebtSourcePanel from './panels/debt-source-panel';
@@ -48,6 +49,7 @@ export default function Dashboard() {
           toggleRef={dashboard.navToggleRef}
           onToggleNav={dashboard.toggleNav}
           ready={dashboard.ready}
+          loading={dashboard.loading}
           onCreate={() =>
             dashboard.open({
               type:
@@ -59,11 +61,9 @@ export default function Dashboard() {
             })
           }
         />
-        <div className="workspace-content">
-          {dashboard.loading && !dashboard.snapshot ? (
-            <div className="loading-state" role="status">
-              Đang tải dữ liệu…
-            </div>
+        <div className="workspace-content" aria-busy={dashboard.loading}>
+          {dashboard.loading ? (
+            <FinanceSkeleton view={dashboard.tab} debtView={dashboard.debtView} />
           ) : !dashboard.snapshot ? (
             <div className="compact-empty card">
               <p>Chưa tải được dữ liệu.</p>
@@ -79,7 +79,10 @@ export default function Dashboard() {
               month={dashboard.month}
               ready={dashboard.ready}
               onAdd={() => dashboard.open({ type: 'expense' })}
-              onEdit={(expense) => dashboard.open({ type: 'expense', expense })}
+              onEdit={(expense) => {
+                const debt = expense.debtId && dashboard.data.debts.find((item) => item.id === expense.debtId);
+                dashboard.open(debt ? { type: 'debt', debt } : { type: 'expense', expense });
+              }}
               onDelete={(expense) => void dashboard.deleteExpense(expense)}
               onBudget={() => dashboard.open({ type: 'budget' })}
               onBudgetHistory={() => dashboard.open({ type: 'budget-history' })}

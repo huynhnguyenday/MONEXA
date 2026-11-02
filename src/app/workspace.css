@@ -363,18 +363,6 @@
   line-height: 1.2;
   overflow-wrap: anywhere;
 }
-.budget-card .progress {
-  height: 12px;
-  flex: none;
-  display: flex;
-}
-.budget-card .progress .budget-debt-progress { background: #dc2626; }
-.budget-card .progress .budget-cash-progress { background: #16a34a; border-radius: 0; }
-.budget-card .progress .budget-bank-progress { background: #3b82f6; }
-.budget-card .progress span { height: 100%; }
-.budget-card .progress .budget-debt-progress { border-radius: 8px 0 0 8px; }
-.budget-card .progress .budget-debt-progress.solo { border-radius: 8px; }
-.budget-card .progress .budget-bank-progress { border-radius: 0 8px 8px 0; }
 .budget-summary > div:first-child { min-width: 0; }
 .budget-summary .budget-negative { color: #dc2626; }
 .budget-summary { justify-content: flex-start; }
@@ -388,6 +376,7 @@
 .budget-debt-caption, .budget-source-captions { color: #263f61; font-size: 10px; font-weight: 700; }
 .budget-history-dialog { width: min(520px, calc(100% - 28px)); height: min(620px, 82dvh); }
 .budget-history-dialog .dialog-content { height: 100%; display: flex; flex-direction: column; min-height: 0; }
+.budget-history-dialog .dialog-heading { margin-bottom: 18px; }
 .budget-history-dialog .budget-history-list { flex: 1; min-height: 0; max-height: none; }
 .budget-anchor-summary { display: grid; grid-template-columns: 1fr 1fr; gap: 6px 10px; padding: 10px 12px; border: 1px solid #dbe5f2; border-radius: 10px; background: #f5f8fd; }
 .budget-anchor-summary > strong { grid-column: 1 / -1; color: #263f61; font-size: 11px; }
@@ -519,7 +508,10 @@ dialog .dialog-content textarea { max-height: 150px; }
   border-bottom: 1px solid #edf2f8;
   vertical-align: middle;
 }
-.expense-title-cell, .expense-amount-td { text-align: center; }
+.expense-amount-td { text-align: center; }
+.expense-table .expense-title-heading,
+.expense-table .expense-title-cell,
+.expense-table .expense-summary-row .expense-name { text-align: left; }
 .expense-table th:nth-child(3) { text-align: center; }
 .expense-table .expense-title-cell { width: auto; }
 .expense-table .payment-method-cell { width: 14%; text-align: center; font-size: 10px; font-weight: 600; color: #405a7c; }
@@ -987,9 +979,6 @@ dialog .dialog-content textarea { max-height: 150px; }
   }
   .compact-stats .stat > strong {
     font-size: 18px;
-  }
-  .compact-layout.nav-expanded .overview-grid {
-    grid-template-columns: minmax(0, 65fr) minmax(0, 35fr);
   }
 }
 @media (max-width: 1023px) {
@@ -1605,3 +1594,63 @@ dialog .dialog-content textarea { max-height: 150px; }
     z-index: 56;
   }
 }
+/* Keep the five metrics in their business order on one row. */
+.overview-panel .overview-main { grid-template-rows: 104px minmax(0, 1fr) minmax(0, 1fr); }
+.overview-main > .compact-stats { grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 8px; }
+.overview-main > .compact-stats .stat { padding: 8px 10px; gap: 4px; }
+.overview-main > .compact-stats .stat .stat-label { white-space: normal; }
+.overview-main > .compact-stats .stat > strong { font-size: clamp(14px, 1.5vw, 23px); }
+@media (max-width: 767px) {
+  .overview-panel .overview-main { grid-template-rows: 110px minmax(0, 1fr) minmax(0, 1fr); }
+  .overview-main > .compact-stats { gap: 5px; }
+  .overview-main > .compact-stats .stat { padding: 6px 4px; gap: 5px; }
+  .overview-main > .compact-stats .stat > strong { font-size: 13px; }
+  .overview-main > .compact-stats .stat .stat-label { font-size: 10px; }
+  .overview-main > .compact-stats .stat > small { display: none; }
+}
+/* Scope popup geometry independently of the inline debt calendar. */
+.react-datepicker-popper .react-datepicker {
+  display: flex !important; flex-wrap: wrap; width: min(332px, calc(100vw - 24px)) !important;
+  max-width: calc(100vw - 24px); border-radius: 12px; font-size: 12px !important;
+}
+.react-datepicker-popper .react-datepicker__month-container { width: 100%; min-width: 0; flex: 1 1 100%; float: none !important; }
+.react-datepicker-popper .react-datepicker__header { padding: 12px 6px 4px !important; }
+.react-datepicker-popper .react-datepicker__current-month { line-height: 32px; margin: 0; }
+.react-datepicker-popper .react-datepicker__month { margin: 4px 6px 8px !important; }
+.react-datepicker-popper .react-datepicker__day-names,
+.react-datepicker-popper .react-datepicker__week { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); margin: 0; }
+.react-datepicker-popper .react-datepicker__day,
+.react-datepicker-popper .react-datepicker__day-name {
+  display: flex; align-items: center; justify-content: center;
+  width: auto !important; height: 40px; min-width: 0; margin: 1px !important;
+  line-height: 1 !important; border-radius: 7px;
+}
+.react-datepicker-popper .react-datepicker__navigation { top: 8px; width: 40px; height: 40px; min-width: 40px; min-height: 40px; padding: 0; }
+.react-datepicker-popper .react-datepicker__navigation--next--with-time { right: 2px !important; }
+.react-datepicker-popper .react-datepicker__time-container {
+  float: none; flex: 1 1 100%; width: 100% !important; border-left: 0; border-top: 1px solid #e2e8f0;
+}
+.react-datepicker-popper .react-datepicker__time-container .react-datepicker__time-box { width: 100% !important; margin: 0; }
+.react-datepicker-popper .react-datepicker__time-container .react-datepicker__time-list { height: 112px !important; }
+.react-datepicker-popper .react-datepicker__time-container .react-datepicker__time-list-item { box-sizing: border-box; min-height: 40px; padding: 10px !important; }
+.react-datepicker-popper .react-datepicker__month-wrapper { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); }
+.react-datepicker-popper .react-datepicker__month-text { display: flex; align-items: center; justify-content: center; width: auto; min-height: 44px; margin: 3px; padding: 4px; white-space: normal; }
+
+/* Transaction forms retain the calendar and time list side by side. */
+.transaction-date-popper .react-datepicker {
+  flex-wrap: nowrap; width: min(400px, calc(100vw - 24px)) !important;
+}
+.transaction-date-popper .react-datepicker .react-datepicker__month-container {
+  width: auto; flex: 1 1 0;
+}
+.transaction-date-popper .react-datepicker .react-datepicker__time-container {
+  flex: 0 0 76px; width: 76px !important; border-top: 0; border-left: 1px solid #e2e8f0;
+}
+.transaction-date-popper .react-datepicker .react-datepicker__time-list { height: 244px !important; }
+.transaction-date-popper .react-datepicker .react-datepicker__day,
+.transaction-date-popper .react-datepicker .react-datepicker__day-name { height: 32px; }
+.transaction-date-popper .react-datepicker .react-datepicker__navigation--next--with-time { right: 78px !important; }
+.transaction-date-popper .react-datepicker .react-datepicker-time__header { line-height: 32px; }
+.expense-category-picker button { justify-content: center; gap: 8px; text-align: center; }
+.expense-category-picker button svg { width: 18px; height: 18px; }
+.expense-category-picker button span { flex: 0 1 auto; min-width: 0; }

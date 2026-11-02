@@ -15,10 +15,10 @@ export function CategoryForm({
   const suggestedColors: Record<Category['icon'], string> = {
     utensils: '#f97316', bag: '#db2777', car: '#2563eb', receipt: '#7c3aed',
     heart: '#e11d48', home: '#0891b2', coffee: '#92400e', plane: '#0284c7',
-    book: '#4f46e5', gift: '#c026d3', game: '#16a34a', wallet: '#ca8a04',
+    book: '#4f46e5', gift: '#c026d3', game: '#16a34a', wallet: '#ca8a04', couple: '#db2777', outing: '#ea580c', debt: '#0d9488',
   };
-  const [icon, setIcon] = useState<Category['icon']>(category?.icon || 'wallet');
-  const [color, setColor] = useState(category?.color || suggestedColors[category?.icon || 'wallet']);
+  const [icon, setIcon] = useState<Category['icon']>(category?.icon || 'couple');
+  const [color, setColor] = useState(category?.color || suggestedColors[category?.icon || 'couple']);
   const [error, setError] = useState('');
   const labelId = useId();
   return (
@@ -70,7 +70,7 @@ export function CategoryForm({
           Icon danh mục
         </div>
         <div className="icon-picker" role="group" aria-labelledby={labelId}>
-          {iconKeys.map((key) => (
+          {iconKeys.filter((key) => key !== 'wallet').map((key) => (
             <button
               key={key}
               type="button"

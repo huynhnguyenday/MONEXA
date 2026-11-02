@@ -3,6 +3,8 @@ import type { ClientSession, Collection, Db, TransactionOptions } from 'mongodb'
 import { getDatabase, getMongoClient } from '@/lib/mongodb';
 import {
   financeSchema,
+  calculateBalance,
+  reconcileDebtExpenses,
   defaultDebtTypes,
   debtSourceIconColors,
   inferDebtSourceIcon,
@@ -62,6 +64,7 @@ async function ensureIndexes(db: Db) {
         entities(db, 'expenses').createIndexes([
           { key: { userId: 1, occurredAt: -1 } },
           { key: { userId: 1, categoryId: 1 } },
+          { key: { userId: 1, debtId: 1 }, unique: true, partialFilterExpression: { debtId: { $type: 'string' } } },
         ]),
         entities(db, 'debtSources').createIndex({ userId: 1, name: 1 }),
         entities(db, 'debtTypes').createIndex({ userId: 1, name: 1 }),
@@ -283,6 +286,18 @@ async function readEntities(db: Db, session: ClientSession) {
   return result;
 }
 
+/** Server-owned balance commits with the source documents and revision. */
+async function reconcileBalance(db: Db, data: FinanceData, session: ClientSession) {
+  data.balance = calculateBalance(data);
+  if (!Number.isSafeInteger(data.balance)) throw new Error('INVALID_BALANCE');
+  await db.collection<EntityDocument>('balances').updateOne(
+    { _id: PERSONAL_USER_ID, userId: PERSONAL_USER_ID },
+    { $set: { total: data.balance, updatedAt: new Date() },
+      $setOnInsert: { createdAt: new Date() } },
+    { upsert: true, session },
+  );
+}
+
 /** Lightweight change check; application writes increment revision in the same transaction. */
 export async function readFinanceRevision(): Promise<number | null> {
   const db = await getDatabase();
@@ -304,10 +319,16 @@ export async function readFinance(): Promise<Snapshot> {
         session.withTransaction(async () => {
           const state = await initialize(db, session);
           const rows = await readEntities(db, session);
-          return {
-            data: financeSchema.parse({ schemaVersion: 3, budget: state.budget, ...rows }),
-            revision: state.revision,
-          };
+          const data = financeSchema.parse({ schemaVersion: 3, budget: state.budget, ...rows });
+          const balance = await db.collection<EntityDocument>('balances').findOne(
+            { _id: PERSONAL_USER_ID, userId: PERSONAL_USER_ID }, { session },
+          );
+          if (!balance) await reconcileBalance(db, data, session);
+          else {
+            if (typeof balance.total !== 'number' || !Number.isSafeInteger(balance.total)) throw new Error('INVALID_BALANCE');
+            data.balance = balance.total;
+          }
+          return { data, revision: state.revision };
         }, transactions),
       );
     } catch (error) {
@@ -326,7 +347,7 @@ export async function readFinance(): Promise<Snapshot> {
 }
 
 export async function writeFinance(input: FinanceData, revision: number): Promise<Snapshot | null> {
-  const data = financeSchema.parse(input);
+  let data = financeSchema.parse(input);
   const db = await getDatabase();
   await ensureIndexes(db);
   return (await getMongoClient()).withSession((session) =>
@@ -337,7 +358,10 @@ export async function writeFinance(input: FinanceData, revision: number): Promis
         { session, returnDocument: 'after' },
       );
       if (!updated) return null;
+      const previous = financeSchema.parse({ schemaVersion: 3, budget: updated.budget, ...await readEntities(db, session) });
+      data = reconcileDebtExpenses(previous, data);
       for (const key of entityKeys) await syncEntities(entities(db, key), data[key], session);
+      await reconcileBalance(db, data, session);
       return { data, revision: updated.revision };
     }, transactions),
   );

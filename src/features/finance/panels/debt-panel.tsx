@@ -68,7 +68,10 @@ export default function DebtPanel({
   const totalPayable = outstanding.filter((debt) => direction(debt) === 'payable').reduce((sum, debt) => sum + debt.amount, 0);
   const monthOverdueCount = monthOutstanding.filter(overdue).length;
   const totalOverdueCount = outstanding.filter(overdue).length;
-  const history = [...data.debts].sort((a, b) => b.occurredAt.localeCompare(a.occurredAt));
+  const history = [...data.debts].sort((a, b) => {
+    const dueOrder = (a.dueDate ?? '9999-12-31').localeCompare(b.dueDate ?? '9999-12-31');
+    return dueOrder || b.occurredAt.localeCompare(a.occurredAt);
+  });
   const visibleItems = history.slice(0, visibleCount);
   const dateLabel = (value: string) => {
     const [year, monthValue, day] = value.split('-');
@@ -80,7 +83,7 @@ export default function DebtPanel({
     if (debt.settledAt) return `Hạn ${date}`;
     // Compare calendar dates in Vietnam, independently of the device timezone.
     const days = Math.round((Date.parse(`${debt.dueDate}T00:00:00Z`) - Date.parse(`${dateKey()}T00:00:00Z`)) / 86_400_000);
-    const urgency = days <= 5 ? 'urgent' : days <= 10 ? 'soon' : 'safe';
+    const urgency = days <= 10 ? 'urgent' : days <= 30 ? 'soon' : 'safe';
     return <>
       {days > 0 ? <>Còn <strong className={`debt-days-${urgency}`}>{days}</strong> ngày là tới hạn</>
         : days === 0 ? <strong className="debt-days-urgent">Đến hạn hôm nay</strong>

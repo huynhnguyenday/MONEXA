@@ -4,6 +4,7 @@ import Image from 'next/image';
 import { FontAwesomeIcon as Icon } from '@fortawesome/react-fontawesome';
 import { faBars, faPlus, faXmark } from '@fortawesome/free-solid-svg-icons';
 import MonthPicker from '@/components/month-picker';
+import { MonthPickerSkeleton } from '../components/loading-skeleton';
 import type { FinanceView } from '../types';
 
 type Props = {
@@ -16,6 +17,7 @@ type Props = {
   toggleRef: Ref<HTMLButtonElement>;
   onToggleNav: () => void;
   ready: boolean;
+  loading?: boolean;
   onCreate: () => void;
 };
 export default function AppHeader({
@@ -28,6 +30,7 @@ export default function AppHeader({
   toggleRef,
   onToggleNav,
   ready,
+  loading = false,
   onCreate,
 }: Props) {
   return (
@@ -51,7 +54,7 @@ export default function AppHeader({
       </div>
       <div className="header-center">
         {view === 'overview' ? (
-          <MonthPicker value={month} onChange={onMonthChange} />
+          loading ? <MonthPickerSkeleton /> : <MonthPicker value={month} onChange={onMonthChange} />
         ) : view === 'debts' ? (
           <div className="header-debt-tabs" role="group" aria-label="Nội dung công nợ">
             <button type="button" aria-pressed={debtView === 'calendar'} onClick={() => onDebtViewChange('calendar')}>Công nợ</button>

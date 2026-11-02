@@ -9,6 +9,7 @@ import {
   faRightFromBracket,
 } from '@fortawesome/free-solid-svg-icons';
 import type { FinanceView } from '../types';
+import './app-sidebar.css';
 type Props = {
   view: FinanceView;
   ready: boolean;

@@ -11,6 +11,9 @@ import {
   faGift,
   faGamepad,
   faWallet,
+  faCrown,
+  faChampagneGlasses,
+  faHandshake,
 } from '@fortawesome/free-solid-svg-icons';
 export const categoryIcons = {
   utensils: faUtensils,
@@ -25,6 +28,9 @@ export const categoryIcons = {
   gift: faGift,
   game: faGamepad,
   wallet: faWallet,
+  couple: faCrown,
+  outing: faChampagneGlasses,
+  debt: faHandshake,
 };
 export const iconLabels = {
   utensils: 'Ăn uống',
@@ -39,4 +45,7 @@ export const iconLabels = {
   gift: 'Quà tặng',
   game: 'Giải trí',
   wallet: 'Ví tiền',
+  couple: 'Người yêu',
+  outing: 'Đi chơi',
+  debt: 'Công nợ',
 };

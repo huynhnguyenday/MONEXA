@@ -39,6 +39,15 @@ export default function DateTimeField({
         autoComplete="off"
         strictParsing
         calendarStartDay={1}
+        popperClassName={withTime ? 'transaction-date-popper' : undefined}
+        popperProps={{ strategy: 'fixed' }}
+        popperModifiers={[{
+          name: 'viewportBounds',
+          fn: ({ x, y, rects }) => ({
+            x: Math.max(12, Math.min(x, window.innerWidth - rects.floating.width - 12)),
+            y: Math.max(12, Math.min(y, window.innerHeight - rects.floating.height - 12)),
+          }),
+        }]}
       />
     </div>
   );

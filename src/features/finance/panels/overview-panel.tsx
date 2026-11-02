@@ -7,15 +7,13 @@ import {
   faTrashCan,
   faMagnifyingGlass,
   faWallet,
-  faClockRotateLeft,
-  faCirclePlus,
-  faClock,
   faArrowUp,
   faArrowDown,
   faChartLine,
 } from '@fortawesome/free-solid-svg-icons';
 import Charts from '../charts/finance-charts';
-import { budgetMonth, dateKey, debtDirection, type Expense, type FinanceData, type getStatistics, displayTime, money } from '../model';
+import BudgetCard from '../components/budget-card';
+import { getCashStatistics, dateKey, type Expense, type FinanceData, type getStatistics, displayTime, money } from '../model';
 import { categoryIcons } from '../icons';
 
 type Props = {
@@ -50,26 +48,8 @@ export default function OverviewPanel({
       .includes(search.toLocaleLowerCase('vi')),
   );
   const selectedMonth = month || dateKey().slice(0, 7);
-  const debtReserve = data.debts
-    .filter((debt) => debtDirection(data, debt) === 'payable' && !debt.settledAt && !!debt.dueDate && debt.dueDate.slice(0, 7) === selectedMonth)
-    .reduce((sum, debt) => sum + debt.amount, 0);
-  const monthBudgets = data.budgets.filter((entry) => budgetMonth(entry) === selectedMonth);
-  const cashBudget = monthBudgets.reduce((sum, entry) => sum + entry.cash, 0);
-  const bankBudget = monthBudgets.reduce((sum, entry) => sum + entry.bank, 0);
-  const monthBudget = cashBudget + bankBudget;
-  const cashSpent = stats.expenses.filter((expense) => expense.paymentMethod === 'cash').reduce((sum, expense) => sum + expense.amount, 0);
-  const bankSpent = stats.expenses.filter((expense) => expense.paymentMethod === 'bank').reduce((sum, expense) => sum + expense.amount, 0);
-  const cashRemaining = Math.max(cashBudget - cashSpent, 0);
-  const bankRemaining = Math.max(bankBudget - bankSpent, 0);
-  const remaining = cashRemaining + bankRemaining;
-  const netBudget = monthBudget - stats.total - debtReserve;
-  const remainingPercent = monthBudget ? Math.min((remaining / monthBudget) * 100, 100) : 0;
-  const reservePercent = monthBudget ? Math.min((debtReserve / monthBudget) * 100, 100) : debtReserve > 0 ? 100 : 0;
-  const cashPercent = cashBudget ? Math.min((cashRemaining / cashBudget) * 100, 100) : 0;
-  const bankPercent = bankBudget ? Math.min((bankRemaining / bankBudget) * 100, 100) : 0;
-  const availablePercent = Math.max(remainingPercent - reservePercent, 0);
-  const cashSegment = remaining ? availablePercent * (cashRemaining / remaining) : 0;
-  const bankSegment = Math.max(availablePercent - cashSegment, 0);
+  const cashStats = getCashStatistics(data, selectedMonth);
+  const monthBudget = cashStats.income;
   return (
     <section
       className={`overview-panel mobile-view-${mobileView}`}
@@ -91,8 +71,13 @@ export default function OverviewPanel({
               <strong>{money(monthBudget - stats.total)}</strong>
               <small>Ngân sách − chi tiêu tháng</small>
             </article>
+            <article className="stat overview-stat overview-stat-remaining" title={`Tổng tiền hiện có: ${money(data.balance)}. Nợ phải trả tháng đang xem: ${money(cashStats.reserve)}.`}>
+              <span className="stat-label"><Icon icon={faWallet} aria-hidden="true" />Thực tế</span>
+              <strong>{money(cashStats.actual)}</strong>
+              <small>Tổng tiền − nợ tháng đang xem</small>
+            </article>
             <article className="stat overview-stat overview-stat-spent">
-              <span className="stat-label"><Icon icon={faArrowDown} aria-hidden="true" />Đã chi tiêu</span>
+              <span className="stat-label"><Icon icon={faArrowDown} aria-hidden="true" />Chi tiêu</span>
               <strong>{money(stats.total)}</strong>
               <small>{stats.expenses.length} khoản chi</small>
             </article>
@@ -101,41 +86,16 @@ export default function OverviewPanel({
               <strong>{money(stats.average)}</strong>
               <small>Tính trên ngày đã qua</small>
             </article>
+            <article className="stat overview-stat overview-stat-average">
+              <span className="stat-label"><Icon icon={faChartLine} aria-hidden="true" />Trung bình kiếm</span>
+              <strong>{money(cashStats.averageIncome)}</strong>
+              <small>Tổng thu tháng / số ngày trong tháng</small>
+            </article>
           </div>
           <Charts data={data} stats={stats} />
         </section>
         <aside className="overview-aside right-column">
-          <article className="budget-card">
-            <div className="budget-summary">
-              <div>
-                <h2>Ngân sách tháng</h2>
-                <strong className={netBudget < 0 ? 'budget-negative' : ''}>{money(netBudget)}</strong>
-              </div>
-              <div className="budget-actions">
-                <button
-                  className="button primary budget-action-button budget-add-button"
-                  aria-label="Thêm ngân sách"
-                  title="Thêm ngân sách"
-                  disabled={!ready}
-                  onClick={onBudget}
-                >
-                  <Icon icon={faCirclePlus} />
-                </button>
-                <button className="button secondary budget-action-button budget-history-button" aria-label="Lịch sử ngân sách" title="Lịch sử ngân sách" disabled={!ready} onClick={onBudgetHistory}>
-                  <Icon icon={faClock} />
-                </button>
-              </div>
-            </div>
-            <div className="progress">
-              <span className={`budget-debt-progress ${availablePercent === 0 ? 'solo' : ''}`} style={{ width: `${reservePercent}%` }} />
-              <span className="budget-cash-progress" style={{ width: `${cashSegment}%` }} />
-              <span className="budget-bank-progress" style={{ width: `${bankSegment}%` }} />
-            </div>
-            <div className="budget-caption">
-              <span className="budget-debt-caption">Giữ trả nợ: {money(debtReserve)}</span>
-              <span className="budget-source-captions">Tiền mặt {Math.round(cashPercent)}% · Chuyển khoản {Math.round(bankPercent)}%</span>
-            </div>
-          </article>
+          <BudgetCard data={data} expenses={stats.expenses} month={selectedMonth} ready={ready} onAdd={onBudget} onHistory={onBudgetHistory} />
           <article className="card expense-panel">
             <div className="panel-heading">
               <h2>Chi tiêu</h2>
@@ -178,13 +138,13 @@ export default function OverviewPanel({
                 <table className="expense-table">
                   <caption className="sr-only">Chi tiêu trong tháng</caption>
                   <colgroup>
-                    <col />
+                    <col className="title-column" />
                     <col className="amount-column" />
                     <col className="action-column" />
                   </colgroup>
                   <thead>
                     <tr>
-                      <th scope="col">Khoản chi</th>
+                      <th className="expense-title-heading" scope="col">Khoản chi</th>
                       <th scope="col">Số tiền</th>
                       <th scope="col">
                         <span className="sr-only">Thao tác</span>

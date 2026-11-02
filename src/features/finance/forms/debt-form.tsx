@@ -27,6 +27,7 @@ export function DebtForm({ data, save, done, busy, debt }: { debt?: Debt } & For
           amount: Number(String(f.get('amount')).replace(/\D/g, '')),
           debtTypeId: debtType.id,
           debtSourceId: source.id,
+          paymentMethod: field(f, 'paymentMethod') as Debt['paymentMethod'],
           occurredAt: debt?.occurredAt || new Date().toISOString(),
           dueDate: dateKeyFromLocal(due),
           settledAt: debt?.settledAt || null,
@@ -76,6 +77,13 @@ export function DebtForm({ data, save, done, busy, debt }: { debt?: Debt } & For
             const digits = e.target.value.replace(/\D/g, '').slice(0, 13);
             setAmount(digits ? new Intl.NumberFormat('vi-VN').format(Number(digits)) : '');
           }} required aria-label="Số tiền (VND)" />
+        </label>
+        <label>
+          Hình thức chi tiền
+          <select name="paymentMethod" defaultValue={debt?.paymentMethod || 'cash'}>
+            <option value="cash">Tiền mặt</option>
+            <option value="bank">Chuyển khoản</option>
+          </select>
         </label>
         {!data.debtSources.length && (
           <p role="alert" className="form-error">

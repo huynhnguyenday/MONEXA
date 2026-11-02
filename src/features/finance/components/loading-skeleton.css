@@ -1,0 +1,66 @@
+.loading-skeleton {
+  display: block;
+  flex: none;
+  width: 100%;
+  height: 12px;
+  border-radius: 6px;
+  background: linear-gradient(100deg, #e2e8f0 25%, #f6f9fd 45%, #e2e8f0 65%);
+  background-size: 240% 100%;
+  animation: skeleton-shimmer 1.6s ease-in-out infinite;
+}
+.skeleton-icon { width: 18px; height: 18px; border-radius: 5px; }
+.month-picker-skeleton .skeleton-month-label { width: 100px; max-width: calc(100% - 27px); }
+.skeleton-label { width: 62%; height: 10px; }
+.skeleton-value { width: 85%; height: 22px; }
+.skeleton-detail { width: 75%; height: 8px; }
+.overview-skeleton .stat { gap: 9px; }
+.finance-skeleton .skeleton-heading { width: 44%; height: 13px; }
+.finance-skeleton .skeleton-action { width: 36px; height: 36px; border-radius: 9px; }
+.finance-skeleton .skeleton-search { width: 32%; height: 32px; }
+.finance-skeleton .skeleton-chart {
+  flex: 1;
+  display: flex;
+  align-items: flex-end;
+  gap: 8%;
+  min-height: 0;
+  margin: 8px 8px 12px;
+  padding: 0 5% 10px;
+  border-left: 1px solid #e2e8f0;
+  border-bottom: 1px solid #e2e8f0;
+}
+.skeleton-chart > .loading-skeleton { flex: 1; width: auto; border-radius: 6px 6px 0 0; }
+.overview-skeleton .budget-summary > .skeleton-budget-value { display: grid; flex: 1; gap: 10px; }
+.overview-skeleton .skeleton-budget-progress { height: 12px; border-radius: 999px; }
+.overview-skeleton .skeleton-caption { width: 50%; height: 13px; align-self: center; }
+.overview-skeleton .skeleton-expense-list { flex: 1; display: grid; grid-template-rows: repeat(4, minmax(0, 1fr)); min-height: 0; }
+.skeleton-expense-row { display: grid; grid-template-columns: minmax(0, 1fr) 30% 18%; align-items: center; gap: 12px; border-bottom: 1px solid #edf2f8; }
+.skeleton-expense-row .loading-skeleton:last-child { width: 65%; justify-self: end; }
+.category-skeleton .skeleton-title-shell { width: min(160px, 100%); }
+.category-skeleton .skeleton-add-action { justify-self: end; width: 44px; height: 44px; }
+.category-skeleton .category-tile-info { gap: 8px; }
+.category-skeleton .category-tile-actions { gap: 22px; }
+.category-skeleton .category-chart { display: flex; }
+.debt-skeleton .skeleton-debt-calendar { display: flex; flex-direction: column; gap: 8px; flex: 1; width: 100%; min-height: 0; }
+.skeleton-calendar-heading { display: flex; align-items: center; justify-content: space-between; gap: 16px; min-height: 44px; }
+.skeleton-calendar-weekdays { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); justify-items: center; gap: 4px; padding: 8px 0; }
+.skeleton-calendar-days { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); flex: 1; min-height: 0; gap: 4px; }
+.skeleton-calendar-days .skeleton-calendar-cell { height: 100%; border-radius: 10px; }
+.skeleton-debt-history { display: grid; grid-template-rows: repeat(4, minmax(0, 1fr)); flex: 1; min-height: 0; }
+.skeleton-history-row { display: grid; grid-template-columns: 2fr 1.5fr 1fr 1.5fr 1fr .7fr; align-items: center; gap: 16px; border-bottom: 1px solid #edf2f8; }
+@keyframes skeleton-shimmer { from { background-position: 180% 0; } to { background-position: -60% 0; } }
+@media (max-width: 1023px) {
+  .overview-skeleton .budget-actions .skeleton-action { width: 44px; height: 44px; }
+  .overview-skeleton .skeleton-caption { height: 22px; }
+  .category-skeleton .category-grid { height: 100%; grid-template-rows: repeat(2, minmax(0, 1fr)); }
+  .category-skeleton .category-tile { min-height: 0; }
+  .category-skeleton .category-tile:nth-child(n + 5) { display: none; }
+  .debt-skeleton .skeleton-calendar-days .skeleton-calendar-cell { height: 76px; }
+  .debt-skeleton .skeleton-calendar-days { flex: none; grid-auto-rows: 76px; }
+  .skeleton-history-row { grid-template-columns: minmax(0, 1fr) 90px; gap: 8px 16px; padding: 10px 0; }
+}
+@media (max-width: 767px) {
+  .overview-skeleton .stat { gap: 10px; }
+  .overview-skeleton .skeleton-value { height: 20px; }
+  .overview-skeleton .skeleton-detail { display: none; }
+}
+@media (prefers-reduced-motion: reduce) { .loading-skeleton { animation: none; background: #e2e8f0; } }

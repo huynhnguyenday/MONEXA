@@ -72,12 +72,12 @@ export function useDashboard() {
   function navigate(value: FinanceView) {
     router.push(value === 'overview' ? '/overview' : `/${value}`);
     if (value === 'debts') setDebtView('calendar');
-    if (window.innerWidth < 1024) setNavOpen(false);
+    closeNavigation();
   }
   function open(value: FinanceModal) {
     setModal(value);
     setNotice('');
-    if (window.innerWidth < 1024) setNavOpen(false);
+    closeNavigation();
   }
   function close() {
     setModal(null);
@@ -88,6 +88,10 @@ export function useDashboard() {
   }
   const formProps = { data, save: async (next: FinanceData) => await save(next), done, busy };
   async function deleteExpense(expense: Expense) {
+    if (expense.debtId) {
+      setNotice('Khoản chi này liên kết với công nợ. Hãy sửa, mở lại hoặc xóa khoản công nợ gốc.');
+      return;
+    }
     if (
       window.confirm(`Xóa khoản chi “${expense.title}”?`) &&
       (await save({ ...data, expenses: data.expenses.filter((e) => e.id !== expense.id) }))
@@ -96,8 +100,8 @@ export function useDashboard() {
   }
   async function deleteDebt(debt: Debt) {
     if (
-      window.confirm(`Xóa khoản công nợ “${debt.title}”?`) &&
-      (await save({ ...data, debts: data.debts.filter((d) => d.id !== debt.id) }))
+      window.confirm(`Xóa khoản công nợ “${debt.title}” và chi tiêu tự động liên kết (nếu có)?`) &&
+      (await save({ ...data, debts: data.debts.filter((d) => d.id !== debt.id), expenses: data.expenses.filter((expense) => expense.debtId !== debt.id) }))
     )
       setNotice('Đã xóa công nợ.');
   }

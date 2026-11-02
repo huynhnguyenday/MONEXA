@@ -17,6 +17,9 @@ export const iconKeys = [
   'gift',
   'game',
   'wallet',
+  'couple',
+  'outing',
+  'debt',
 ] as const;
 export const debtSourceIconKeys = ['tiktok', 'shopee', 'seasy', 'momo', 'bank', 'person'] as const;
 const id = z
@@ -49,6 +52,7 @@ export const expenseSchema = z.object({
   amount,
   paymentMethod: z.enum(['cash', 'bank']).default('cash'),
   categoryId: id,
+  debtId: id.optional(),
   note: z.string().max(500),
   occurredAt: pastInstant,
 });
@@ -96,6 +100,7 @@ export const debtSchema = z
     title: text(100),
     debtSourceId: id,
     debtTypeId: id,
+    paymentMethod: z.enum(['cash', 'bank']).default('cash'),
     amount,
     occurredAt: pastInstant,
     dueDate: dateOnly.nullable(),
@@ -107,6 +112,7 @@ export const debtSchema = z
 export const financeSchema = z
   .object({
     schemaVersion: z.literal(3),
+    balance: z.number().int().safe().default(0),
     budget: z.number().int().min(0).max(1_000_000_000_000),
     budgets: z.array(budgetEntrySchema).max(5000).default([]),
     categories: z.array(categorySchema).min(1).max(100),
@@ -123,6 +129,12 @@ export const financeSchema = z
     const categories = new Set(data.categories.map((c) => c.id));
     const debtSources = new Set(data.debtSources.map((source) => source.id));
     const debtTypes = new Set(data.debtTypes.map((type) => type.id));
+    const debtIds = new Set(data.debts.map((debt) => debt.id));
+    const linkedExpenses = data.expenses.filter((expense) => expense.debtId);
+    if (linkedExpenses.some((expense) => !debtIds.has(expense.debtId!)))
+      ctx.addIssue({ code: 'custom', message: 'Chi tiêu tham chiếu công nợ không tồn tại.', path: ['expenses'] });
+    if (new Set(linkedExpenses.map((expense) => expense.debtId)).size !== linkedExpenses.length)
+      ctx.addIssue({ code: 'custom', message: 'Một công nợ chỉ có một chi tiêu tự động.', path: ['expenses'] });
     if (data.expenses.some((e) => !categories.has(e.categoryId)))
       ctx.addIssue({
         code: 'custom',
@@ -156,6 +168,7 @@ export type Snapshot = { data: FinanceData; revision: number };
 export const LEGACY_STORAGE_KEY = 'vi-cua-toi:v1';
 export const initialData: FinanceData = {
   schemaVersion: 3,
+  balance: 0,
   budget: 0,
   budgets: [],
   categories: [
@@ -163,7 +176,7 @@ export const initialData: FinanceData = {
     { id: 'shopping', userId: PERSONAL_USER_ID, name: 'Mua sắm', color: '#f59e0b', icon: 'bag' },
     { id: 'transport', userId: PERSONAL_USER_ID, name: 'Di chuyển', color: '#06b6d4', icon: 'car' },
     { id: 'bills', userId: PERSONAL_USER_ID, name: 'Hóa đơn', color: '#8b5cf6', icon: 'receipt' },
-    { id: 'other', userId: PERSONAL_USER_ID, name: 'Khác', color: '#10b981', icon: 'wallet' },
+    { id: 'other', userId: PERSONAL_USER_ID, name: 'Khác', color: '#10b981', icon: 'receipt' },
   ],
   expenses: [],
   debtSources: [],
@@ -259,7 +272,7 @@ export function parseBackup(raw: unknown): FinanceData {
     debtTypes: defaultDebtTypes,
     debts: [],
     budgets: old.budget > 0 ? [{ id: 'budget-migration', userId: PERSONAL_USER_ID, cash: old.budget, bank: 0, recordedAt: new Date().toISOString() }] : [],
-    categories: old.categories.map((c) => ({ ...c, icon: 'wallet' })),
+    categories: old.categories.map((c) => ({ ...c, icon: 'receipt' })),
     expenses: old.expenses.map((e) => ({
       id: e.id,
       amount: e.amount,
@@ -296,4 +309,66 @@ export function getStatistics(data: FinanceData, month: string, today = localDat
       expenses.filter((e) => e.categoryId === c.id).reduce((s, e) => s + e.amount, 0),
     ),
   };
+}
+
+/** Reconcile available money from recorded funding, expenses and settled debts. */
+export function calculateBalance(data: FinanceData) {
+  const recordedDebts = new Set(data.expenses.map((expense) => expense.debtId).filter(Boolean));
+  return data.budgets.reduce((sum, entry) => sum + entry.cash + entry.bank, 0)
+    - data.expenses.reduce((sum, entry) => sum + entry.amount, 0)
+    + data.debts.reduce((sum, debt) => !debt.settledAt ? sum
+      : sum + (debtDirection(data, debt) === 'receivable' ? debt.amount : recordedDebts.has(debt.id) ? 0 : -debt.amount), 0);
+}
+
+/** Reconcile linked expenses atomically with debt changes; never backfill unrelated old loans. */
+export function reconcileDebtExpenses(previous: FinanceData, next: FinanceData): FinanceData {
+  const previousDebts = new Map(previous.debts.map((debt) => [debt.id, debt]));
+  const previousLinks = new Map(previous.expenses.filter((expense) => expense.debtId).map((expense) => [expense.debtId!, expense]));
+  const proposedLinks = new Map(next.expenses.filter((expense) => expense.debtId).map((expense) => [expense.debtId!, expense]));
+  const protectedIds = new Set([...previousLinks.values()].map((expense) => expense.id));
+  const expenses = next.expenses.filter((expense) => !expense.debtId && !protectedIds.has(expense.id));
+  const categories = [...next.categories];
+  let category = [...previousLinks.values(), ...proposedLinks.values()]
+    .map((expense) => categories.find((item) => item.id === expense.categoryId)).find(Boolean)
+    ?? categories.find((item) => item.name.trim().toLocaleLowerCase('vi') === 'công nợ')
+    ?? categories.find((item) => item.icon === 'debt');
+
+  for (const debt of next.debts) {
+    const old = previousDebts.get(debt.id);
+    const linked = previousLinks.get(debt.id) ?? proposedLinks.get(debt.id);
+    const direction = debtDirection(next, debt);
+    const lending = direction === 'receivable';
+    const needsExpense = lending
+      ? !!linked || !old || debtDirection(previous, old) !== 'receivable'
+      : !!debt.settledAt && (!!linked || !old || !old.settledAt || debtDirection(previous, old) !== 'payable');
+    if (!needsExpense) continue;
+    if (!category) {
+      category = { id: crypto.randomUUID(), userId: PERSONAL_USER_ID, name: 'Công nợ', icon: 'debt', color: '#0d9488' };
+      categories.push(category);
+    }
+    const sameEvent = old && debtDirection(previous, old) === direction;
+    const occurredAt = lending ? sameEvent && linked ? linked.occurredAt : debt.occurredAt : debt.settledAt!;
+    expenses.push({
+      id: linked?.id ?? crypto.randomUUID(),
+      userId: PERSONAL_USER_ID,
+      debtId: debt.id,
+      categoryId: linked && categories.some((item) => item.id === linked.categoryId) ? linked.categoryId : category.id,
+      title: debt.title,
+      amount: debt.amount,
+      note: debt.note,
+      paymentMethod: debt.paymentMethod ?? linked?.paymentMethod ?? 'cash',
+      occurredAt,
+    });
+  }
+  return financeSchema.parse({ ...next, categories, expenses });
+}
+export function getCashStatistics(data: FinanceData, month: string) {
+  const [year, monthNumber] = month.split('-').map(Number);
+  const days = new Date(Date.UTC(year, monthNumber, 0)).getUTCDate();
+  const income = data.budgets.filter((entry) => budgetMonth(entry) === month)
+    .reduce((sum, entry) => sum + entry.cash + entry.bank, 0);
+  const reserve = data.debts.filter((debt) => !debt.settledAt
+    && debtDirection(data, debt) === 'payable' && debt.dueDate?.startsWith(month))
+    .reduce((sum, debt) => sum + debt.amount, 0);
+  return { income, averageIncome: income / days, reserve, actual: data.balance - reserve };
 }

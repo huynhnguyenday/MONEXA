@@ -57,7 +57,9 @@ export async function PUT(request: Request) {
         409,
       );
     return json(snapshot);
-  } catch {
+  } catch (error) {
+    if (error instanceof z.ZodError)
+      return json({ error: error.issues[0]?.message || 'Dữ liệu chi tiêu liên kết không hợp lệ.' }, 400);
     return json({ error: 'Chưa lưu được lên MongoDB. Hãy giữ trang mở và thử lại.' }, 503);
   }
 }
