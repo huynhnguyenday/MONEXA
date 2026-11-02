@@ -283,6 +283,16 @@ async function readEntities(db: Db, session: ClientSession) {
   return result;
 }
 
+/** Lightweight change check; application writes increment revision in the same transaction. */
+export async function readFinanceRevision(): Promise<number | null> {
+  const db = await getDatabase();
+  const state = await settings(db).findOne(
+    { _id: PERSONAL_USER_ID, userId: PERSONAL_USER_ID, storageVersion: 4 },
+    { projection: { revision: 1 }, readConcern: { level: 'majority' } },
+  );
+  return state?.revision ?? null;
+}
+
 export async function readFinance(): Promise<Snapshot> {
   const db = await getDatabase();
   await ensureIndexes(db);

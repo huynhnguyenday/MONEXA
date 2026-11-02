@@ -1,6 +1,6 @@
 import { z } from 'zod';
 import { financeSchema } from '@/features/finance/model';
-import { readFinance, writeFinance } from '@/features/finance/repository';
+import { readFinance, readFinanceRevision, writeFinance } from '@/features/finance/repository';
 import { guard, json, readJson } from '@/lib/http';
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
@@ -8,7 +8,20 @@ export async function GET(request: Request) {
   const rejected = await guard(request);
   if (rejected) return rejected;
   try {
-    return json(await readFinance());
+    const validator = request.headers.get('if-none-match');
+    if (validator) {
+      const revision = await readFinanceRevision();
+      if (revision !== null && validator === `"finance-${revision}"`) {
+        return new Response(null, {
+          status: 304,
+          headers: { 'Cache-Control': 'no-store', ETag: validator },
+        });
+      }
+    }
+    const snapshot = await readFinance();
+    const response = json(snapshot);
+    response.headers.set('ETag', `"finance-${snapshot.revision}"`);
+    return response;
   } catch {
     return json(
       {

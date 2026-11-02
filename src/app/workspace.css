@@ -756,13 +756,13 @@ dialog .dialog-content textarea { max-height: 150px; }
 .expense-category-picker button span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .expense-category-picker button.selected { background: #eff6ff; border: 2px solid #1d4ed8; }
 @media (max-width: 1023px) {
-  .compact-layout:has(.compact-debts) { height: auto; min-height: 100dvh; overflow: visible; }
-  .compact-layout:has(.compact-debts) .workspace { height: auto; min-height: 100dvh; overflow: visible; }
-  .compact-layout:has(.compact-debts) .workspace-content { overflow: visible; flex: none; }
-  .compact-layout:has(.compact-debts) .compact-debts { height: auto; min-height: 0; }
-  .compact-layout:has(.compact-debts) .compact-debt-card { flex: none; min-height: 0; overflow: visible; }
-  .compact-layout:has(.compact-debts) .debt-calendar-viewport { overflow: visible; align-items: stretch; }
-  .compact-layout:has(.compact-debts) .debt-calendar-viewport .react-datepicker { width: 100%; min-width: 0; }
+  .compact-layout:has(.debt-calendar-viewport) { height: auto; min-height: 100dvh; overflow: visible; }
+  .compact-layout:has(.debt-calendar-viewport) .workspace { height: auto; min-height: 100dvh; overflow: visible; }
+  .compact-layout:has(.debt-calendar-viewport) .workspace-content { overflow: visible; flex: none; }
+  .compact-layout:has(.debt-calendar-viewport) .compact-debts { height: auto; min-height: 0; }
+  .compact-layout:has(.debt-calendar-viewport) .compact-debt-card { flex: none; min-height: 0; overflow: visible; }
+  .compact-layout:has(.debt-calendar-viewport) .debt-calendar-viewport { overflow: visible; align-items: stretch; }
+  .compact-layout:has(.debt-calendar-viewport) .debt-calendar-viewport .react-datepicker { width: 100%; min-width: 0; }
 }
 @media (max-width: 600px) {
   .debt-calendar-viewport { align-items: stretch; overflow: visible; }
@@ -875,9 +875,26 @@ dialog .dialog-content textarea { max-height: 150px; }
   background: #eff6ff;
 }
 .compact-debt-table td:nth-child(3) { text-align: left; }
-.debt-history-heading { display: flex; align-items: center; gap: 8px; color: #142d4e; font-size: 13px; font-weight: 700; }
+.debt-history-heading { display: flex; align-items: center; gap: 8px; color: #142d4e; font-size: 16px; font-weight: 700; }
 .debt-history-heading span { display: inline-grid; min-width: 24px; height: 24px; place-items: center; padding: 0 6px; border-radius: 12px; background: #eff6ff; color: #1d4ed8; font-size: 10px; }
-.debt-history-viewport { --row-height: 92px; --table-header-height: 32px; }
+.debt-history-viewport { --row-height: 92px; --table-header-height: 32px; overflow-y: auto; overscroll-behavior: contain; scrollbar-gutter: stable; }
+.debt-history-viewport thead th { position: sticky; top: 0; z-index: 1; background: #fff; }
+.debt-history-viewport .debt-actions-column { width: 120px; }
+.debt-history-viewport .debt-days-urgent { color: #b42318; font-weight: 750; }
+.debt-history-viewport .debt-days-soon { color: #a16207; font-weight: 750; }
+.debt-history-viewport .debt-days-safe { color: #15803d; font-weight: 750; }
+.debt-history-viewport .debt-status-column { width: 132px; }
+.debt-history-viewport .compact-debt-table th { font-size: 13px; font-weight: 600; }
+.debt-history-viewport .compact-debt-table td { font-size: 14px; }
+.debt-history-viewport .compact-debt-table h3 { font-size: 16px; font-weight: 650; }
+.debt-history-viewport .compact-debt-table td > strong { font-size: 16px; overflow-wrap: anywhere; }
+.debt-history-viewport .debt-source { font-size: 14px; }
+.debt-history-viewport .compact-debt-table time,
+.debt-history-viewport .compact-debt-table .debt-due,
+.debt-history-viewport .compact-debt-table .overdue-text,
+.debt-history-viewport .compact-debt-table td > small,
+.debt-history-viewport .compact-debt-table .status-badge,
+.debt-history-viewport .mobile-debt-status { font-size: 13px; line-height: 1.5; }
 .debt-history-viewport .compact-debt-table .status-badge.overdue { color: #b42318; background: #fee4e2; }
 .debt-history-viewport .compact-debt-table .receivable { color: #1d4ed8; }
 .debt-history-viewport .compact-debt-table .payable { color: #b42318; }
