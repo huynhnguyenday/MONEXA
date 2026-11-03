@@ -22,7 +22,9 @@ export async function GET(request: Request) {
     const response = json(snapshot);
     response.headers.set('ETag', `"finance-${snapshot.revision}"`);
     return response;
-  } catch {
+  } catch (error) {
+    if (error instanceof Error && error.message === 'BALANCE_MISMATCH')
+      return json({ error: 'Số dư tổng, tiền mặt hoặc chuyển khoản không khớp giao dịch. Cần đối soát dữ liệu trước khi tiếp tục.' }, 503);
     return json(
       {
         error:
@@ -60,6 +62,8 @@ export async function PUT(request: Request) {
   } catch (error) {
     if (error instanceof z.ZodError)
       return json({ error: error.issues[0]?.message || 'Dữ liệu chi tiêu liên kết không hợp lệ.' }, 400);
+    if (error instanceof Error && error.message === 'BALANCE_MISMATCH')
+      return json({ error: 'Số dư không khớp giao dịch gốc. Chưa lưu thay đổi; cần đối soát dữ liệu trước khi tiếp tục.' }, 503);
     return json({ error: 'Chưa lưu được lên MongoDB. Hãy giữ trang mở và thử lại.' }, 503);
   }
 }

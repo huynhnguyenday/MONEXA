@@ -2,7 +2,7 @@
 
 import { FontAwesomeIcon as Icon } from '@fortawesome/react-fontawesome';
 import { faCirclePlus, faClock } from '@fortawesome/free-solid-svg-icons';
-import { budgetMonth, getCashStatistics, money, type Expense, type FinanceData } from '../model';
+import { calculateAccounts, getCashStatistics, money, type Expense, type FinanceData } from '../model';
 import './budget-card.css';
 
 type Props = {
@@ -14,17 +14,13 @@ type Props = {
   onHistory: () => void;
 };
 
-export default function BudgetCard({ data, expenses, month, ready, onAdd, onHistory }: Props) {
+export default function BudgetCard({ data, month, ready, onAdd, onHistory }: Props) {
   const { income, reserve } = getCashStatistics(data, month);
-  // Combine both payment sources before clamping, so overspending one source
-  // cannot inflate the remaining money in the other source.
-  const remaining = Math.max(income - expenses.reduce((sum, expense) => sum + expense.amount, 0), 0);
-  const percent = (value: number) => income > 0 ? Math.min(value / income * 100, 100) : value > 0 ? 100 : 0;
+  const accounts = calculateAccounts(data);
+  const remaining = accounts.total;
+  const percent = (value: number) => income > 0 ? Math.max(0, Math.min(value / income * 100, 100)) : value > 0 ? 100 : 0;
   const remainingOnTop = remaining <= reserve;
-  const monthBudgets = data.budgets.filter((entry) => budgetMonth(entry) === month);
-  const sourceRemaining = (method: 'cash' | 'bank') =>
-    monthBudgets.reduce((sum, entry) => sum + entry[method], 0)
-    - expenses.filter((expense) => expense.paymentMethod === method).reduce((sum, expense) => sum + expense.amount, 0);
+  const sourceRemaining = (method: 'cash' | 'bank') => accounts[method];
   const percentageLabel = (value: number) => income > 0
     ? `${new Intl.NumberFormat('vi-VN', { maximumFractionDigits: 1 }).format(value / income * 100)}%`
     : value > 0 ? '—' : '0%';

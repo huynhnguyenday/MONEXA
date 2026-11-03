@@ -63,7 +63,7 @@ export function useFinance(pauseAutoRefresh = false) {
       if (document.visibilityState === 'visible' && !saving.current && !paused.current)
         void refresh(true);
     };
-    const timer = setInterval(update, 60000);
+    const timer = setInterval(update, 20000);
     window.addEventListener('focus', update);
     document.addEventListener('visibilitychange', update);
     return () => {

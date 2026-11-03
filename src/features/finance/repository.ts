@@ -1,9 +1,10 @@
 import 'server-only';
 import type { ClientSession, Collection, Db, TransactionOptions } from 'mongodb';
 import { getDatabase, getMongoClient } from '@/lib/mongodb';
+import { financeReadPipeline } from './finance-read-query';
 import {
   financeSchema,
-  calculateBalance,
+  calculateAccounts,
   reconcileDebtExpenses,
   defaultDebtTypes,
   debtSourceIconColors,
@@ -34,6 +35,7 @@ type SettingsDocument = {
   storageVersion: 1 | 2 | 3 | 4;
   updatedAt: Date;
   migratedAt?: Date;
+  indexesVersion?: number;
 };
 type LegacyDocument = { _id: string; data: unknown; revision: number };
 const entityKeys: EntityKey[] = ['categories', 'expenses', 'debtSources', 'debtTypes', 'debts', 'budgets'];
@@ -45,6 +47,7 @@ const transactions: TransactionOptions & { timeoutMS: number } = {
   timeoutMS: 20000,
 };
 let indexesReady: Promise<void> | undefined;
+const INDEXES_VERSION = 1;
 
 function entities(db: Db, key: EntityKey) {
   const collection = key === 'debtSources' ? 'debt_sources' : key === 'debtTypes' ? 'debt_types' : key;
@@ -57,9 +60,17 @@ function settings(db: Db) {
 async function ensureIndexes(db: Db) {
   if (!indexesReady) {
     indexesReady = (async () => {
+      // Indexes persist in MongoDB across serverless cold starts. Only the first
+      // schema setup needs to issue createIndexes for every collection.
+      const installed = await settings(db).findOne(
+        { _id: PERSONAL_USER_ID, userId: PERSONAL_USER_ID, indexesVersion: INDEXES_VERSION },
+        { projection: { _id: 1 }, readConcern: { level: 'majority' } },
+      );
+      if (installed) return;
       await Promise.all([
         db.collection<UserDocument>('users').createIndex({ createdAt: 1 }),
         settings(db).createIndex({ userId: 1 }, { unique: true }),
+        ...entityKeys.map((key) => entities(db, key).createIndex({ userId: 1, createdAt: 1, _id: 1 })),
         entities(db, 'categories').createIndex({ userId: 1, name: 1 }),
         entities(db, 'expenses').createIndexes([
           { key: { userId: 1, occurredAt: -1 } },
@@ -175,6 +186,14 @@ async function initialize(db: Db, session: ClientSession) {
   if (existing) {
     if (![1, 2, 3, 4].includes(existing.storageVersion) || existing.userId !== PERSONAL_USER_ID)
       throw new Error('UNSUPPORTED_STORAGE_VERSION');
+    // Publish the marker only inside the successful initialization transaction.
+    if (existing.indexesVersion !== INDEXES_VERSION) {
+      await settings(db).updateOne(
+        { _id: PERSONAL_USER_ID, userId: PERSONAL_USER_ID },
+        { $set: { indexesVersion: INDEXES_VERSION } },
+        { session },
+      );
+    }
     if (existing.storageVersion < 3) {
       if (existing.storageVersion === 1) {
         const oldSources = await db.collection<EntityDocument>('people').find({ userId: PERSONAL_USER_ID }, { session }).toArray();
@@ -216,11 +235,8 @@ async function initialize(db: Db, session: ClientSession) {
       }
     }
     if (existing.storageVersion < 4) await migrateDebtDueDates(db, session);
-    const hasBudget = await entities(db, 'budgets').findOne({ userId: PERSONAL_USER_ID }, { session });
-    if (!hasBudget && existing.budget > 0) {
-      const now = new Date();
-      await entities(db, 'budgets').insertOne({ _id: 'budget-migration', userId: PERSONAL_USER_ID, cash: existing.budget, bank: 0, recordedAt: now.toISOString(), createdAt: now, updatedAt: now }, { session });
-    }
+    // Current empty funding history is intentional. Only the old-version migration
+    // above may recover funding from the compatibility settings.budget field.
     if (existing.storageVersion < 4) {
       await settings(db).updateOne(
         { _id: PERSONAL_USER_ID, userId: PERSONAL_USER_ID, storageVersion: existing.storageVersion },
@@ -255,6 +271,7 @@ async function initialize(db: Db, session: ClientSession) {
     budget: data.budget,
     revision: legacy?.revision || 0,
     storageVersion: 4,
+    indexesVersion: INDEXES_VERSION,
     updatedAt: now,
     ...(legacy ? { migratedAt: now } : {}),
   };
@@ -272,13 +289,13 @@ async function initialize(db: Db, session: ClientSession) {
 }
 
 async function readEntities(db: Db, session: ClientSession) {
+  const joined = await settings(db).aggregate<Record<EntityKey, EntityDocument[]>>(
+    financeReadPipeline(PERSONAL_USER_ID), { session },
+  ).next();
+  if (!joined) throw new Error('UNINITIALIZED_EXISTING_DATA');
   const result: Record<string, unknown[]> = {};
   for (const key of entityKeys) {
-    const records = await entities(db, key)
-      .find({ userId: PERSONAL_USER_ID }, { session })
-      .sort({ createdAt: 1, _id: 1 })
-      .toArray();
-    result[key] = records.map(({ _id, createdAt, updatedAt, ...record }) => ({
+    result[key] = joined[key].map(({ _id, ...record }) => ({
       ...record,
       id: _id,
     }));
@@ -288,14 +305,28 @@ async function readEntities(db: Db, session: ClientSession) {
 
 /** Server-owned balance commits with the source documents and revision. */
 async function reconcileBalance(db: Db, data: FinanceData, session: ClientSession) {
-  data.balance = calculateBalance(data);
+  const accounts = calculateAccounts(data);
+  data.balance = accounts.total;
   if (!Number.isSafeInteger(data.balance)) throw new Error('INVALID_BALANCE');
   await db.collection<EntityDocument>('balances').updateOne(
     { _id: PERSONAL_USER_ID, userId: PERSONAL_USER_ID },
-    { $set: { total: data.balance, updatedAt: new Date() },
+    { $set: { ...accounts, updatedAt: new Date() },
       $setOnInsert: { createdAt: new Date() } },
     { upsert: true, session },
   );
+}
+
+/** Never overwrite evidence of an existing discrepancy during a new payment. */
+async function assertStoredBalance(db: Db, data: FinanceData, session: ClientSession) {
+  const stored = await db.collection<EntityDocument>('balances').findOne(
+    { _id: PERSONAL_USER_ID, userId: PERSONAL_USER_ID }, { session },
+  );
+  const expected = calculateAccounts(data);
+  if (stored && (stored.total !== expected.total
+    || (stored.cash !== undefined && stored.cash !== expected.cash)
+    || (stored.bank !== undefined && stored.bank !== expected.bank)))
+    throw new Error('BALANCE_MISMATCH');
+  return stored;
 }
 
 /** Lightweight change check; application writes increment revision in the same transaction. */
@@ -320,13 +351,13 @@ export async function readFinance(): Promise<Snapshot> {
           const state = await initialize(db, session);
           const rows = await readEntities(db, session);
           const data = financeSchema.parse({ schemaVersion: 3, budget: state.budget, ...rows });
-          const balance = await db.collection<EntityDocument>('balances').findOne(
-            { _id: PERSONAL_USER_ID, userId: PERSONAL_USER_ID }, { session },
-          );
-          if (!balance) await reconcileBalance(db, data, session);
+          const balance = await assertStoredBalance(db, data, session);
+          const expected = calculateAccounts(data);
+          if (!balance || balance.cash === undefined || balance.bank === undefined) await reconcileBalance(db, data, session);
           else {
-            if (typeof balance.total !== 'number' || !Number.isSafeInteger(balance.total)) throw new Error('INVALID_BALANCE');
-            data.balance = balance.total;
+            if (balance.total !== expected.total || balance.cash !== expected.cash || balance.bank !== expected.bank)
+              throw new Error('BALANCE_MISMATCH');
+            data.balance = expected.total;
           }
           return { data, revision: state.revision };
         }, transactions),
@@ -359,6 +390,7 @@ export async function writeFinance(input: FinanceData, revision: number): Promis
       );
       if (!updated) return null;
       const previous = financeSchema.parse({ schemaVersion: 3, budget: updated.budget, ...await readEntities(db, session) });
+      await assertStoredBalance(db, previous, session);
       data = reconcileDebtExpenses(previous, data);
       for (const key of entityKeys) await syncEntities(entities(db, key), data[key], session);
       await reconcileBalance(db, data, session);

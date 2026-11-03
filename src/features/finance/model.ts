@@ -300,6 +300,11 @@ export function getStatistics(data: FinanceData, month: string, today = localDat
       : month > today.slice(0, 7)
         ? 0
         : new Date(Date.UTC(year, m, 0)).getUTCDate();
+  const daily: number[] = Array(days).fill(0);
+  for (const expense of expenses) {
+    const day = Number(dateKey(expense.occurredAt).slice(8));
+    if (day <= days) daily[day - 1] += expense.amount;
+  }
   const counts: number[] = Array(7).fill(0),
     sums: number[] = Array(7).fill(0);
   for (let day = 1; day <= days; day++)
@@ -308,6 +313,8 @@ export function getStatistics(data: FinanceData, month: string, today = localDat
     sums[(new Date(`${dateKey(e.occurredAt)}T12:00:00Z`).getUTCDay() + 6) % 7] += e.amount;
   });
   return {
+    month,
+    daily,
     expenses: [...expenses].sort((a, b) => b.occurredAt.localeCompare(a.occurredAt)),
     total,
     average: days ? total / days : 0,
@@ -320,11 +327,26 @@ export function getStatistics(data: FinanceData, month: string, today = localDat
 
 /** Reconcile available money from recorded funding, expenses and settled debts. */
 export function calculateBalance(data: FinanceData) {
+  return calculateAccounts(data).total;
+}
+
+/** Signed source balances: never clamp deficits or count a linked debt twice. */
+export function calculateAccounts(data: FinanceData) {
+  const accounts = { cash: 0, bank: 0, total: 0 };
   const recordedDebts = new Set(data.expenses.map((expense) => expense.debtId).filter(Boolean));
-  return data.budgets.reduce((sum, entry) => sum + entry.cash + entry.bank, 0)
-    - data.expenses.reduce((sum, entry) => sum + entry.amount, 0)
-    + data.debts.reduce((sum, debt) => !debt.settledAt ? sum
-      : sum + (debtDirection(data, debt) === 'receivable' ? debt.amount : recordedDebts.has(debt.id) ? 0 : -debt.amount), 0);
+  for (const entry of data.budgets) {
+    accounts.cash += entry.cash;
+    accounts.bank += entry.bank;
+  }
+  for (const expense of data.expenses) accounts[expense.paymentMethod ?? 'cash'] -= expense.amount;
+  for (const debt of data.debts) {
+    if (!debt.settledAt) continue;
+    if (debtDirection(data, debt) === 'receivable') accounts[debt.paymentMethod ?? 'cash'] += debt.amount;
+    else if (!recordedDebts.has(debt.id)) accounts[debt.paymentMethod ?? 'cash'] -= debt.amount;
+  }
+  accounts.total = accounts.cash + accounts.bank;
+  if (!Object.values(accounts).every(Number.isSafeInteger)) throw new Error('INVALID_BALANCE');
+  return accounts;
 }
 
 /** Reconcile linked expenses atomically with debt changes; never backfill unrelated old loans. */

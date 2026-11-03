@@ -1,4 +1,5 @@
 'use client';
+import dynamic from 'next/dynamic';
 import AppHeader from './layout/app-header';
 import AppSidebar from './layout/app-sidebar';
 import OverviewPanel from './panels/overview-panel';
@@ -6,10 +7,13 @@ import FinanceSkeleton from './panels/finance-skeleton';
 import DebtPanel from './panels/debt-panel';
 import CategoryPanel from './panels/category-panel';
 import DebtSourcePanel from './panels/debt-source-panel';
-import FinanceDialogs from './dialogs/finance-dialogs';
 import { FinanceError, FinanceFeedback } from './components/finance-feedback';
 import { useDashboard } from './hooks/use-dashboard';
 import { viewLabels } from './types';
+
+const FinanceDialogs = dynamic(() => import('./dialogs/finance-dialogs'), {
+  loading: () => <div className="notice" role="status">Đang mở biểu mẫu…</div>,
+});
 
 export default function Dashboard() {
   const dashboard = useDashboard();
@@ -136,13 +140,13 @@ export default function Dashboard() {
         onMigrate={() => void dashboard.migrateLegacy()}
         onDismissLegacy={() => dashboard.setHasLegacy(false)}
       />
-      <FinanceDialogs
+      {dashboard.modal && <FinanceDialogs
         modal={dashboard.modal}
         onClose={dashboard.close}
         formProps={dashboard.formProps}
         error={error}
         month={dashboard.month}
-      />
+      />}
     </div>
   );
 }

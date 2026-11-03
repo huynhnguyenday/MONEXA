@@ -2,6 +2,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { usePathname, useRouter } from 'next/navigation';
 import { useFinance } from './use-finance';
+import { useVietnamToday } from './use-vietnam-today';
 import type { FinanceView, FinanceModal } from '../types';
 import {
   type Expense,
@@ -16,6 +17,7 @@ import {
   LEGACY_STORAGE_KEY,
 } from '../model';
 export function useDashboard() {
+  const today = useVietnamToday();
   const router = useRouter();
   const pathname = usePathname();
   const [month, setMonth] = useState('');
@@ -52,7 +54,7 @@ export function useDashboard() {
     window.addEventListener('keydown', close);
     return () => window.removeEventListener('keydown', close);
   }, [navOpen, modal]);
-  const stats = useMemo(() => getStatistics(data, month || localDate().slice(0, 7)), [data, month]);
+  const stats = useMemo(() => getStatistics(data, month || today.slice(0, 7), today), [data, month, today]);
   function toggleNav() {
     const next = !navOpen;
     setNavOpen(next);

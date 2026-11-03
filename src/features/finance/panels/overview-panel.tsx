@@ -92,7 +92,7 @@ export default function OverviewPanel({
               <small>Tổng thu tháng / số ngày trong tháng</small>
             </article>
           </div>
-          <Charts data={data} stats={stats} />
+          <Charts stats={stats} />
         </section>
         <aside className="overview-aside right-column">
           <BudgetCard data={data} expenses={stats.expenses} month={selectedMonth} ready={ready} onAdd={onBudget} onHistory={onBudgetHistory} />

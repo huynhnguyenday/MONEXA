@@ -23,12 +23,10 @@ export default function OverviewSkeleton() {
               </article>
             ))}
           </div>
-          {[0, 1].map((chart) => (
-            <article className="card chart-card" key={chart}>
-              <div className="panel-heading"><Skeleton className="skeleton-heading" /><Skeleton className="skeleton-icon" /></div>
-              <ChartSkeleton />
-            </article>
-          ))}
+          {[0, 1].map((chart) => <article className="card chart-card" key={chart}>
+            <div className="panel-heading"><Skeleton className="skeleton-heading" /><Skeleton className="skeleton-icon" /></div>
+            <ChartSkeleton />
+          </article>)}
         </section>
         <aside className="overview-aside right-column">
           <article className="budget-card">
