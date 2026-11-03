@@ -1,0 +1,22 @@
+.debt-notifications { position: relative; }
+.notification-bell { position: relative; min-width: 44px; min-height: 44px; color: #1d4ed8; background: #eff6ff; border: 1px solid #b9cdf5; border-radius: 12px; }
+.notification-bell:hover { background: #dbeafe; }
+.notification-count { position: absolute; top: -3px; right: -3px; min-width: 18px; padding: 2px 4px; border-radius: 12px; background: #b91c1c; color: white; font-size: 10px; font-weight: 700; }
+.notification-panel { position: fixed; top: 72px; left: 20px; width: min(380px, calc(100vw - 24px)); z-index: 60; padding: 16px; background: white; border: 1px solid #b9cdf5; border-radius: 18px; box-shadow: 0 12px 40px #142d4e30; }
+.notification-heading { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+.notification-heading h2 { margin: 0; font-size: 14px; }
+.notification-heading .button { min-height: 44px; padding: 6px 8px; font-size: 11px; }
+.notification-panel p { font-size: 12px; margin: 10px 0; }
+.notification-panel ul { list-style: none; padding: 0; margin: 0; }
+.notification-panel li { display: grid; gap: 4px; padding: 10px 0; border-top: 1px solid #e2e8f0; font-size: 12px; overflow-wrap: anywhere; }
+.notification-panel li strong { font-size: 13px; }
+.notification-panel li small { color: #64748b; }
+@media (max-width: 600px) {
+  .notification-panel { top: 64px; left: 12px; }
+  .workspace-header .compact-brand > span { display: none; }
+  .workspace-header .compact-brand > img { display: block; width: 20px; height: 20px; }
+  .workspace-header .workspace-navigation { gap: 2px; }
+  .compact-layout .workspace-header { grid-template-columns: auto minmax(0, 1fr) auto; }
+  .header-primary-action .button { font-size: 0; width: 44px; padding: 0; gap: 0; }
+  .header-primary-action .button svg { font-size: 16px; }
+}

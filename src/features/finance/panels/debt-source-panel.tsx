@@ -6,7 +6,7 @@ import { Bar } from 'react-chartjs-2';
 import { BarElement, CategoryScale, Chart as ChartJS, LinearScale, Tooltip, type ChartOptions } from 'chart.js';
 import MonthPicker from '@/components/month-picker';
 import Pagination from '@/components/pagination';
-import { type DebtSource, type FinanceData, dateKey, money } from '../model';
+import { type DebtSource, type FinanceData, money } from '../model';
 import { DebtSourceIcon } from '../debt-source-icon';
 import './category-panel.css';
 
@@ -45,7 +45,7 @@ export default function DebtSourcePanel({ data, ready, month, onAdd, onEdit, onD
     return () => observer.disconnect();
   }, []);
   const sources = data.debtSources.filter((source) => source.name.toLocaleLowerCase('vi').includes(search.toLocaleLowerCase('vi')));
-  const debts = useMemo(() => data.debts.filter((debt) => dateKey(debt.occurredAt).slice(0, 7) === chartMonth), [data.debts, chartMonth]);
+  const debts = useMemo(() => data.debts.filter((debt) => debt.dueDate?.slice(0, 7) === chartMonth), [data.debts, chartMonth]);
   const values = data.debtSources.map((source) => debts.filter((debt) => debt.debtSourceId === source.id).reduce((sum, debt) => sum + debt.amount, 0));
   const counts = data.debtSources.map((source) => debts.filter((debt) => debt.debtSourceId === source.id).length);
   const pages = Math.max(1, Math.ceil(data.debtSources.length / chartCapacity));

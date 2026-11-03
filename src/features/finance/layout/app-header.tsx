@@ -6,8 +6,12 @@ import { faBars, faPlus, faXmark } from '@fortawesome/free-solid-svg-icons';
 import MonthPicker from '@/components/month-picker';
 import { MonthPickerSkeleton } from '../components/loading-skeleton';
 import type { FinanceView } from '../types';
+import type { FinanceData } from '../model';
+import DebtNotifications from './debt-notifications';
 
 type Props = {
+  data: FinanceData;
+  onReadReminders: (ids: string[]) => Promise<boolean>;
   view: FinanceView;
   debtView: 'calendar' | 'history';
   onDebtViewChange: (view: 'calendar' | 'history') => void;
@@ -21,6 +25,8 @@ type Props = {
   onCreate: () => void;
 };
 export default function AppHeader({
+  data,
+  onReadReminders,
   view,
   debtView,
   onDebtViewChange,
@@ -51,6 +57,7 @@ export default function AppHeader({
           <Image src="/monexa.webp" width={28} height={28} alt="" />
           <span>MONEXA</span>
         </a>
+        <DebtNotifications data={data} ready={ready} onRead={onReadReminders} />
       </div>
       <div className="header-center">
         {view === 'overview' ? (
@@ -67,7 +74,7 @@ export default function AppHeader({
         )}
       </div>
       <div className="header-primary-action">
-        {view === 'debts' && <button className="button primary" disabled={!ready} onClick={onCreate}>
+        {view === 'debts' && <button className="button primary" aria-label="Ghi công nợ" disabled={!ready} onClick={onCreate}>
           <Icon icon={faPlus} />
           Ghi công nợ
         </button>}

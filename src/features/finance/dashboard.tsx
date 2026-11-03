@@ -40,6 +40,8 @@ export default function Dashboard() {
       <main className="workspace" id="overview">
         <h1 className="sr-only">MONEXA · {viewLabels[dashboard.tab]}</h1>
         <AppHeader
+          data={dashboard.data}
+          onReadReminders={dashboard.readReminders}
           view={dashboard.tab}
           debtView={dashboard.debtView}
           onDebtViewChange={dashboard.setDebtView}

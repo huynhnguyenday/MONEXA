@@ -86,6 +86,13 @@ export function useDashboard() {
     setModal(null);
     setNotice('Đã lưu.');
   }
+  async function readReminders(ids: string[]) {
+    if (!ready || modal) return false;
+    const selected = new Set(ids);
+    return await save({ ...data, debts: data.debts.map((debt) =>
+      selected.has(debt.id) && debt.dueDate ? { ...debt, reminderReadFor: debt.dueDate } : debt,
+    ) });
+  }
   const formProps = { data, save: async (next: FinanceData) => await save(next), done, busy };
   async function deleteExpense(expense: Expense) {
     if (expense.debtId) {
@@ -195,6 +202,7 @@ export function useDashboard() {
   }
   return {
     snapshot,
+    readReminders,
     busy,
     loading,
     error,

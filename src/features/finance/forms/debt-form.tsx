@@ -30,6 +30,7 @@ export function DebtForm({ data, save, done, busy, debt }: { debt?: Debt } & For
           paymentMethod: field(f, 'paymentMethod') as Debt['paymentMethod'],
           occurredAt: debt?.occurredAt || new Date().toISOString(),
           dueDate: dateKeyFromLocal(due),
+          reminderReadFor: debt?.reminderReadFor,
           settledAt: debt?.settledAt || null,
           note: field(f, 'note'),
         };
