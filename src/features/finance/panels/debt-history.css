@@ -1,0 +1,62 @@
+﻿.debt-history-viewport {
+  --table-header-height: 44px;
+  overflow: visible;
+  scrollbar-gutter: auto;
+}
+.debt-history-viewport .compact-debt-table thead tr {
+  height: 44px;
+}
+.debt-sort,
+.debt-filter-select {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  min-height: 44px;
+  color: #526581;
+  font: inherit;
+  font-weight: 600;
+}
+.debt-sort {
+  border: 0;
+  background: transparent;
+  padding: 0;
+  text-align: left;
+}
+.debt-sort svg,
+.debt-filter-select svg {
+  flex: none;
+  width: 10px;
+}
+.debt-filter-select select {
+  min-width: 0;
+  width: 100%;
+  min-height: 44px;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  cursor: pointer;
+}
+.debt-sort:focus-visible,
+.debt-filter-select select:focus-visible {
+  outline: 2px solid #1d4ed8;
+  border-radius: 4px;
+}
+.debt-mobile-filters {
+  display: none;
+}
+@media (max-width: 600px) {
+  .debt-mobile-filters {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0 8px;
+    flex: none;
+  }
+  .debt-mobile-filters > * {
+    min-width: 0;
+    font-size: 12px;
+  }
+  .debt-history-viewport {
+    --table-header-height: 0;
+  }
+}

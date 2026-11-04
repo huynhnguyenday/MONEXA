@@ -16,7 +16,14 @@
   .workspace-header .compact-brand > span { display: none; }
   .workspace-header .compact-brand > img { display: block; width: 20px; height: 20px; }
   .workspace-header .workspace-navigation { gap: 2px; }
-  .compact-layout .workspace-header { grid-template-columns: auto minmax(0, 1fr) auto; }
+  .compact-layout .workspace-header { grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr); }
+  .workspace-header .header-debt-tabs { width: 146px; gap: 0; padding: 2px; }
+  .workspace-header .header-debt-tabs button { flex: 1; min-width: 0; padding: 6px 2px; }
   .header-primary-action .button { font-size: 0; width: 44px; padding: 0; gap: 0; }
   .header-primary-action .button svg { font-size: 16px; }
+}
+@media (max-width: 380px) {
+  .workspace-header .compact-brand > img { width: 16px; height: 16px; }
+  .workspace-header .header-center .month-picker-button { width: 94px; font-size: 9px; gap: 2px; padding: 6px 3px; }
+  .workspace-header .header-debt-tabs { width: 94px; }
 }

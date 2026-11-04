@@ -1,0 +1,35 @@
+.finance-tooltip {
+  position: fixed;
+  z-index: 100;
+  display: grid;
+  gap: 7px;
+  width: 260px;
+  max-width: calc(100vw - 24px);
+  padding: 11px 12px;
+  border: 1px solid #cbd8ea;
+  border-radius: 11px;
+  background: #fff;
+  color: #142d4e;
+  box-shadow: 0 6px 24px #142d4e26;
+  font-size: 11px;
+  line-height: 1.5;
+  text-align: left;
+}
+.finance-tooltip > strong {
+  font-size: 12px;
+}
+.finance-tooltip > span {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+}
+.finance-tooltip b {
+  white-space: nowrap;
+}
+.overview-stat[role='button'] {
+  cursor: pointer;
+}
+.overview-stat[role='button']:focus-visible {
+  outline: 2px solid #1d4ed8;
+  outline-offset: 2px;
+}

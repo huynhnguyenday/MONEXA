@@ -6,12 +6,44 @@ import Pagination from '@/components/pagination';
 import { dateKey, debtDirection, money, upcomingDebtReminders, type FinanceData } from '../model';
 import './debt-notifications.css';
 
-export default function DebtNotifications({ data, ready, onRead }: {
-  data: FinanceData; ready: boolean; onRead: (ids: string[]) => Promise<boolean>;
+export default function DebtNotifications({
+  data,
+  ready,
+  onRead,
+}: {
+  data: FinanceData;
+  ready: boolean;
+  onRead: (ids: string[]) => Promise<boolean>;
 }) {
   const [today, setToday] = useState('');
   const [open, setOpen] = useState(false);
   const [page, setPage] = useState(0);
+  const [permission, setPermission] = useState<NotificationPermission | 'unsupported'>(
+    'unsupported',
+  );
+  const [notificationError, setNotificationError] = useState('');
+  const sent = useRef(new Set<string>());
+  useEffect(() => {
+    const updatePermission = () =>
+      setPermission(
+        'Notification' in window && window.isSecureContext
+          ? Notification.permission
+          : 'unsupported',
+      );
+    updatePermission();
+    window.addEventListener('focus', updatePermission);
+    return () => window.removeEventListener('focus', updatePermission);
+  }, []);
+  const enableNotifications = async () => {
+    try {
+      setNotificationError('');
+      setPermission(await Notification.requestPermission());
+    } catch {
+      setNotificationError(
+        'Không thể bật thông báo. Hãy kiểm tra quyền của trang trong trình duyệt.',
+      );
+    }
+  };
   const root = useRef<HTMLDivElement>(null);
   const button = useRef<HTMLButtonElement>(null);
   useEffect(() => {
@@ -19,7 +51,10 @@ export default function DebtNotifications({ data, ready, onRead }: {
     update();
     const timer = setInterval(update, 20000);
     window.addEventListener('focus', update);
-    return () => { clearInterval(timer); window.removeEventListener('focus', update); };
+    return () => {
+      clearInterval(timer);
+      window.removeEventListener('focus', update);
+    };
   }, []);
   useEffect(() => {
     if (!open) return;
@@ -27,39 +62,166 @@ export default function DebtNotifications({ data, ready, onRead }: {
       if (!root.current?.contains(event.target as Node)) setOpen(false);
     };
     const escape = (event: KeyboardEvent) => {
-      if (event.key === 'Escape') { setOpen(false); button.current?.focus(); }
+      if (event.key === 'Escape') {
+        setOpen(false);
+        button.current?.focus();
+      }
     };
     document.addEventListener('pointerdown', outside);
     document.addEventListener('keydown', escape);
-    return () => { document.removeEventListener('pointerdown', outside); document.removeEventListener('keydown', escape); };
+    return () => {
+      document.removeEventListener('pointerdown', outside);
+      document.removeEventListener('keydown', escape);
+    };
   }, [open]);
   const reminders = today ? upcomingDebtReminders(data.debts, today) : [];
   const unread = reminders.filter((debt) => debt.reminderReadFor !== debt.dueDate);
+  useEffect(() => {
+    if (!ready || permission !== 'granted') return;
+    let cancelled = false;
+    const notify = async () => {
+      try {
+        const registration = await navigator.serviceWorker.register('/debt-reminders-sw.js');
+        if (!registration.active) {
+          const worker = registration.installing || registration.waiting;
+          if (worker)
+            await new Promise<void>((resolve, reject) => {
+              if (worker.state === 'activated') return resolve();
+              worker.addEventListener('statechange', () => {
+                if (worker.state === 'activated') resolve();
+                if (worker.state === 'redundant') reject(new Error('Worker unavailable'));
+              });
+            });
+        }
+        for (const debt of unread) {
+          const key = debt.id + ':' + debt.dueDate;
+          if (cancelled || sent.current.has(key)) continue;
+          sent.current.add(key);
+          try {
+            await registration.showNotification('MONEXA · Công nợ đến hạn ngày mai', {
+              body: debt.title + ' · ' + money(debt.amount),
+              tag: key,
+              icon: '/monexa.webp',
+            });
+          } catch (error) {
+            sent.current.delete(key);
+            throw error;
+          }
+        }
+      } catch {
+        if (!cancelled)
+          setNotificationError(
+            'Không gửi được thông báo trình duyệt. Bạn vẫn có thể xem lời nhắc trong chuông.',
+          );
+      }
+    };
+    void notify();
+    return () => {
+      cancelled = true;
+    };
+  }, [data.debts, today, permission, ready]);
   const pages = Math.max(1, Math.ceil(reminders.length / 2));
   const activePage = Math.min(page, pages - 1);
-  return <div className="debt-notifications" ref={root}>
-    <button type="button" ref={button} className="icon-button notification-bell" disabled={!ready}
-      aria-label={`Thông báo công nợ${unread.length ? `, ${unread.length} chưa đọc` : ''}`}
-      aria-expanded={open} aria-controls="debt-notifications-panel"
-      onClick={() => { setOpen(!open); setPage(0); }}>
-      <Icon icon={faBell} />
-      {unread.length > 0 && <span className="notification-count" aria-hidden="true">{unread.length > 99 ? '99+' : unread.length}</span>}
-    </button>
-    {open && <section id="debt-notifications-panel" className="notification-panel" aria-label="Thông báo công nợ">
-      <div className="notification-heading"><h2>Nhắc hạn công nợ</h2>
-        {unread.length > 0 && <button type="button" className="button secondary" disabled={!ready}
-          onClick={() => void onRead(unread.map((debt) => debt.id))}>Đánh dấu đã đọc</button>}
-      </div>
-      {!reminders.length ? <p>Không có công nợ đến hạn vào ngày mai.</p> : <>
-        <p className="notification-description">Đến hạn ngày mai · nhắc một lần cho mỗi khoản.</p>
-        <ul>{reminders.slice(activePage * 2, activePage * 2 + 2).map((debt) => <li key={debt.id}>
-          <strong>{debt.title}</strong>
-          <span>{debtDirection(data, debt) === 'payable' ? 'Phải trả' : 'Phải thu'} · {money(debt.amount)}</span>
-          <span>{data.debtSources.find((source) => source.id === debt.debtSourceId)?.name} · Hạn {debt.dueDate!.split('-').reverse().join('/')}</span>
-          <small>{debt.reminderReadFor === debt.dueDate ? 'Đã đọc' : 'Chưa đọc'}</small>
-        </li>)}</ul>
-        {pages > 1 && <Pagination label="Thông báo công nợ" page={activePage} pages={pages} total={reminders.length} onChange={setPage} />}
-      </>}
-    </section>}
-  </div>;
+  return (
+    <div className="debt-notifications" ref={root}>
+      <button
+        type="button"
+        ref={button}
+        className="icon-button notification-bell"
+        disabled={!ready}
+        aria-label={`Thông báo công nợ${unread.length ? `, ${unread.length} chưa đọc` : ''}`}
+        aria-expanded={open}
+        aria-controls="debt-notifications-panel"
+        onClick={() => {
+          setOpen(!open);
+          setPage(0);
+        }}
+      >
+        <Icon icon={faBell} />
+        {unread.length > 0 && (
+          <span className="notification-count" aria-hidden="true">
+            {unread.length > 99 ? '99+' : unread.length}
+          </span>
+        )}
+      </button>
+      {open && (
+        <section
+          id="debt-notifications-panel"
+          className="notification-panel"
+          aria-label="Thông báo công nợ"
+        >
+          <div className="notification-heading">
+            <h2>Nhắc hạn công nợ</h2>
+            {unread.length > 0 && (
+              <button
+                type="button"
+                className="button secondary"
+                disabled={!ready}
+                onClick={() => void onRead(unread.map((debt) => debt.id))}
+              >
+                Đánh dấu đã đọc
+              </button>
+            )}
+          </div>
+          <p>
+            Nhắc trước hạn một ngày theo giờ Việt Nam khi MONEXA đang mở. Chưa hỗ trợ nhắc khi đã
+            đóng web.
+          </p>
+          {permission === 'default' && (
+            <button
+              type="button"
+              className="button secondary"
+              onClick={() => void enableNotifications()}
+            >
+              Bật thông báo trình duyệt
+            </button>
+          )}
+          {permission === 'granted' && <p>Đã cho phép thông báo trên trình duyệt này.</p>}
+          {permission === 'denied' && (
+            <p>
+              Thông báo đang bị chặn. Hãy cho phép trong cài đặt quyền của trang rồi mở lại MONEXA.
+            </p>
+          )}
+          {permission === 'unsupported' && (
+            <p>Trình duyệt này chưa hỗ trợ thông báo hệ thống. Lời nhắc vẫn hiện trong chuông.</p>
+          )}
+          {notificationError && <p role="alert">{notificationError}</p>}
+          {!reminders.length ? (
+            <p>Không có công nợ đến hạn vào ngày mai.</p>
+          ) : (
+            <>
+              <p className="notification-description">
+                Đến hạn ngày mai · nhắc một lần cho mỗi khoản.
+              </p>
+              <ul>
+                {reminders.slice(activePage * 2, activePage * 2 + 2).map((debt) => (
+                  <li key={debt.id}>
+                    <strong>{debt.title}</strong>
+                    <span>
+                      {debtDirection(data, debt) === 'payable' ? 'Phải trả' : 'Phải thu'} ·{' '}
+                      {money(debt.amount)}
+                    </span>
+                    <span>
+                      {data.debtSources.find((source) => source.id === debt.debtSourceId)?.name} ·
+                      Hạn {debt.dueDate!.split('-').reverse().join('/')}
+                    </span>
+                    <small>{debt.reminderReadFor === debt.dueDate ? 'Đã đọc' : 'Chưa đọc'}</small>
+                  </li>
+                ))}
+              </ul>
+              {pages > 1 && (
+                <Pagination
+                  label="Thông báo công nợ"
+                  page={activePage}
+                  pages={pages}
+                  total={reminders.length}
+                  onChange={setPage}
+                />
+              )}
+            </>
+          )}
+        </section>
+      )}
+    </div>
+  );
 }

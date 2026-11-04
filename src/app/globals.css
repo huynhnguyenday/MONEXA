@@ -287,6 +287,24 @@ h1 + p {
   color: white;
   box-shadow: 0 3px 5px #1d4ed812;
 }
+@media (hover: hover) and (pointer: fine) {
+  .button.primary:hover:not(:disabled),
+  .inline-button:hover:not(:disabled) {
+    transform: translateY(-1px);
+  }
+  .button.primary:active:not(:disabled),
+  .inline-button:active:not(:disabled) {
+    transform: translateY(0);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .button.primary:hover:not(:disabled),
+  .inline-button:hover:not(:disabled),
+  .budget-summary .budget-action-button.button:hover:not(:disabled) {
+    transform: none;
+    transition: none;
+  }
+}
 .secondary {
   background: #fff;
   border-color: var(--line);
@@ -711,6 +729,7 @@ dialog::backdrop {
 }
 .dialog-heading {
   flex-shrink: 0;
+  padding-bottom: 20px;
 }
 .dialog-body {
   min-height: 0;

@@ -14,10 +14,24 @@
   border-radius: 999px;
 }
 
-.budget-card .budget-remaining-progress { background: #3979ED; }
-.budget-card .budget-debt-progress { background: #EB4658; }
-.budget-card .budget-caption { position: relative; justify-content: center; align-items: center; flex-wrap: wrap; gap: 8px; }
-.budget-card .budget-caption > span { font-size: 10px; font-weight: 700; text-align: center; }
+.budget-card .budget-remaining-progress {
+  background: #3979ed;
+}
+.budget-card .budget-debt-progress {
+  background: #eb4658;
+}
+.budget-card .budget-caption {
+  position: relative;
+  justify-content: center;
+  align-items: center;
+  flex-wrap: nowrap;
+  gap: 12px;
+}
+.budget-card .budget-caption > .budget-caption-button {
+  font-size: 10px;
+  font-weight: 700;
+  text-align: center;
+}
 .budget-card .budget-caption-button {
   min-height: 22px;
   padding: 3px 9px;
@@ -28,30 +42,20 @@
   font-weight: 700;
   line-height: 1.4;
 }
-.budget-card .budget-caption-button:hover { background: #142d4e12; }
-.budget-card .budget-caption-button:focus-visible { outline: 2px solid #1d4ed8; outline-offset: 2px; }
-.budget-card .budget-caption-tooltip {
-  display: none;
-  position: absolute;
-  z-index: 30;
-  bottom: calc(100% + 8px);
-  left: 50%;
-  transform: translateX(-50%);
-  width: 240px;
-  max-width: calc(100vw - 32px);
-  padding: 10px 12px;
-  border: 1px solid #d4deed;
-  border-radius: 10px;
-  background: #fff;
-  color: #142d4e;
-  box-shadow: 0 5px 20px #142d4e26;
-  text-align: left;
-  font-size: 11px;
-  font-weight: 500;
-  pointer-events: none;
+.budget-card .budget-caption-button:hover {
+  background: #142d4e12;
 }
-.budget-caption-item:hover > .budget-caption-tooltip,
-.budget-caption-item:focus-within > .budget-caption-tooltip { display: grid; gap: 6px; }
-.budget-caption-tooltip > span { display: flex; justify-content: space-between; gap: 10px; }
-.budget-card .budget-remaining-caption { color: #3979ED; }
-.budget-card .budget-debt-caption { color: #EB4658; }
+.budget-card .budget-caption-button:focus-visible {
+  outline: 2px solid #1d4ed8;
+  outline-offset: 2px;
+}
+.budget-card .budget-remaining-caption {
+  color: #3979ed;
+}
+.budget-card .budget-debt-caption {
+  color: #eb4658;
+}
+.budget-card .budget-total-caption {
+  color: #2563a6;
+  background: #dbeafe;
+}
