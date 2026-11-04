@@ -9,9 +9,40 @@
   --muted: #64748b;
   --line: #e2e8f0;
   --green: #1d4ed8;
+  --scrollbar-track: transparent;
+  --scrollbar-thumb: #94a9c4;
+  --scrollbar-thumb-hover: #647fa3;
 }
 * {
   box-sizing: border-box;
+  scrollbar-width: thin;
+  scrollbar-color: var(--scrollbar-thumb) var(--scrollbar-track);
+}
+*:hover {
+  scrollbar-color: var(--scrollbar-thumb-hover) var(--scrollbar-track);
+}
+/* Fallback for browsers without the standard scrollbar properties. */
+@supports not (scrollbar-width: thin) {
+  ::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+  ::-webkit-scrollbar-track,
+  ::-webkit-scrollbar-corner {
+    background: var(--scrollbar-track);
+  }
+  ::-webkit-scrollbar-thumb {
+    background: var(--scrollbar-thumb);
+    border-radius: 999px;
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    background: var(--scrollbar-thumb-hover);
+  }
+}
+@media (forced-colors: active) {
+  * {
+    scrollbar-color: auto;
+  }
 }
 body {
   margin: 0;
@@ -673,6 +704,18 @@ dialog::backdrop {
 }
 .dialog-content {
   padding: 28px;
+  display: flex;
+  flex-direction: column;
+  max-height: calc(90dvh - 2px);
+  min-height: 0;
+}
+.dialog-heading {
+  flex-shrink: 0;
+}
+.dialog-body {
+  min-height: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
 }
 dialog.compact-dialog { width: min(380px, calc(100% - 28px)); }
 dialog.debt-entry-dialog { width: min(530px, calc(100% - 28px)); }
@@ -688,7 +731,9 @@ dialog.compact-dialog form select { margin-top: 5px; padding: 9px 11px; }
   margin-bottom: 0;
 }
 .dialog-heading h2 {
-  font-size: 19px;
+  margin: 0;
+  font-size: 18px;
+  line-height: 18px;
 }
 .dialog-heading button {
   border: 0;

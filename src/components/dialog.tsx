@@ -43,7 +43,7 @@ export default function Dialog({
             <FontAwesomeIcon icon={faXmark} />
           </button>
         </div>
-        {children}
+        <div className="dialog-body">{children}</div>
       </div>
     </dialog>
   );

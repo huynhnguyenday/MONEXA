@@ -377,7 +377,8 @@
 .budget-history-dialog { width: min(520px, calc(100% - 28px)); height: min(620px, 82dvh); }
 .budget-history-dialog .dialog-content { height: 100%; display: flex; flex-direction: column; min-height: 0; }
 .budget-history-dialog .dialog-heading { margin-bottom: 18px; }
-.budget-history-dialog .budget-history-list { flex: 1; min-height: 0; max-height: none; }
+.budget-history-dialog .dialog-body { flex: 1; }
+.budget-history-dialog .budget-history-list { max-height: none; overflow-y: visible; }
 .budget-anchor-summary { display: grid; grid-template-columns: 1fr 1fr; gap: 6px 10px; padding: 10px 12px; border: 1px solid #dbe5f2; border-radius: 10px; background: #f5f8fd; }
 .budget-anchor-summary > strong { grid-column: 1 / -1; color: #263f61; font-size: 11px; }
 .budget-anchor-summary > span { display: flex; flex-direction: column; gap: 2px; color: #526581; font-size: 10px; }
