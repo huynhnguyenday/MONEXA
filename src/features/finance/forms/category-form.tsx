@@ -93,7 +93,7 @@ export function CategoryForm({
             {error}
           </p>
         )}
-        <button className="button primary full">
+        <button className="button primary full monexa-action monexa-create">
           {busy ? 'Đang lưu…' : category ? 'Lưu danh mục' : 'Thêm danh mục'}
         </button>
       </fieldset>

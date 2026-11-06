@@ -1,10 +1,12 @@
 'use client';
 import { useEffect, useRef, useState } from 'react';
 import { FontAwesomeIcon as Icon } from '@fortawesome/react-fontawesome';
-import { faBell } from '@fortawesome/free-solid-svg-icons';
-import Pagination from '@/components/pagination';
+import { faBell, faTrashCan } from '@fortawesome/free-solid-svg-icons';
 import { dateKey, debtDirection, money, upcomingDebtReminders, type FinanceData } from '../model';
 import PushNotificationSettings from '../components/push-notification-settings';
+import NotificationBody from '../components/notification-body';
+import { useNotificationFeed } from '../hooks/use-notification-feed';
+import { debtPushMessage } from '../notifications/push-message';
 import './debt-notifications.css';
 
 export default function DebtNotifications({
@@ -18,7 +20,8 @@ export default function DebtNotifications({
 }) {
   const [today, setToday] = useState('');
   const [open, setOpen] = useState(false);
-  const [page, setPage] = useState(0);
+  const [dismissedReminders, setDismissedReminders] = useState<string[]>([]);
+  const feed = useNotificationFeed();
   const root = useRef<HTMLDivElement>(null);
   const button = useRef<HTMLButtonElement>(null);
   useEffect(() => {
@@ -49,63 +52,132 @@ export default function DebtNotifications({
       document.removeEventListener('keydown', escape);
     };
   }, [open]);
-  const reminders = today ? upcomingDebtReminders(data.debts, today) : [];
+  const reminders = today
+    ? upcomingDebtReminders(data.debts, today).filter(
+        (debt) => !dismissedReminders.includes(`${debt.id}:${debt.dueDate}`),
+      )
+    : [];
   const unread = reminders.filter((debt) => debt.reminderReadFor !== debt.dueDate);
-  const pages = Math.max(1, Math.ceil(reminders.length / 2));
-  const activePage = Math.min(page, pages - 1);
+  const unreadCount = unread.length + feed.items.filter((item) => !item.read).length;
+  const hasContent = reminders.length > 0 || feed.items.length > 0;
+  const testNotification = () => {
+    const debt = data.debts
+      .filter((item) => !item.settledAt && item.dueDate)
+      .sort((a, b) => a.dueDate!.localeCompare(b.dueDate!) || a.id.localeCompare(b.id))[0];
+    feed.receive(
+      debt?.dueDate
+        ? debtPushMessage({ ...debt, dueDate: debt.dueDate }, 'monexa:test', true)
+        : {
+            tag: 'monexa:test',
+            title: 'MONEXA · Thông báo thử',
+            body: 'Thông báo trong ứng dụng hoạt động. Hiện không có công nợ chưa thanh toán có hạn.',
+          },
+    );
+  };
   return (
     <div className="debt-notifications" ref={root}>
       <button
         type="button"
         ref={button}
-        className="icon-button notification-bell"
+        className="button notification-icon-button notification-bell monexa-action monexa-bell"
         disabled={!ready}
-        aria-label={`Thông báo công nợ${unread.length ? `, ${unread.length} chưa đọc` : ''}`}
+        aria-label={`Thông báo công nợ${unreadCount ? `, ${unreadCount} chưa đọc` : ''}`}
         aria-expanded={open}
         aria-controls="debt-notifications-panel"
         onClick={() => {
           setOpen(!open);
-          setPage(0);
         }}
       >
         <Icon icon={faBell} />
-        {unread.length > 0 && (
+        {unreadCount > 0 && (
           <span className="notification-count" aria-hidden="true">
-            {unread.length > 99 ? '99+' : unread.length}
+            {unreadCount > 99 ? '99+' : unreadCount}
           </span>
         )}
       </button>
-      {open && (
-        <section
-          id="debt-notifications-panel"
-          className="notification-panel"
-          aria-label="Thông báo công nợ"
-        >
-          <div className="notification-heading">
-            <h2>Nhắc hạn công nợ</h2>
-            {unread.length > 0 && (
-              <button
-                type="button"
-                className="button secondary"
-                disabled={!ready}
-                onClick={() => void onRead(unread.map((debt) => debt.id))}
-              >
-                Đánh dấu đã đọc
-              </button>
-            )}
-          </div>
-          <PushNotificationSettings />
-          {!reminders.length ? (
+      <section
+        hidden={!open}
+        id="debt-notifications-panel"
+        className="notification-panel"
+        aria-label="Thông báo công nợ"
+      >
+        <PushNotificationSettings
+          onTest={testNotification}
+          onNotice={(body) =>
+            feed.receive({
+              tag: `monexa:device:${crypto.randomUUID()}`,
+              title: 'Cài đặt thông báo',
+              body,
+            })
+          }
+        />
+        <div className={`notification-content${!hasContent ? ' notification-content-empty' : ''}`}>
+          {!hasContent ? (
             <p>Không có công nợ đến hạn vào ngày mai.</p>
           ) : (
             <>
-              <p className="notification-description">
-                Đến hạn ngày mai · nhắc một lần cho mỗi khoản.
-              </p>
+              {unreadCount > 0 && (
+                <button
+                  type="button"
+                  className="notification-mark-read"
+                  disabled={!ready}
+                  onClick={() => {
+                    feed.markRead();
+                    if (unread.length) void onRead(unread.map((debt) => debt.id));
+                  }}
+                >
+                  Đánh dấu đã đọc
+                </button>
+              )}
               <ul>
-                {reminders.slice(activePage * 2, activePage * 2 + 2).map((debt) => (
+                {feed.items.map((item) => (
+                  <li key={item.tag} className="notification-feed-item">
+                    <strong>{item.title}</strong>
+                    <div className="notification-item-actions">
+                      <button
+                        type="button"
+                        className="notification-compact-button notification-delete-button"
+                        aria-label={`Xóa thông báo ${item.title}`}
+                        title="Xóa thông báo"
+                        onClick={() => feed.remove(item.tag)}
+                      >
+                        <span className="notification-button-face">
+                          <Icon icon={faTrashCan} />
+                        </span>
+                      </button>
+                    </div>
+                    <span>
+                      <NotificationBody body={item.body} />
+                    </span>
+                    <small>
+                      {new Date(item.receivedAt).toLocaleString('vi-VN', {
+                        timeZone: 'Asia/Ho_Chi_Minh',
+                      })}{' '}
+                      · {item.read ? 'Đã đọc' : 'Chưa đọc'}
+                    </small>
+                  </li>
+                ))}
+                {reminders.map((debt) => (
                   <li key={debt.id}>
                     <strong>{debt.title}</strong>
+                    <div className="notification-item-actions">
+                      <button
+                        type="button"
+                        className="notification-compact-button notification-delete-button"
+                        aria-label={`Xóa thông báo ${debt.title}`}
+                        title="Xóa thông báo"
+                        onClick={() =>
+                          setDismissedReminders((previous) => [
+                            ...previous,
+                            `${debt.id}:${debt.dueDate}`,
+                          ])
+                        }
+                      >
+                        <span className="notification-button-face">
+                          <Icon icon={faTrashCan} />
+                        </span>
+                      </button>
+                    </div>
                     <span>
                       {debtDirection(data, debt) === 'payable' ? 'Phải trả' : 'Phải thu'} ·{' '}
                       {money(debt.amount)}
@@ -118,19 +190,10 @@ export default function DebtNotifications({
                   </li>
                 ))}
               </ul>
-              {pages > 1 && (
-                <Pagination
-                  label="Thông báo công nợ"
-                  page={activePage}
-                  pages={pages}
-                  total={reminders.length}
-                  onChange={setPage}
-                />
-              )}
             </>
           )}
-        </section>
-      )}
+        </div>
+      </section>
     </div>
   );
 }

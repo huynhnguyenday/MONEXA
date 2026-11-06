@@ -23,14 +23,14 @@ async function request(path: string, method: string, body?: unknown) {
   if (!response.ok) throw new Error(result.error || 'Không thể cập nhật thông báo.');
   return result;
 }
-export function usePushDevice() {
+export function usePushDevice(onNotice: (message: string) => void) {
+  const [initialized, setInitialized] = useState(false);
   const [supported, setSupported] = useState<boolean | null>(null);
   const [permission, setPermission] = useState<NotificationPermission>('default');
   const [subscribed, setSubscribed] = useState(false);
   const [configured, setConfigured] = useState<boolean | null>(null);
   const [busy, setBusy] = useState(true);
   const [error, setError] = useState('');
-  const [notice, setNotice] = useState('');
   const registration = useRef<ServiceWorkerRegistration | null>(null);
   const current = useRef<PushSubscription | null>(null);
   const publicKey = useRef('');
@@ -40,7 +40,7 @@ export function usePushDevice() {
     const available = window.isSecureContext && 'serviceWorker' in navigator
       && 'PushManager' in window && 'Notification' in window;
     setSupported(available);
-    if (!available) { setBusy(false); return; }
+    if (!available) { setBusy(false); setInitialized(true); return; }
     let cancelled = false;
     const updatePermission = () => setPermission(Notification.permission);
     updatePermission();
@@ -73,14 +73,14 @@ export function usePushDevice() {
         }
       } catch (err) {
         if (!cancelled) setError(err instanceof Error ? err.message : 'Chưa kiểm tra được đăng ký thông báo.');
-      } finally { if (!cancelled) setBusy(false); }
+      } finally { if (!cancelled) { setBusy(false); setInitialized(true); } }
     })();
     return () => { cancelled = true; window.removeEventListener('focus', updatePermission); };
   }, []);
 
   async function enable() {
     if (working.current || !supported || !configured) return;
-    working.current = true; setBusy(true); setError(''); setNotice('');
+    working.current = true; setBusy(true); setError('');
     try {
       // Request directly from the click gesture, including on iOS Home Screen apps.
       const allowed = await Notification.requestPermission();
@@ -91,30 +91,29 @@ export function usePushDevice() {
         || await ready.pushManager.subscribe({ userVisibleOnly: true, applicationServerKey: keyBytes(publicKey.current).buffer });
       await request('/api/push/subscription', 'POST', subscription.toJSON());
       current.current = subscription; setSubscribed(true);
-      setNotice('Đã bật thông báo trên thiết bị này. Bạn có thể đóng MONEXA.');
+      onNotice('Đã bật thông báo trên thiết bị này. Bạn có thể đóng MONEXA.');
     } catch (err) { setError(err instanceof Error ? err.message : 'Chưa bật được thông báo.'); }
     finally { working.current = false; setBusy(false); }
   }
   async function disable() {
     if (working.current || !current.current) return;
-    working.current = true; setBusy(true); setError(''); setNotice('');
+    working.current = true; setBusy(true); setError('');
     try {
       const subscription = current.current;
       await subscription.unsubscribe();
       current.current = null; setSubscribed(false);
       await request('/api/push/subscription', 'DELETE', { endpoint: subscription.endpoint });
-      setNotice('Đã tắt thông báo trên thiết bị này.');
+      onNotice('Đã tắt thông báo trên thiết bị này.');
     } catch (err) { setError(err instanceof Error ? err.message : 'Chưa tắt được thông báo.'); }
     finally { working.current = false; setBusy(false); }
   }
   async function test() {
     if (working.current || !current.current) return;
-    working.current = true; setBusy(true); setError(''); setNotice('');
+    working.current = true; setBusy(true); setError('');
     try {
       await request('/api/push/test', 'POST', { endpoint: current.current.endpoint });
-      setNotice('Đã gửi thông báo thử. Kiểm tra thanh thông báo của điện thoại.');
     } catch (err) { setError(err instanceof Error ? err.message : 'Chưa gửi được thông báo thử.'); }
     finally { working.current = false; setBusy(false); }
   }
-  return { supported, permission, subscribed, configured, busy, error, notice, enable, disable, test };
+  return { initialized, supported, permission, subscribed, configured, busy, error, enable, disable, test };
 }

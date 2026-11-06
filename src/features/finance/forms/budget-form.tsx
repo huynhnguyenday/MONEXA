@@ -68,7 +68,7 @@ export function BudgetForm({ data, save, done, busy, month }: FormProps & { mont
           />
         </label>
         {error && <p className="form-error" role="alert">{error}</p>}
-        <button className="button primary full">{busy ? 'Đang lưu…' : 'Thêm ngân sách'}</button>
+        <button className="button primary full monexa-action monexa-create">{busy ? 'Đang lưu…' : 'Thêm ngân sách'}</button>
       </fieldset>
     </form>
   );

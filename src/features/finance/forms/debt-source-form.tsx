@@ -33,7 +33,7 @@ export function DebtSourceForm({ data, save, busy, done, debtSource }: { debtSou
           {debtSourceIconKeys.map((key) => <button key={key} type="button" title={sourceLabels[key]} aria-label={sourceLabels[key]} aria-pressed={icon === key} className={icon === key ? 'selected' : ''} style={{ color: debtSourceIconColors[key] }} onClick={() => setIcon(key)}><DebtSourceIcon icon={key} /></button>)}
         </div>
         {error && <p className="form-error" role="alert">{error}</p>}
-        <button className="button primary full">{busy ? 'Đang lưu…' : debtSource ? 'Lưu nguồn công nợ' : 'Thêm nguồn công nợ'}</button>
+        <button className="button primary full monexa-action monexa-create">{busy ? 'Đang lưu…' : debtSource ? 'Lưu nguồn công nợ' : 'Thêm nguồn công nợ'}</button>
       </fieldset>
     </form>
   );

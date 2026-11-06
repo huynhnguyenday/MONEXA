@@ -27,6 +27,7 @@ import { categoryIcons } from '../icons';
 import { createNameAmountSearchMatcher } from '@/lib/search';
 import { useHistoryWindow } from '../hooks/use-history-window';
 import HistoryEnd from '../components/history-end';
+import './overview-panel.css';
 
 type Props = {
   data: FinanceData;
@@ -53,12 +54,17 @@ export default function OverviewPanel({
   const [mobileView, setMobileView] = useState<'charts' | 'expenses'>('charts');
   const [search, setSearch] = useState('');
   const [expandedExpense, setExpandedExpense] = useState<string | null>(null);
-  const filtered = useMemo(() => stats.expenses.filter(createNameAmountSearchMatcher(search)), [stats.expenses, search]);
+  const filtered = useMemo(
+    () => stats.expenses.filter(createNameAmountSearchMatcher(search)),
+    [stats.expenses, search],
+  );
   const { viewportRef, endRef, visibleCount, hasMore } = useHistoryWindow(
-    filtered.length, JSON.stringify([month, search]), !ready,
+    filtered.length,
+    JSON.stringify([month, search]),
+    !ready,
   );
   const selectedMonth = month || dateKey().slice(0, 7);
-  const cashStats = getCashStatistics(data, selectedMonth);
+  const cashStats = getCashStatistics(data, selectedMonth, stats.today);
   const monthBudget = cashStats.income;
   return (
     <section
@@ -100,7 +106,7 @@ export default function OverviewPanel({
                 Còn lại
               </span>
               <strong>{money(monthBudget - stats.total)}</strong>
-              <small>Ngân sách − chi tiêu tháng</small>
+              <small title="Thu gốc tháng trừ tổng chi tháng">Thu − chi</small>
             </FinanceTooltip>
             <FinanceTooltip
               as="article"
@@ -126,7 +132,7 @@ export default function OverviewPanel({
                 Thực tế
               </span>
               <strong>{money(cashStats.actual)}</strong>
-              <small>Tổng tiền − nợ tháng đang xem</small>
+              <small title="Tổng tiền hiện có trừ nợ phải trả trong tháng">Trừ nợ tháng</small>
             </FinanceTooltip>
             <article className="stat overview-stat overview-stat-spent">
               <span className="stat-label">
@@ -139,18 +145,22 @@ export default function OverviewPanel({
             <article className="stat overview-stat overview-stat-average">
               <span className="stat-label">
                 <Icon icon={faChartLine} aria-hidden="true" />
-                Trung bình / ngày
+                Chi/ngày
               </span>
               <strong>{money(stats.average)}</strong>
-              <small>Tính trên ngày đã qua</small>
+              <small title="Tổng chi tháng chia cho số ngày thống kê">
+                Chi / {stats.elapsedDays} ngày
+              </small>
             </article>
             <article className="stat overview-stat overview-stat-average">
               <span className="stat-label">
                 <Icon icon={faChartLine} aria-hidden="true" />
-                Trung bình kiếm
+                Thu/ngày
               </span>
               <strong>{money(cashStats.averageIncome)}</strong>
-              <small>Tổng thu tháng / số ngày trong tháng</small>
+              <small title="Tổng thu gốc tháng chia cho số ngày thống kê">
+                Thu / {stats.elapsedDays} ngày
+              </small>
             </article>
           </div>
           <Charts stats={stats} />
@@ -181,7 +191,7 @@ export default function OverviewPanel({
                 />
               </label>
               <button
-                className="button primary expense-add-button"
+                className="button primary expense-add-button monexa-action monexa-create"
                 aria-label="Thêm chi tiêu"
                 title="Thêm chi tiêu"
                 disabled={!ready}
@@ -190,7 +200,13 @@ export default function OverviewPanel({
                 <Icon icon={faPlus} />
               </button>
             </div>
-            <div className="expense-table-viewport" ref={viewportRef} role="region" aria-label="Lịch sử chi tiêu" tabIndex={0}>
+            <div
+              className="expense-table-viewport"
+              ref={viewportRef}
+              role="region"
+              aria-label="Lịch sử chi tiêu"
+              tabIndex={0}
+            >
               {!filtered.length ? (
                 <div className="compact-empty">
                   <Icon icon={faWallet} />

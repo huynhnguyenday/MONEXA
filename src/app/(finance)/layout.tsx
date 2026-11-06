@@ -4,7 +4,7 @@ import { redirect } from 'next/navigation';
 
 export default async function FinanceLayout({ children }: { children: React.ReactNode }) {
   if (!(await isAuthenticated())) redirect('/login');
-  // A shared layout preserves finance state and its background revision check
+  // A shared layout preserves the finance snapshot updated by successful writes
   // while App Router navigates between business pages.
   return <><Dashboard />{children}</>;
 }

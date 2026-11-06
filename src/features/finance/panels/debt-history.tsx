@@ -13,6 +13,7 @@ import {
 } from '@fortawesome/free-solid-svg-icons';
 import { useHistoryWindow } from '../hooks/use-history-window';
 import HistoryEnd from '../components/history-end';
+import DebtHistoryFilters, { type DebtHistorySort } from './debt-history-filters';
 import { type Debt, type FinanceData, dateKey, debtDirection, money } from '../model';
 import './debt-history.css';
 type Props = {
@@ -26,40 +27,46 @@ type Props = {
 export default function DebtHistory({ data, ready, onAdd, onEdit, onDelete, onSettle }: Props) {
   const [source, setSource] = useState('');
   const [statusFilter, setStatusFilter] = useState('');
-  const [sort, setSort] = useState<'default' | 'amountAsc' | 'amountDesc' | 'dueDesc'>('default');
+  const [sort, setSort] = useState<DebtHistorySort>('default');
   const direction = (debt: Debt) => debtDirection(data, debt);
   const today = dateKey();
   const overdue = (debt: Debt) => !debt.settledAt && !!debt.dueDate && debt.dueDate < today;
-  const history = useMemo(() => data.debts
-    .filter(
-      (debt) =>
-        (!source || debt.debtSourceId === source) &&
-        (!statusFilter ||
-          (statusFilter === 'settled'
-            ? !!debt.settledAt
-            : statusFilter === 'overdue'
-              ? overdue(debt)
-              : !debt.settledAt)),
-    )
-    .sort((a, b) => {
-      const group = Number(!!a.settledAt) - Number(!!b.settledAt);
-      if (group) return group;
-      if (sort === 'amountAsc' || sort === 'amountDesc') {
-        const amount = (a.amount - b.amount) * (sort === 'amountAsc' ? 1 : -1);
-        if (amount) return amount;
-      }
-      if (sort === 'dueDesc') {
-        const due = (b.dueDate ?? '').localeCompare(a.dueDate ?? '');
-        if (due) return due;
-      }
-      return (
-        (a.dueDate ?? '9999-12-31').localeCompare(b.dueDate ?? '9999-12-31') ||
-        b.occurredAt.localeCompare(a.occurredAt) ||
-        a.id.localeCompare(b.id)
-      );
-    }), [data.debts, source, statusFilter, sort, today]);
+  const history = useMemo(
+    () =>
+      data.debts
+        .filter(
+          (debt) =>
+            (!source || debt.debtSourceId === source) &&
+            (!statusFilter ||
+              (statusFilter === 'settled'
+                ? !!debt.settledAt
+                : statusFilter === 'overdue'
+                  ? overdue(debt)
+                  : !debt.settledAt)),
+        )
+        .sort((a, b) => {
+          const group = Number(!!a.settledAt) - Number(!!b.settledAt);
+          if (group) return group;
+          if (sort === 'amountAsc' || sort === 'amountDesc') {
+            const amount = (a.amount - b.amount) * (sort === 'amountAsc' ? 1 : -1);
+            if (amount) return amount;
+          }
+          if (sort === 'dueDesc') {
+            const due = (b.dueDate ?? '').localeCompare(a.dueDate ?? '');
+            if (due) return due;
+          }
+          return (
+            (a.dueDate ?? '9999-12-31').localeCompare(b.dueDate ?? '9999-12-31') ||
+            b.occurredAt.localeCompare(a.occurredAt) ||
+            a.id.localeCompare(b.id)
+          );
+        }),
+    [data.debts, source, statusFilter, sort, today],
+  );
   const { viewportRef, endRef, visibleCount, hasMore } = useHistoryWindow(
-    history.length, JSON.stringify([source, statusFilter, sort]), !ready,
+    history.length,
+    JSON.stringify([source, statusFilter, sort]),
+    !ready,
   );
   const visibleItems = history.slice(0, visibleCount);
   const sourceControl = (
@@ -157,14 +164,19 @@ export default function DebtHistory({ data, ready, onAdd, onEdit, onDelete, onSe
   };
   return (
     <>
-      <div className="debt-history-heading">
-        Tất cả công nợ <span>{history.length}</span>
-      </div>
-      <div className="debt-mobile-filters">
-        {sourceControl}
-        {amountControl}
-        {dueControl}
-        {statusControl}
+      <div className="debt-history-toolbar">
+        <div className="debt-history-heading">
+          Tất cả công nợ <span>{history.length}</span>
+        </div>
+        <DebtHistoryFilters
+          sources={data.debtSources}
+          source={source}
+          status={statusFilter}
+          sort={sort}
+          onSource={setSource}
+          onStatus={setStatusFilter}
+          onSort={setSort}
+        />
       </div>
       <div
         className="debt-table-viewport debt-history-viewport"
@@ -176,7 +188,7 @@ export default function DebtHistory({ data, ready, onAdd, onEdit, onDelete, onSe
         {!data.debts.length ? (
           <div className="compact-empty">
             <p>Chưa có lịch sử công nợ.</p>
-            <button className="inline-button" disabled={!ready} onClick={onAdd}>
+            <button className="button primary monexa-action monexa-create" disabled={!ready} onClick={onAdd}>
               + Ghi công nợ
             </button>
           </div>

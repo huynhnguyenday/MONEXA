@@ -1,8 +1,7 @@
 'use client';
 import type { Ref } from 'react';
-import Image from 'next/image';
 import { FontAwesomeIcon as Icon } from '@fortawesome/react-fontawesome';
-import { faBars, faPlus, faXmark } from '@fortawesome/free-solid-svg-icons';
+import { faBars, faXmark } from '@fortawesome/free-solid-svg-icons';
 import MonthPicker from '@/components/month-picker';
 import { MonthPickerSkeleton } from '../components/loading-skeleton';
 import type { FinanceView } from '../types';
@@ -22,7 +21,6 @@ type Props = {
   onToggleNav: () => void;
   ready: boolean;
   loading?: boolean;
-  onCreate: () => void;
 };
 export default function AppHeader({
   data,
@@ -37,7 +35,6 @@ export default function AppHeader({
   onToggleNav,
   ready,
   loading = false,
-  onCreate,
 }: Props) {
   return (
     <header className="workspace-header">
@@ -53,19 +50,30 @@ export default function AppHeader({
         >
           <Icon icon={navOpen ? faXmark : faBars} />
         </button>
-        <a className="compact-brand" href="/" aria-label="MONEXA">
-          <Image src="/monexa.webp" width={28} height={28} alt="" />
-          <span>MONEXA</span>
-        </a>
-        <DebtNotifications data={data} ready={ready} onRead={onReadReminders} />
       </div>
       <div className="header-center">
         {view === 'overview' ? (
-          loading ? <MonthPickerSkeleton /> : <MonthPicker value={month} onChange={onMonthChange} />
+          loading ? (
+            <MonthPickerSkeleton />
+          ) : (
+            <MonthPicker value={month} onChange={onMonthChange} />
+          )
         ) : view === 'debts' ? (
           <div className="header-debt-tabs" role="group" aria-label="Nội dung công nợ">
-            <button type="button" aria-pressed={debtView === 'calendar'} onClick={() => onDebtViewChange('calendar')}>Công nợ</button>
-            <button type="button" aria-pressed={debtView === 'history'} onClick={() => onDebtViewChange('history')}>Lịch sử</button>
+            <button
+              type="button"
+              aria-pressed={debtView === 'calendar'}
+              onClick={() => onDebtViewChange('calendar')}
+            >
+              Công nợ
+            </button>
+            <button
+              type="button"
+              aria-pressed={debtView === 'history'}
+              onClick={() => onDebtViewChange('history')}
+            >
+              Lịch sử
+            </button>
           </div>
         ) : view === 'categories' ? (
           <span className="header-page-context">Danh mục</span>
@@ -74,10 +82,7 @@ export default function AppHeader({
         )}
       </div>
       <div className="header-primary-action">
-        {view === 'debts' && <button className="button primary" aria-label="Ghi công nợ" disabled={!ready} onClick={onCreate}>
-          <Icon icon={faPlus} />
-          Ghi công nợ
-        </button>}
+        <DebtNotifications data={data} ready={ready} onRead={onReadReminders} />
       </div>
     </header>
   );

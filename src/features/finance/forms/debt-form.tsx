@@ -108,7 +108,7 @@ export function DebtForm({ data, save, done, busy, debt }: { debt?: Debt } & For
             {error}
           </p>
         )}
-        <button className="button primary full" disabled={!data.debtSources.length || !data.debtTypes.length || busy}>
+        <button className="button primary full monexa-action monexa-create" disabled={!data.debtSources.length || !data.debtTypes.length || busy}>
           {busy ? 'Đang lưu…' : debt ? 'Lưu thay đổi' : 'Ghi công nợ'}
         </button>
       </fieldset>

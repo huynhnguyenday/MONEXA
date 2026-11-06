@@ -27,7 +27,7 @@ export function useDashboard() {
   const [notice, setNotice] = useState(''),
     [hasLegacy, setHasLegacy] = useState(false),
     [navOpen, setNavOpen] = useState(false);
-  const { snapshot, busy, loading, error, conflict, refresh, save } = useFinance(!!modal);
+  const { snapshot, busy, loading, error, conflict, refresh, save } = useFinance();
   const data = snapshot?.data || initialData,
     ready = !!snapshot && !loading && !busy;
   const importRef = useRef<HTMLInputElement>(null),

@@ -51,7 +51,11 @@ export function FinanceFeedback({
       {notice && (
         <div className="notice" role="status">
           {notice}
-          <button aria-label="Đóng thông báo" onClick={onDismissNotice}>
+          <button
+            className="monexa-action monexa-close"
+            aria-label="Đóng thông báo"
+            onClick={onDismissNotice}
+          >
             <Icon icon={faXmark} />
           </button>
         </div>
@@ -61,7 +65,11 @@ export function FinanceFeedback({
           <button className="inline-button" disabled={!ready} onClick={onMigrate}>
             Chuyển dữ liệu từ phiên bản cũ
           </button>
-          <button aria-label="Ẩn gợi ý chuyển dữ liệu" onClick={onDismissLegacy}>
+          <button
+            className="monexa-action monexa-close"
+            aria-label="Ẩn gợi ý chuyển dữ liệu"
+            onClick={onDismissLegacy}
+          >
             <Icon icon={faXmark} />
           </button>
         </div>

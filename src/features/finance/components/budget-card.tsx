@@ -52,7 +52,7 @@ export default function BudgetCard({ data, month, ready, onAdd, onHistory }: Pro
         </div>
         <div className="budget-actions">
           <button
-            className="button primary budget-action-button budget-add-button"
+            className="button primary budget-action-button budget-add-button monexa-action monexa-create"
             aria-label="Thêm ngân sách"
             title="Thêm ngân sách"
             disabled={!ready}

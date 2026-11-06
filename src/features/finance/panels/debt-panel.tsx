@@ -3,10 +3,17 @@ import { useEffect, useRef, useState } from 'react';
 import { FontAwesomeIcon as Icon } from '@fortawesome/react-fontawesome';
 import DebtHistory from './debt-history';
 import DatePicker from 'react-datepicker';
-import { faArrowDown, faArrowUp, faTriangleExclamation } from '@fortawesome/free-solid-svg-icons';
+import {
+  faPlus,
+  faArrowDown,
+  faArrowUp,
+  faTriangleExclamation,
+} from '@fortawesome/free-solid-svg-icons';
 import { type Debt, type FinanceData, dateKey, debtDirection, money } from '../model';
 import { format, startOfMonth } from 'date-fns';
 import { vi } from 'date-fns/locale';
+import './debt-panel.css';
+import DebtCalendarAmount from './debt-calendar-amount';
 export default function DebtPanel({
   data,
   ready,
@@ -134,6 +141,15 @@ export default function DebtPanel({
           <strong>{totalOverdueCount}</strong>
           <small>Tất cả thời gian</small>
         </article>
+        <button
+          type="button"
+          className="stat debt-create-stat button primary monexa-action monexa-create"
+          disabled={!ready}
+          onClick={onAdd}
+        >
+          <Icon icon={faPlus} />
+          <span>Ghi công nợ</span>
+        </button>
       </div>
       <article className="card compact-debt-card">
         {view === 'calendar' ? (
@@ -181,17 +197,25 @@ export default function DebtPanel({
                     );
                     return (
                       <span className="debt-calendar-day">
-                        <span>{day}</span>
+                        <span className="debt-calendar-day-header">
+                          <span>{day}</span>
+                          <span className="debt-calendar-directions">
+                            {totals.receivable > 0 && (
+                              <Icon className="receivable" icon={faArrowUp} />
+                            )}
+                            {totals.payable > 0 && <Icon className="payable" icon={faArrowDown} />}
+                          </span>
+                        </span>
                         {totals.receivable > 0 && (
                           <small className="receivable">
                             <Icon icon={faArrowUp} />
-                            {money(totals.receivable)}
+                            <DebtCalendarAmount amount={totals.receivable} />
                           </small>
                         )}
                         {totals.payable > 0 && (
                           <small className="payable">
                             <Icon icon={faArrowDown} />
-                            {money(totals.payable)}
+                            <DebtCalendarAmount amount={totals.payable} />
                           </small>
                         )}
                       </span>
@@ -211,6 +235,7 @@ export default function DebtPanel({
                     <button
                       type="button"
                       aria-label="Đóng thông tin ngày"
+                      className="monexa-action monexa-close"
                       onClick={() => setTooltipDate(null)}
                     >
                       ×

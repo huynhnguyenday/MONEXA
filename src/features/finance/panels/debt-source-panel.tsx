@@ -63,7 +63,7 @@ export default function DebtSourcePanel({
             />
           </label>
           <button
-            className="button primary category-add-button"
+            className="button primary category-add-button monexa-action monexa-create"
             title="Thêm nguồn"
             aria-label="Thêm nguồn"
             disabled={!ready}

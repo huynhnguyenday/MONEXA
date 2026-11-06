@@ -1,0 +1,122 @@
+.compact-debts > .compact-stats.debt-overview-stats .debt-create-stat.button.primary {
+  background: #1d4ed8;
+  color: #fff;
+  border: 1px solid #173fb1;
+  box-shadow: 0 3px 9px #1d4ed826;
+}
+.compact-debts
+  > .compact-stats.debt-overview-stats
+  .debt-create-stat.button.primary:hover:not(:disabled) {
+  background: #1e40af;
+}
+.debt-calendar-money-mobile,
+.debt-calendar-directions {
+  display: none;
+}
+.debt-calendar-viewport .react-datepicker {
+  max-width: 100%;
+}
+.debt-calendar-viewport .react-datepicker__day,
+.debt-calendar-viewport .react-datepicker__day-name {
+  width: auto !important;
+  min-width: 0;
+}
+@media (max-width: 600px) and (orientation: portrait) {
+  .compact-debts .compact-debt-card:has(.debt-calendar-viewport) {
+    padding: 8px 6px !important;
+  }
+  .debt-calendar-viewport {
+    padding: 0;
+  }
+  .debt-calendar-viewport .react-datepicker__month {
+    margin: 0 !important;
+  }
+  .debt-calendar-header {
+    padding: 0 2px 6px;
+    font-size: 12px;
+  }
+  .debt-calendar-viewport .react-datepicker__day-name {
+    margin: 1px !important;
+    font-size: 10px;
+  }
+  .debt-calendar-viewport .react-datepicker__day {
+    height: auto;
+    min-height: 64px;
+    margin: 1px !important;
+    border-radius: 7px;
+  }
+  .debt-calendar-day {
+    padding: 2px;
+    height: auto;
+    min-height: 100%;
+  }
+  .debt-calendar-day > span {
+    font-size: 10px;
+    line-height: 1.5;
+  }
+  .debt-calendar-day > .debt-calendar-day-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1px;
+  }
+  .debt-calendar-directions {
+    display: inline-flex;
+    gap: 2px;
+  }
+  .debt-calendar-directions svg {
+    width: 6px;
+    height: 8px;
+  }
+  .debt-calendar-directions .receivable {
+    color: #1d4ed8;
+  }
+  .debt-calendar-directions .payable {
+    color: #b42318;
+  }
+  .debt-calendar-selected .debt-calendar-directions svg {
+    color: #fff;
+  }
+  .debt-calendar-money-full,
+  .debt-calendar-day small > svg {
+    display: none;
+  }
+  .debt-calendar-money-mobile {
+    display: grid;
+    text-align: right;
+    line-height: 1.2;
+  }
+  .debt-calendar-money-mobile > span {
+    display: block;
+    overflow-wrap: anywhere;
+  }
+  .debt-calendar-day small {
+    display: flex;
+    align-items: flex-start;
+    gap: 1px;
+    font-size: 9px;
+    line-height: 1.15;
+    white-space: normal;
+    overflow: visible;
+    overflow-wrap: anywhere;
+    text-overflow: clip;
+    justify-content: flex-end;
+    margin-top: 2px;
+  }
+  .debt-calendar-day small svg {
+    font-size: 7px;
+    width: 6px;
+    height: 8px;
+    margin: 1px 0 0;
+    flex: none;
+  }
+  .debt-calendar-amount {
+    min-width: 0;
+    line-height: 1.15;
+  }
+}
+@media (max-width: 360px) and (orientation: portrait) {
+  .debt-calendar-day small {
+    font-size: 8px;
+  }
+}

@@ -63,7 +63,7 @@ export default function CategoryPanel({
             />
           </label>
           <button
-            className="button primary category-add-button"
+            className="button primary category-add-button monexa-action monexa-create"
             title="Thêm danh mục"
             aria-label="Thêm danh mục"
             disabled={!ready}

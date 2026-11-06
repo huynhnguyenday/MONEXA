@@ -290,16 +290,16 @@ export function parseBackup(raw: unknown): FinanceData {
     })),
   });
 }
+function statisticsDays(month: string, today: string) {
+  const [year, monthNumber] = month.split('-').map(Number);
+  return month === today.slice(0, 7) ? Number(today.slice(8))
+    : month > today.slice(0, 7) ? 0 : new Date(Date.UTC(year, monthNumber, 0)).getUTCDate();
+}
 export function getStatistics(data: FinanceData, month: string, today = localDate()) {
   const expenses = data.expenses.filter((e) => dateKey(e.occurredAt).startsWith(month));
   const total = expenses.reduce((sum, e) => sum + e.amount, 0);
   const [year, m] = month.split('-').map(Number);
-  const days =
-    month === today.slice(0, 7)
-      ? Number(today.slice(8))
-      : month > today.slice(0, 7)
-        ? 0
-        : new Date(Date.UTC(year, m, 0)).getUTCDate();
+  const days = statisticsDays(month, today);
   const daily: number[] = Array(days).fill(0);
   for (const expense of expenses) {
     const day = Number(dateKey(expense.occurredAt).slice(8));
@@ -314,6 +314,8 @@ export function getStatistics(data: FinanceData, month: string, today = localDat
   });
   return {
     month,
+    today,
+    elapsedDays: days,
     daily,
     expenses: [...expenses].sort((a, b) => b.occurredAt.localeCompare(a.occurredAt)),
     total,
@@ -391,13 +393,12 @@ export function reconcileDebtExpenses(previous: FinanceData, next: FinanceData):
   }
   return financeSchema.parse({ ...next, categories, expenses });
 }
-export function getCashStatistics(data: FinanceData, month: string) {
-  const [year, monthNumber] = month.split('-').map(Number);
-  const days = new Date(Date.UTC(year, monthNumber, 0)).getUTCDate();
+export function getCashStatistics(data: FinanceData, month: string, today = localDate()) {
+  const days = statisticsDays(month, today);
   const income = data.budgets.filter((entry) => budgetMonth(entry) === month)
     .reduce((sum, entry) => sum + entry.cash + entry.bank, 0);
   const reserve = data.debts.filter((debt) => !debt.settledAt
     && debtDirection(data, debt) === 'payable' && debt.dueDate?.startsWith(month))
     .reduce((sum, debt) => sum + debt.amount, 0);
-  return { income, averageIncome: income / days, reserve, actual: data.balance - reserve };
+  return { income, averageIncome: days ? income / days : 0, reserve, actual: data.balance - reserve };
 }

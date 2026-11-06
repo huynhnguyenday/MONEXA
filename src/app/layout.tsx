@@ -5,6 +5,7 @@ import './globals.css';
 import 'react-datepicker/dist/react-datepicker.css';
 import './monexa.css';
 import './workspace.css';
+import './action-buttons.css';
 config.autoAddCss = false;
 export const metadata: Metadata = {
   title: 'MONEXA · Tài chính cá nhân',

@@ -25,7 +25,9 @@ export default function Dialog({
   }, []);
   return (
     <dialog
-      className={[compact ? 'compact-dialog' : '', className || ''].filter(Boolean).join(' ') || undefined}
+      className={
+        [compact ? 'compact-dialog' : '', className || ''].filter(Boolean).join(' ') || undefined
+      }
       ref={ref}
       aria-labelledby="dialog-title"
       onCancel={(e) => {
@@ -39,7 +41,13 @@ export default function Dialog({
       <div className="dialog-content">
         <div className="dialog-heading">
           <h2 id="dialog-title">{title}</h2>
-          <button type="button" aria-label="Đóng" disabled={busy} onClick={onClose}>
+          <button
+            type="button"
+            className="monexa-action monexa-close"
+            aria-label="Đóng"
+            disabled={busy}
+            onClick={onClose}
+          >
             <FontAwesomeIcon icon={faXmark} />
           </button>
         </div>

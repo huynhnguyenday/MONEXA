@@ -1,4 +1,6 @@
 'use client';
+import Image from 'next/image';
+import { useLayoutEffect, useRef } from 'react';
 import { FontAwesomeIcon as Icon } from '@fortawesome/react-fontawesome';
 import {
   faShapes,
@@ -32,10 +34,36 @@ export default function AppSidebar({
   onLogout,
   onDismiss,
 }: Props) {
+  const brandRef = useRef<HTMLAnchorElement>(null);
+  useLayoutEffect(() => {
+    const toggle = document.querySelector<HTMLButtonElement>('.menu-toggle');
+    const brand = brandRef.current;
+    if (!toggle || !brand) return;
+    const align = () => {
+      const bounds = toggle.getBoundingClientRect();
+      brand.style.top = `${bounds.top}px`;
+      brand.style.left = `${bounds.right + 12}px`;
+    };
+    align();
+    const observer = new ResizeObserver(align);
+    observer.observe(toggle);
+    if (toggle.closest('header')) observer.observe(toggle.closest('header')!);
+    window.addEventListener('resize', align);
+    window.addEventListener('scroll', align);
+    return () => {
+      observer.disconnect();
+      window.removeEventListener('resize', align);
+      window.removeEventListener('scroll', align);
+    };
+  }, []);
   return (
     <>
       <button className="nav-backdrop" aria-label="Đóng thanh điều hướng" onClick={onDismiss} />
       <aside className="sidebar" id="main-navigation">
+        <a ref={brandRef} className="sidebar-brand" href="/overview" aria-label="MONEXA">
+          <Image src="/monexa.webp" width={28} height={28} alt="" />
+          <span>MONEXA</span>
+        </a>
         <nav className="main-nav" aria-label="Điều hướng">
           {(
             [

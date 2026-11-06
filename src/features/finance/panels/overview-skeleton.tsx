@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { ChartSkeleton, LoadingSkeleton as Skeleton } from '../components/loading-skeleton';
+import './overview-panel.css';
 
 export default function OverviewSkeleton() {
   const [mobileView, setMobileView] = useState<'charts' | 'expenses'>('charts');

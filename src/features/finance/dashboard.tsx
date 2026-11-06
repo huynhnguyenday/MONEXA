@@ -12,7 +12,11 @@ import { useDashboard } from './hooks/use-dashboard';
 import { viewLabels } from './types';
 
 const FinanceDialogs = dynamic(() => import('./dialogs/finance-dialogs'), {
-  loading: () => <div className="notice" role="status">Đang mở biểu mẫu…</div>,
+  loading: () => (
+    <div className="notice" role="status">
+      Đang mở biểu mẫu…
+    </div>
+  ),
 });
 
 export default function Dashboard() {
@@ -56,16 +60,6 @@ export default function Dashboard() {
           onToggleNav={dashboard.toggleNav}
           ready={dashboard.ready}
           loading={dashboard.loading}
-          onCreate={() =>
-            dashboard.open({
-              type:
-                dashboard.tab === 'overview'
-                  ? 'expense'
-                  : dashboard.tab === 'debts'
-                    ? 'debt'
-                    : 'category',
-            })
-          }
         />
         <div className="workspace-content" aria-busy={dashboard.loading}>
           {dashboard.loading ? (
@@ -86,7 +80,8 @@ export default function Dashboard() {
               ready={dashboard.ready}
               onAdd={() => dashboard.open({ type: 'expense' })}
               onEdit={(expense) => {
-                const debt = expense.debtId && dashboard.data.debts.find((item) => item.id === expense.debtId);
+                const debt =
+                  expense.debtId && dashboard.data.debts.find((item) => item.id === expense.debtId);
                 dashboard.open(debt ? { type: 'debt', debt } : { type: 'expense', expense });
               }}
               onDelete={(expense) => void dashboard.deleteExpense(expense)}
@@ -140,13 +135,15 @@ export default function Dashboard() {
         onMigrate={() => void dashboard.migrateLegacy()}
         onDismissLegacy={() => dashboard.setHasLegacy(false)}
       />
-      {dashboard.modal && <FinanceDialogs
-        modal={dashboard.modal}
-        onClose={dashboard.close}
-        formProps={dashboard.formProps}
-        error={error}
-        month={dashboard.month}
-      />}
+      {dashboard.modal && (
+        <FinanceDialogs
+          modal={dashboard.modal}
+          onClose={dashboard.close}
+          formProps={dashboard.formProps}
+          error={error}
+          month={dashboard.month}
+        />
+      )}
     </div>
   );
 }

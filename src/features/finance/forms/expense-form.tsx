@@ -103,7 +103,7 @@ export function ExpenseForm({
             {error}
           </p>
         )}
-        <button className="button primary full" disabled={busy}>
+        <button className="button primary full monexa-action monexa-create" disabled={busy}>
           {busy ? 'Đang lưu…' : expense ? 'Lưu thay đổi' : 'Lưu chi tiêu'}
         </button>
       </fieldset>

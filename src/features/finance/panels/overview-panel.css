@@ -1,0 +1,45 @@
+.overview-panel .overview-main > .compact-stats .stat .stat-label,
+.overview-panel .overview-main > .compact-stats .stat > small {
+  white-space: nowrap;
+  overflow-wrap: normal;
+  line-height: 1.4;
+}
+.overview-panel .overview-main > .compact-stats .stat > small {
+  display: block;
+}
+@media (max-width: 1023px) {
+  .compact-layout .overview-panel .overview-main {
+    grid-template-rows: 160px minmax(0, 1fr) minmax(0, 1fr);
+  }
+  .overview-panel .overview-main > .compact-stats {
+    grid-template-columns: repeat(6, minmax(0, 1fr));
+    grid-template-rows: repeat(2, minmax(0, 1fr));
+    gap: 6px;
+  }
+  .overview-panel .overview-main > .compact-stats > .stat {
+    grid-column: span 2;
+    padding: 8px;
+  }
+  .overview-panel .overview-main > .compact-stats > .stat:nth-child(n + 4) {
+    grid-column: span 3;
+  }
+  .overview-panel.mobile-view-charts .overview-aside {
+    display: none;
+  }
+  .overview-panel.mobile-view-expenses .overview-aside {
+    display: grid;
+    grid-template-rows: auto minmax(0, 1fr);
+    flex: 1;
+    min-height: 0;
+    gap: 8px;
+  }
+  .overview-panel.mobile-view-expenses .overview-aside > .budget-card {
+    display: flex;
+    flex-direction: column;
+    flex: none;
+  }
+  .overview-panel.mobile-view-expenses .expense-panel {
+    min-height: 0;
+    height: 100%;
+  }
+}

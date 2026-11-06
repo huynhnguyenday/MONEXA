@@ -16,6 +16,10 @@ import { money, type getStatistics } from '../model';
 
 ChartJS.register(CategoryScale, LinearScale, LineElement, PointElement, BarElement, Filler, Tooltip);
 
+const axisMoney = (value: string | number) => Number(value) >= 1_000_000
+  ? `${Number(value) / 1_000_000}tr`
+  : Number(value) >= 1_000 ? `${Number(value) / 1_000}k` : value;
+
 const options: ChartOptions<'line'> = {
   animation: false,
   responsive: true,
@@ -46,9 +50,7 @@ const options: ChartOptions<'line'> = {
         maxTicksLimit: 5,
         color: '#64748b',
         font: { size: 11 },
-        callback: (value) => new Intl.NumberFormat('vi-VN', {
-          notation: 'compact', maximumFractionDigits: 1,
-        }).format(Number(value)),
+        callback: axisMoney,
       },
     },
   },
@@ -76,8 +78,7 @@ const weekdayOptions: ChartOptions<'bar'> = {
         maxTicksLimit: 4,
         color: '#64748b',
         font: { size: 10 },
-        callback: (value) => Number(value) >= 1000000 ? `${Number(value) / 1000000}tr`
-          : Number(value) >= 1000 ? `${Number(value) / 1000}k` : value,
+        callback: axisMoney,
       },
     },
   },

@@ -24,9 +24,10 @@
   background: #1e40af;
 }
 .compact-layout .workspace-header .menu-toggle[aria-expanded='true'] {
-  background: #142d4e;
-  border-color: #142d4e;
+  background: #1d4ed8;
+  border-color: #173fb1;
 }
+.compact-layout .workspace-header .menu-toggle[aria-expanded='true']:hover { background: #1e40af; }
 .header-center {
   display: flex;
   justify-content: center;
@@ -1582,14 +1583,6 @@ dialog .dialog-content textarea { max-height: 150px; }
 }
 
 @media (max-width: 1023px) {
-  .compact-layout .sidebar {
-    top: 60px;
-    bottom: 0;
-    height: calc(100dvh - 60px);
-  }
-  .nav-backdrop {
-    inset: 60px 0 0;
-  }
   .nav-expanded .workspace-header {
     position: relative;
     z-index: 56;
@@ -1655,3 +1648,10 @@ dialog .dialog-content textarea { max-height: 150px; }
 .expense-category-picker button { justify-content: center; gap: 8px; text-align: center; }
 .expense-category-picker button svg { width: 18px; height: 18px; }
 .expense-category-picker button span { flex: 0 1 auto; min-width: 0; }
+
+.compact-debts > .compact-stats.debt-overview-stats { grid-template-columns: repeat(6, minmax(0, 1fr)) minmax(90px, .85fr); }
+.compact-debts > .compact-stats.debt-overview-stats .debt-create-stat { display: flex; align-items: center; justify-content: center; flex-direction: column; gap: 8px; white-space: normal; font-size: 12px; }
+@media (max-width: 1023px) {
+  .compact-debts > .compact-stats.debt-overview-stats { height: auto; grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .compact-debts > .compact-stats.debt-overview-stats .debt-create-stat { grid-column: 1 / -1; min-height: 44px; flex-direction: row; }
+}

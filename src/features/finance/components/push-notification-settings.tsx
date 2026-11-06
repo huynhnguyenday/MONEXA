@@ -1,31 +1,100 @@
-'use client';
+﻿'use client';
+import { useState } from 'react';
 import { usePushDevice } from '../hooks/use-push-device';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faPaperPlane } from '@fortawesome/free-solid-svg-icons';
+import { FontAwesomeIcon as Icon } from '@fortawesome/react-fontawesome';
+import { faInfo, faPaperPlane } from '@fortawesome/free-solid-svg-icons';
 
-export default function PushNotificationSettings() {
-  const push = usePushDevice();
-  return <div className="push-notification-settings" aria-busy={push.busy}>
-    <p>Nhắc trước hạn một ngày lúc 9 giờ sáng; ngày đến hạn nhắc lúc 9 giờ sáng và 9 giờ tối, theo giờ Việt Nam. Giờ nhận có thể trễ trong khoảng một giờ.</p>
-    <p>Android: mở menu trình duyệt → Cài đặt ứng dụng hoặc Thêm vào màn hình chính, rồi bật thông báo tại đây.</p>
-    {push.supported === false && <p>Thiết bị cần trình duyệt hỗ trợ Web Push và kết nối HTTPS. iPhone cần iOS 16.4 trở lên, thêm MONEXA vào màn hình chính và mở từ biểu tượng đó.</p>}
-    {push.configured === false && <p>Thông báo từ máy chủ chưa được cấu hình.</p>}
-    {push.supported && push.configured && <>
-      {push.permission === 'denied' && <p>Quyền thông báo đang bị chặn. Hãy cho phép thông báo trong cài đặt của trình duyệt và điện thoại rồi thử lại.</p>}
-      {!push.subscribed ? <button type="button" className="button primary" disabled={push.busy || push.permission === 'denied'} onClick={() => void push.enable()}>
-        {push.busy ? 'Đang kiểm tra…' : 'Bật thông báo trên thiết bị này'}
-      </button> : <>
-        <p>Đã đăng ký nhận thông báo trên thiết bị này.</p>
-        <div className="push-device-actions">
-          <button type="button" className="button secondary" disabled={push.busy} onClick={() => void push.disable()}>Tắt trên thiết bị này</button>
+export default function PushNotificationSettings({
+  onTest,
+  onNotice,
+}: {
+  onTest: () => void;
+  onNotice: (message: string) => void;
+}) {
+  const push = usePushDevice(onNotice);
+  const [infoOpen, setInfoOpen] = useState(false);
+  return (
+    <div className="push-notification-settings" aria-busy={push.busy}>
+      <div className="notification-heading">
+        <div className="notification-title">
+          <h2>Thông báo</h2>
+          <button
+            type="button"
+            className="notification-compact-button notification-info-button"
+            aria-label="Thông tin thông báo"
+            title="Thông tin thông báo"
+            aria-expanded={infoOpen}
+            aria-controls="notification-info"
+            onClick={() => setInfoOpen(!infoOpen)}
+          >
+            <span className="notification-button-face">
+              <Icon icon={faInfo} />
+            </span>
+          </button>
         </div>
-      </>}
-    </>}
-    <button type="button" className="button primary push-test-button" disabled={push.busy || !push.subscribed}
-      title={push.subscribed ? 'Gửi thử khoản công nợ có hạn sớm nhất trên thiết bị này' : 'Bật thông báo trên thiết bị này trước khi gửi thử'}
-      onClick={() => void push.test()}><FontAwesomeIcon icon={faPaperPlane} /> Gửi thông báo thử</button>
-    <p>{push.subscribed ? 'Gửi thử tối đa 1 lần/phút/thiết bị; không giới hạn tổng số lần theo ngày.' : 'Bật thông báo trên thiết bị này để sử dụng nút gửi thử.'}</p>
-    {push.error && <p role="alert">{push.error}</p>}
-    {push.notice && <p role="status">{push.notice}</p>}
-  </div>;
+        <div className="notification-actions">
+          {push.initialized ? (
+            <button
+              type="button"
+              className="notification-switch"
+              role="switch"
+              aria-checked={push.subscribed}
+              aria-label="Nhận thông báo trên thiết bị này"
+              title={push.subscribed ? 'Tắt thông báo' : 'Bật thông báo'}
+              disabled={
+                push.busy ||
+                !push.supported ||
+                !push.configured ||
+                (!push.subscribed && push.permission === 'denied')
+              }
+              onClick={() => void (push.subscribed ? push.disable() : push.enable())}
+            >
+              <span />
+            </button>
+          ) : (
+            <span
+              className="notification-switch-loading"
+              role="status"
+              aria-label="Đang kiểm tra thông báo"
+            >
+              <span />
+            </span>
+          )}
+          <button
+            type="button"
+            className="notification-compact-button push-test-button"
+            aria-label="Gửi thông báo thử"
+            title={
+              push.subscribed ? 'Gửi thử trong ứng dụng và tới thiết bị' : 'Gửi thử trong ứng dụng'
+            }
+            disabled={push.busy}
+            onClick={() => {
+              onTest();
+              if (push.subscribed) void push.test();
+            }}
+          >
+            <span className="notification-button-face">
+              <Icon icon={faPaperPlane} />
+            </span>
+          </button>
+        </div>
+      </div>
+      {infoOpen && (
+        <div id="notification-info" className="notification-info">
+          <p>Trước hạn 1 ngày: 1 lần lúc 9h. Ngày đến hạn: 2 lần lúc 9h và 21h (giờ Việt Nam).</p>
+          <p>Gửi thử tới thiết bị tối đa 1 lần/phút.</p>
+        </div>
+      )}
+      {push.supported === false && <p role="status">Thiết bị chưa hỗ trợ thông báo.</p>}
+      {push.configured === false && <p role="status">Máy chủ chưa cấu hình thông báo.</p>}
+      {push.permission === 'denied' && (
+        <p role="status">Thông báo bị chặn. Hãy cấp quyền trong cài đặt trình duyệt.</p>
+      )}
+      {push.error && (
+        <div className="notification-error" role="alert">
+          {push.error}
+        </div>
+      )}
+    </div>
+  );
 }
