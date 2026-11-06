@@ -1,5 +1,5 @@
 'use client';
-import { Fragment, useRef, useState } from 'react';
+import { Fragment, useMemo, useState } from 'react';
 import { FontAwesomeIcon as Icon } from '@fortawesome/react-fontawesome';
 import {
   faPlus,
@@ -25,6 +25,8 @@ import {
 } from '../model';
 import { categoryIcons } from '../icons';
 import { createNameAmountSearchMatcher } from '@/lib/search';
+import { useHistoryWindow } from '../hooks/use-history-window';
+import HistoryEnd from '../components/history-end';
 
 type Props = {
   data: FinanceData;
@@ -51,9 +53,10 @@ export default function OverviewPanel({
   const [mobileView, setMobileView] = useState<'charts' | 'expenses'>('charts');
   const [search, setSearch] = useState('');
   const [expandedExpense, setExpandedExpense] = useState<string | null>(null);
-  const ref = useRef<HTMLDivElement>(null);
-  const matchesSearch = createNameAmountSearchMatcher(search);
-  const filtered = stats.expenses.filter(matchesSearch);
+  const filtered = useMemo(() => stats.expenses.filter(createNameAmountSearchMatcher(search)), [stats.expenses, search]);
+  const { viewportRef, endRef, visibleCount, hasMore } = useHistoryWindow(
+    filtered.length, JSON.stringify([month, search]), !ready,
+  );
   const selectedMonth = month || dateKey().slice(0, 7);
   const cashStats = getCashStatistics(data, selectedMonth);
   const monthBudget = cashStats.income;
@@ -187,7 +190,7 @@ export default function OverviewPanel({
                 <Icon icon={faPlus} />
               </button>
             </div>
-            <div className="expense-table-viewport" ref={ref}>
+            <div className="expense-table-viewport" ref={viewportRef} role="region" aria-label="Lịch sử chi tiêu" tabIndex={0}>
               {!filtered.length ? (
                 <div className="compact-empty">
                   <Icon icon={faWallet} />
@@ -220,7 +223,7 @@ export default function OverviewPanel({
                     </tr>
                   </thead>
                   <tbody>
-                    {filtered.map((expense) => {
+                    {filtered.slice(0, visibleCount).map((expense) => {
                       const category = data.categories.find((c) => c.id === expense.categoryId)!;
                       const compactTitle =
                         expense.title.trim().split(/\s+/).length > 40
@@ -324,6 +327,7 @@ export default function OverviewPanel({
                   </tbody>
                 </table>
               )}
+              <HistoryEnd endRef={endRef} hasMore={hasMore} />
             </div>
           </article>
         </aside>

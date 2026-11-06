@@ -1,5 +1,5 @@
 'use client';
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import { FontAwesomeIcon as Icon } from '@fortawesome/react-fontawesome';
 import {
   faCheck,
@@ -11,7 +11,8 @@ import {
   faSortUp,
   faSortDown,
 } from '@fortawesome/free-solid-svg-icons';
-import Pagination, { useViewportRows } from '@/components/pagination';
+import { useHistoryWindow } from '../hooks/use-history-window';
+import HistoryEnd from '../components/history-end';
 import { type Debt, type FinanceData, dateKey, debtDirection, money } from '../model';
 import './debt-history.css';
 type Props = {
@@ -26,11 +27,10 @@ export default function DebtHistory({ data, ready, onAdd, onEdit, onDelete, onSe
   const [source, setSource] = useState('');
   const [statusFilter, setStatusFilter] = useState('');
   const [sort, setSort] = useState<'default' | 'amountAsc' | 'amountDesc' | 'dueDesc'>('default');
-  const [page, setPage] = useState(0);
-  const { ref, size } = useViewportRows(92, 44);
   const direction = (debt: Debt) => debtDirection(data, debt);
-  const overdue = (debt: Debt) => !debt.settledAt && !!debt.dueDate && debt.dueDate < dateKey();
-  const history = data.debts
+  const today = dateKey();
+  const overdue = (debt: Debt) => !debt.settledAt && !!debt.dueDate && debt.dueDate < today;
+  const history = useMemo(() => data.debts
     .filter(
       (debt) =>
         (!source || debt.debtSourceId === source) &&
@@ -57,10 +57,11 @@ export default function DebtHistory({ data, ready, onAdd, onEdit, onDelete, onSe
         b.occurredAt.localeCompare(a.occurredAt) ||
         a.id.localeCompare(b.id)
       );
-    });
-  const pages = Math.max(1, Math.ceil(history.length / size));
-  const activePage = Math.min(page, pages - 1);
-  const visibleItems = history.slice(activePage * size, (activePage + 1) * size);
+    }), [data.debts, source, statusFilter, sort, today]);
+  const { viewportRef, endRef, visibleCount, hasMore } = useHistoryWindow(
+    history.length, JSON.stringify([source, statusFilter, sort]), !ready,
+  );
+  const visibleItems = history.slice(0, visibleCount);
   const sourceControl = (
     <label className="debt-filter-select">
       <Icon icon={faFilter} />
@@ -69,7 +70,6 @@ export default function DebtHistory({ data, ready, onAdd, onEdit, onDelete, onSe
         value={source}
         onChange={(event) => {
           setSource(event.target.value);
-          setPage(0);
         }}
       >
         <option value="">Nguồn công nợ</option>
@@ -89,7 +89,6 @@ export default function DebtHistory({ data, ready, onAdd, onEdit, onDelete, onSe
         value={statusFilter}
         onChange={(event) => {
           setStatusFilter(event.target.value);
-          setPage(0);
         }}
       >
         <option value="">Trạng thái</option>
@@ -108,7 +107,6 @@ export default function DebtHistory({ data, ready, onAdd, onEdit, onDelete, onSe
         setSort(
           sort === 'amountAsc' ? 'amountDesc' : sort === 'amountDesc' ? 'default' : 'amountAsc',
         );
-        setPage(0);
       }}
     >
       Số tiền{' '}
@@ -122,7 +120,6 @@ export default function DebtHistory({ data, ready, onAdd, onEdit, onDelete, onSe
       title="Hạn xa nhất trước → mặc định"
       onClick={() => {
         setSort(sort === 'dueDesc' ? 'default' : 'dueDesc');
-        setPage(0);
       }}
     >
       Hạn thanh toán <Icon icon={sort === 'dueDesc' ? faSortDown : faSort} />
@@ -171,7 +168,7 @@ export default function DebtHistory({ data, ready, onAdd, onEdit, onDelete, onSe
       </div>
       <div
         className="debt-table-viewport debt-history-viewport"
-        ref={ref}
+        ref={viewportRef}
         role="region"
         aria-label="Lịch sử công nợ"
         tabIndex={0}
@@ -303,14 +300,8 @@ export default function DebtHistory({ data, ready, onAdd, onEdit, onDelete, onSe
             </tbody>
           </table>
         )}
+        <HistoryEnd endRef={endRef} hasMore={hasMore} />
       </div>
-      <Pagination
-        label="Lịch sử công nợ"
-        page={activePage}
-        pages={pages}
-        total={history.length}
-        onChange={setPage}
-      />
     </>
   );
 }

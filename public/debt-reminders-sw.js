@@ -1,5 +1,20 @@
 self.addEventListener('install', () => self.skipWaiting());
 self.addEventListener('activate', (event) => event.waitUntil(self.clients.claim()));
+self.addEventListener('push', (event) => {
+  let message = {};
+  try {
+    const parsed = event.data ? event.data.json() : {};
+    if (parsed && typeof parsed === 'object') message = parsed;
+  } catch { /* Always show a visible notification. */ }
+  event.waitUntil(self.registration.showNotification(
+    typeof message.title === 'string' ? message.title.slice(0, 120) : 'MONEXA · Nhắc hạn công nợ', {
+      body: typeof message.body === 'string' ? message.body.slice(0, 400) : 'Mở MONEXA để xem công nợ đến hạn.',
+      icon: '/pwa-192.png', badge: '/favicon.png',
+      tag: typeof message.tag === 'string' ? message.tag.slice(0, 180) : 'monexa:reminder',
+      data: { url: '/debts' },
+    },
+  ));
+});
 self.addEventListener('notificationclick', (event) => {
   event.notification.close();
   event.waitUntil(self.clients.matchAll({ type: 'window' }).then(async (clients) => {

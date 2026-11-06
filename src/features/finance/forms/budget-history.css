@@ -1,0 +1,48 @@
+.budget-history-dialog .dialog-body { display: flex; flex-direction: column; min-height: 0; }
+.budget-history-manager { display: flex; flex-direction: column; flex: 1; min-height: 0; gap: 12px; }
+.budget-history-manager > .dialog-description { flex: none; }
+.budget-history-dialog .budget-history-manager .budget-history-list { flex: 1; min-height: 0; gap: 8px; overflow-y: auto; overscroll-behavior-y: contain; scrollbar-gutter: stable; }
+.budget-history-list li.budget-history-entry { grid-template-columns: 42px minmax(0, 1fr) auto; gap: 6px; }
+.budget-history-amounts { display: grid; gap: 4px; min-width: 0; }
+.budget-history-amounts strong { flex-wrap: wrap; }
+.budget-history-actions { display: flex; justify-content: flex-end; gap: 4px; }
+.budget-history-actions .button {
+  position: relative;
+  isolation: isolate;
+  width: 44px;
+  min-width: 44px;
+  height: 44px;
+  min-height: 44px;
+  padding: 0;
+  border: 0;
+  border-radius: 10px;
+  background: transparent;
+  box-shadow: none;
+  color: #d16b72;
+  font-size: 14px;
+  transition: transform 160ms ease, color 160ms ease;
+}
+/* Compact 32px surface, with a comfortable 44px touch target. */
+.budget-history-actions .button::before {
+  content: '';
+  position: absolute;
+  z-index: -1;
+  inset: 6px;
+  border: 1px solid #e5e7eb;
+  border-radius: 9px;
+  background: #f3f4f6;
+  transition: background-color 160ms ease, border-color 160ms ease, box-shadow 160ms ease;
+}
+.budget-history-actions .budget-confirm-delete { color: #59a47a; }
+.budget-history-actions .button:focus-visible { outline: 2px solid #1d4ed8; outline-offset: -2px; }
+@media (hover: hover) {
+  .budget-history-actions .button:hover:not(:disabled) { transform: translateY(-2px); color: #b91c1c; background: transparent; box-shadow: none; }
+  .budget-history-actions .button:hover:not(:disabled)::before { background: #fee2e2; border-color: #fecaca; box-shadow: 0 3px 6px #991b1b14; }
+  .budget-history-actions .budget-confirm-delete:hover:not(:disabled) { color: #15803d; }
+  .budget-history-actions .budget-confirm-delete:hover:not(:disabled)::before { background: #dcfce7; border-color: #bbf7d0; box-shadow: 0 3px 6px #16653414; }
+}
+.budget-history-actions .button:active:not(:disabled) { transform: translateY(0); }
+@media (prefers-reduced-motion: reduce) {
+  .budget-history-actions .button, .budget-history-actions .button::before { transition: none; }
+  .budget-history-actions .button:hover:not(:disabled) { transform: none; }
+}

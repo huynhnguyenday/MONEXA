@@ -1,7 +1,10 @@
 ﻿.debt-history-viewport {
   --table-header-height: 44px;
-  overflow: visible;
-  scrollbar-gutter: auto;
+  overflow-y: auto;
+  scrollbar-gutter: stable;
+  overscroll-behavior-y: contain;
+  scrollbar-width: thin;
+  scrollbar-color: #94a3b8 #f1f5f9;
 }
 .debt-history-viewport .compact-debt-table thead tr {
   height: 44px;

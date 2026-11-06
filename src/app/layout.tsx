@@ -1,4 +1,4 @@
-import type { Metadata } from 'next';
+import type { Metadata, Viewport } from 'next';
 import '@fortawesome/fontawesome-svg-core/styles.css';
 import { config } from '@fortawesome/fontawesome-svg-core';
 import './globals.css';
@@ -17,7 +17,9 @@ export const metadata: Metadata = {
     apple: '/apple-touch-icon.png',
   },
   robots: { index: false, follow: false },
+  appleWebApp: { capable: true, title: 'MONEXA', statusBarStyle: 'default' },
 };
+export const viewport: Viewport = { themeColor: '#1d4ed8' };
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
   return (
     <html lang="vi">

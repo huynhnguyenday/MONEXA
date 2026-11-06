@@ -4,6 +4,7 @@ import { FontAwesomeIcon as Icon } from '@fortawesome/react-fontawesome';
 import { faBell } from '@fortawesome/free-solid-svg-icons';
 import Pagination from '@/components/pagination';
 import { dateKey, debtDirection, money, upcomingDebtReminders, type FinanceData } from '../model';
+import PushNotificationSettings from '../components/push-notification-settings';
 import './debt-notifications.css';
 
 export default function DebtNotifications({
@@ -18,32 +19,6 @@ export default function DebtNotifications({
   const [today, setToday] = useState('');
   const [open, setOpen] = useState(false);
   const [page, setPage] = useState(0);
-  const [permission, setPermission] = useState<NotificationPermission | 'unsupported'>(
-    'unsupported',
-  );
-  const [notificationError, setNotificationError] = useState('');
-  const sent = useRef(new Set<string>());
-  useEffect(() => {
-    const updatePermission = () =>
-      setPermission(
-        'Notification' in window && window.isSecureContext
-          ? Notification.permission
-          : 'unsupported',
-      );
-    updatePermission();
-    window.addEventListener('focus', updatePermission);
-    return () => window.removeEventListener('focus', updatePermission);
-  }, []);
-  const enableNotifications = async () => {
-    try {
-      setNotificationError('');
-      setPermission(await Notification.requestPermission());
-    } catch {
-      setNotificationError(
-        'Không thể bật thông báo. Hãy kiểm tra quyền của trang trong trình duyệt.',
-      );
-    }
-  };
   const root = useRef<HTMLDivElement>(null);
   const button = useRef<HTMLButtonElement>(null);
   useEffect(() => {
@@ -76,50 +51,6 @@ export default function DebtNotifications({
   }, [open]);
   const reminders = today ? upcomingDebtReminders(data.debts, today) : [];
   const unread = reminders.filter((debt) => debt.reminderReadFor !== debt.dueDate);
-  useEffect(() => {
-    if (!ready || permission !== 'granted') return;
-    let cancelled = false;
-    const notify = async () => {
-      try {
-        const registration = await navigator.serviceWorker.register('/debt-reminders-sw.js');
-        if (!registration.active) {
-          const worker = registration.installing || registration.waiting;
-          if (worker)
-            await new Promise<void>((resolve, reject) => {
-              if (worker.state === 'activated') return resolve();
-              worker.addEventListener('statechange', () => {
-                if (worker.state === 'activated') resolve();
-                if (worker.state === 'redundant') reject(new Error('Worker unavailable'));
-              });
-            });
-        }
-        for (const debt of unread) {
-          const key = debt.id + ':' + debt.dueDate;
-          if (cancelled || sent.current.has(key)) continue;
-          sent.current.add(key);
-          try {
-            await registration.showNotification('MONEXA · Công nợ đến hạn ngày mai', {
-              body: debt.title + ' · ' + money(debt.amount),
-              tag: key,
-              icon: '/monexa.webp',
-            });
-          } catch (error) {
-            sent.current.delete(key);
-            throw error;
-          }
-        }
-      } catch {
-        if (!cancelled)
-          setNotificationError(
-            'Không gửi được thông báo trình duyệt. Bạn vẫn có thể xem lời nhắc trong chuông.',
-          );
-      }
-    };
-    void notify();
-    return () => {
-      cancelled = true;
-    };
-  }, [data.debts, today, permission, ready]);
   const pages = Math.max(1, Math.ceil(reminders.length / 2));
   const activePage = Math.min(page, pages - 1);
   return (
@@ -163,29 +94,7 @@ export default function DebtNotifications({
               </button>
             )}
           </div>
-          <p>
-            Nhắc trước hạn một ngày theo giờ Việt Nam khi MONEXA đang mở. Chưa hỗ trợ nhắc khi đã
-            đóng web.
-          </p>
-          {permission === 'default' && (
-            <button
-              type="button"
-              className="button secondary"
-              onClick={() => void enableNotifications()}
-            >
-              Bật thông báo trình duyệt
-            </button>
-          )}
-          {permission === 'granted' && <p>Đã cho phép thông báo trên trình duyệt này.</p>}
-          {permission === 'denied' && (
-            <p>
-              Thông báo đang bị chặn. Hãy cho phép trong cài đặt quyền của trang rồi mở lại MONEXA.
-            </p>
-          )}
-          {permission === 'unsupported' && (
-            <p>Trình duyệt này chưa hỗ trợ thông báo hệ thống. Lời nhắc vẫn hiện trong chuông.</p>
-          )}
-          {notificationError && <p role="alert">{notificationError}</p>}
+          <PushNotificationSettings />
           {!reminders.length ? (
             <p>Không có công nợ đến hạn vào ngày mai.</p>
           ) : (

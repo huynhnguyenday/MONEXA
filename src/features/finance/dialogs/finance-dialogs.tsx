@@ -52,7 +52,7 @@ export default function FinanceDialogs({
       {modal.type === 'debtSource' && <DebtSourceForm {...formProps} debtSource={modal.debtSource} />}
       {modal.type === 'debt' && <DebtForm {...formProps} debt={modal.debt} />}
       {modal.type === 'budget' && <BudgetForm {...formProps} month={month} />}
-      {modal.type === 'budget-history' && <BudgetHistory data={formProps.data} month={month} />}
+      {modal.type === 'budget-history' && <BudgetHistory {...formProps} month={month} />}
     </Dialog>
   );
 }

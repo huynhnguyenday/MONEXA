@@ -2,6 +2,8 @@ import 'server-only';
 import type { ClientSession, Collection, Db, TransactionOptions } from 'mongodb';
 import { getDatabase, getMongoClient } from '@/lib/mongodb';
 import { financeReadPipeline } from './finance-read-query';
+import { syncDebtReminders } from './notifications/reminder-schedule';
+import { createPushIndexes } from './notifications/push-repository';
 import {
   financeSchema,
   calculateAccounts,
@@ -36,6 +38,7 @@ type SettingsDocument = {
   updatedAt: Date;
   migratedAt?: Date;
   indexesVersion?: number;
+  pushScheduleVersion?: number;
 };
 type LegacyDocument = { _id: string; data: unknown; revision: number };
 const entityKeys: EntityKey[] = ['categories', 'expenses', 'debtSources', 'debtTypes', 'debts', 'budgets'];
@@ -47,7 +50,7 @@ const transactions: TransactionOptions & { timeoutMS: number } = {
   timeoutMS: 20000,
 };
 let indexesReady: Promise<void> | undefined;
-const INDEXES_VERSION = 1;
+const INDEXES_VERSION = 2;
 
 function entities(db: Db, key: EntityKey) {
   const collection = key === 'debtSources' ? 'debt_sources' : key === 'debtTypes' ? 'debt_types' : key;
@@ -67,6 +70,7 @@ async function ensureIndexes(db: Db) {
         { projection: { _id: 1 }, readConcern: { level: 'majority' } },
       );
       if (installed) return;
+      await createPushIndexes(db);
       await Promise.all([
         db.collection<UserDocument>('users').createIndex({ createdAt: 1 }),
         settings(db).createIndex({ userId: 1 }, { unique: true }),
@@ -352,6 +356,13 @@ export async function readFinance(): Promise<Snapshot> {
           const rows = await readEntities(db, session);
           const data = financeSchema.parse({ schemaVersion: 3, budget: state.budget, ...rows });
           const balance = await assertStoredBalance(db, data, session);
+          if (state.pushScheduleVersion !== 2) {
+            await syncDebtReminders(db, data.debts, session);
+            await settings(db).updateOne(
+              { _id: PERSONAL_USER_ID, userId: PERSONAL_USER_ID, revision: state.revision },
+              { $set: { pushScheduleVersion: 2 } }, { session },
+            );
+          }
           const expected = calculateAccounts(data);
           if (!balance || balance.cash === undefined || balance.bank === undefined) await reconcileBalance(db, data, session);
           else {
@@ -394,6 +405,7 @@ export async function writeFinance(input: FinanceData, revision: number): Promis
       data = reconcileDebtExpenses(previous, data);
       for (const key of entityKeys) await syncEntities(entities(db, key), data[key], session);
       await reconcileBalance(db, data, session);
+      await syncDebtReminders(db, data.debts, session, previous.debts);
       return { data, revision: updated.revision };
     }, transactions),
   );
