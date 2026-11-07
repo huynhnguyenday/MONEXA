@@ -1,5 +1,12 @@
-.expense-title-mobile {
-  display: none;
+.expense-table .expense-summary-row .expense-wrapped-title {
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 3;
+  overflow: hidden;
+  white-space: normal;
+  word-break: normal;
+  overflow-wrap: normal;
+  line-height: 1.4;
 }
 .table-actions .table-edit-action:hover:not(:disabled),
 .table-actions .table-edit-action:focus-visible:not(:disabled) {
@@ -7,14 +14,6 @@
   color: #fff;
 }
 @media (max-width: 1023px) {
-  .expense-title-desktop { display: none; }
-  .expense-title-mobile { display: block; }
-  .expense-title-line {
-    display: block;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: pre;
-  }
   .overview-panel .expense-expanded-info {
     grid-template-columns: repeat(2, minmax(0, 1fr));
     grid-template-areas: 'category payment' 'time time';

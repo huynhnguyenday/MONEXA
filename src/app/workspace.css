@@ -141,6 +141,11 @@
     padding-top: env(safe-area-inset-top, 0px);
     padding-bottom: env(safe-area-inset-bottom, 0px);
   }
+  /* Charts can occupy the gesture area; forms and list actions retain their inset. */
+  .compact-layout:has(.overview-panel.mobile-view-charts),
+  .compact-layout:has(.category-screen.category-view-charts) {
+    padding-bottom: 0;
+  }
 }
 .workspace-header {
   height: 44px;

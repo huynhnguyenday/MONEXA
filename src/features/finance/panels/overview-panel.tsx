@@ -242,10 +242,6 @@ export default function OverviewPanel({
                   <tbody>
                     {filtered.slice(0, visibleCount).map((expense) => {
                       const category = data.categories.find((c) => c.id === expense.categoryId)!;
-                      const compactTitle =
-                        expense.title.trim().split(/\s+/).length > 40
-                          ? `${expense.title.trim().split(/\s+/).slice(0, 40).join(' ')}…`
-                          : expense.title;
                       const expanded = expandedExpense === expense.id;
                       return (
                         <Fragment key={expense.id}>
@@ -267,7 +263,7 @@ export default function OverviewPanel({
                             }}
                           >
                             <td className="expense-title-cell">
-                              <ExpenseTitle title={expense.title} desktopTitle={compactTitle} />
+                              <ExpenseTitle title={expense.title} />
                             </td>
                             <td className="expense-amount-td">
                               <strong className="expense-amount-cell">
