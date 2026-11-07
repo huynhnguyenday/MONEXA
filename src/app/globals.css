@@ -44,6 +44,10 @@
     scrollbar-color: auto;
   }
 }
+html {
+  background-color: var(--bg);
+  color-scheme: light;
+}
 body {
   margin: 0;
   background: var(--bg);

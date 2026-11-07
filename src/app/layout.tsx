@@ -20,7 +20,7 @@ export const metadata: Metadata = {
   robots: { index: false, follow: false },
   appleWebApp: { capable: true, title: 'MONEXA', statusBarStyle: 'default' },
 };
-export const viewport: Viewport = { themeColor: '#dce5f1', viewportFit: 'cover' };
+export const viewport: Viewport = { themeColor: '#dce5f1', colorScheme: 'light', viewportFit: 'cover' };
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
   return (
     <html lang="vi">

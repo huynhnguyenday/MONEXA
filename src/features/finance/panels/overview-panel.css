@@ -55,8 +55,31 @@
 }
 .overview-panel .overview-main > .compact-stats .stat > small {
   display: block;
+  font-size: 11px;
+  font-weight: 500;
+  color: #475569;
+}
+.overview-panel .overview-main > .compact-stats .stat .stat-label {
+  font-size: 13px;
+  color: #334155;
+}
+.overview-panel .overview-main > .compact-stats .stat .stat-label svg {
+  width: 13px;
+  height: 13px;
+}
+.overview-panel .overview-main > .compact-stats .stat > strong {
+  font-size: clamp(16px, 1.55vw, 23px);
 }
 @media (max-width: 1023px) {
+  .overview-panel .overview-main > .compact-stats .stat .stat-label {
+    font-size: 12px;
+  }
+  .overview-panel .overview-main > .compact-stats .stat > small {
+    font-size: 10px;
+  }
+  .overview-panel .overview-main > .compact-stats .stat > strong {
+    font-size: clamp(14px, 4vw, 18px);
+  }
   .compact-layout .overview-panel .overview-main {
     grid-template-rows: 160px minmax(0, 1fr) minmax(0, 1fr);
   }
