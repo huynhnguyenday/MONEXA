@@ -356,11 +356,11 @@ export async function readFinance(): Promise<Snapshot> {
           const rows = await readEntities(db, session);
           const data = financeSchema.parse({ schemaVersion: 3, budget: state.budget, ...rows });
           const balance = await assertStoredBalance(db, data, session);
-          if (state.pushScheduleVersion !== 2) {
+          if (state.pushScheduleVersion !== 3) {
             await syncDebtReminders(db, data.debts, session);
             await settings(db).updateOne(
               { _id: PERSONAL_USER_ID, userId: PERSONAL_USER_ID, revision: state.revision },
-              { $set: { pushScheduleVersion: 2 } }, { session },
+              { $set: { pushScheduleVersion: 3 } }, { session },
             );
           }
           const expected = calculateAccounts(data);

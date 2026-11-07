@@ -135,6 +135,13 @@
   flex-direction: column;
   gap: 10px;
 }
+@media (max-width: 1023px) {
+  .compact-layout {
+    height: var(--workspace-height, 100dvh);
+    padding-top: env(safe-area-inset-top, 0px);
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+  }
+}
 .workspace-header {
   height: 44px;
   min-height: 44px;
@@ -680,14 +687,14 @@ dialog .dialog-content textarea { max-height: 150px; }
 }
 .compact-debts > .compact-stats.debt-overview-stats { height: 90px; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 6px; }
 .compact-debts > .compact-stats.debt-overview-stats .stat { min-height: 0; padding: 7px 8px; gap: 3px; border-radius: 9px; }
-.compact-debts > .compact-stats.debt-overview-stats .stat-label { font-size: 10px; }
+.compact-debts > .compact-stats.debt-overview-stats .stat-label { font-size: 13px; }
 .compact-debts > .compact-stats.debt-overview-stats .stat > strong { font-size: clamp(12px, 1.2vw, 18px); }
-.compact-debts > .compact-stats.debt-overview-stats .stat > small { font-size: 8px; }
+.compact-debts > .compact-stats.debt-overview-stats .stat > small { font-size: 11px; font-weight: 500; }
 .compact-debts > .compact-stats.debt-overview-stats .debt-stat { background: #fff; border: 1px solid #dbe4f0; color: #142d4e; box-shadow: 0 2px 7px #142d4e0a; }
-.compact-debts > .compact-stats.debt-overview-stats .debt-stat .stat-label { display: flex; align-items: center; gap: 5px; color: #526581; font-weight: 700; white-space: nowrap; }
-.compact-debts > .compact-stats.debt-overview-stats .debt-stat .stat-label svg { width: 11px; height: 11px; flex: none; }
-.compact-debts > .compact-stats.debt-overview-stats .debt-stat > strong { font-size: clamp(14px, 1.35vw, 20px); font-weight: 850; line-height: 1.1; letter-spacing: -0.35px; }
-.compact-debts > .compact-stats.debt-overview-stats .debt-stat > small { color: #64748b; }
+.compact-debts > .compact-stats.debt-overview-stats .debt-stat .stat-label { display: flex; align-items: center; gap: 5px; color: #334155; font-weight: 700; white-space: nowrap; }
+.compact-debts > .compact-stats.debt-overview-stats .debt-stat .stat-label svg { width: 13px; height: 13px; flex: none; }
+.compact-debts > .compact-stats.debt-overview-stats .debt-stat > strong { font-size: clamp(16px, 1.55vw, 23px); font-weight: 850; line-height: 1.1; letter-spacing: -0.35px; }
+.compact-debts > .compact-stats.debt-overview-stats .debt-stat > small { color: #475569; }
 .compact-debts > .compact-stats.debt-overview-stats .debt-stat-receivable > strong,
 .compact-debts > .compact-stats.debt-overview-stats .debt-stat-receivable .stat-label svg { color: #16803c; }
 .compact-debts > .compact-stats.debt-overview-stats .debt-stat-payable > strong,
@@ -750,8 +757,8 @@ dialog .dialog-content textarea { max-height: 150px; }
 .expense-category-picker button span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .expense-category-picker button.selected { background: #eff6ff; border: 2px solid #1d4ed8; }
 @media (max-width: 1023px) {
-  .compact-layout:has(.debt-calendar-viewport) { height: auto; min-height: 100dvh; overflow: visible; }
-  .compact-layout:has(.debt-calendar-viewport) .workspace { height: auto; min-height: 100dvh; overflow: visible; }
+  .compact-layout:has(.debt-calendar-viewport) { height: auto; min-height: var(--workspace-height, 100dvh); overflow: visible; }
+  .compact-layout:has(.debt-calendar-viewport) .workspace { height: auto; min-height: calc(var(--workspace-height, 100dvh) - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px)); overflow: visible; }
   .compact-layout:has(.debt-calendar-viewport) .workspace-content { overflow: visible; flex: none; }
   .compact-layout:has(.debt-calendar-viewport) .compact-debts { height: auto; min-height: 0; }
   .compact-layout:has(.debt-calendar-viewport) .compact-debt-card { flex: none; min-height: 0; overflow: visible; }
@@ -1654,4 +1661,10 @@ dialog .dialog-content textarea { max-height: 150px; }
 @media (max-width: 1023px) {
   .compact-debts > .compact-stats.debt-overview-stats { height: auto; grid-template-columns: repeat(3, minmax(0, 1fr)); }
   .compact-debts > .compact-stats.debt-overview-stats .debt-create-stat { grid-column: 1 / -1; min-height: 44px; flex-direction: row; }
+}
+
+@media (max-width: 600px) {
+  .compact-debts > .compact-stats.debt-overview-stats .stat-label { font-size: 12px; }
+  .compact-debts > .compact-stats.debt-overview-stats .stat > small { font-size: 10px; }
+  .compact-debts > .compact-stats.debt-overview-stats .debt-stat > strong { font-size: clamp(14px, 4vw, 18px); overflow-wrap: anywhere; }
 }

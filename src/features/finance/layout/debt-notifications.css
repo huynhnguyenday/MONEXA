@@ -154,7 +154,7 @@
     grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
   }
   .workspace-header .header-debt-tabs {
-    width: 146px;
+    width: clamp(176px, 50vw, 220px);
     gap: 0;
     padding: 2px;
   }
@@ -162,6 +162,7 @@
     flex: 1;
     min-width: 0;
     padding: 6px 2px;
+    font-size: 11px;
   }
   .header-primary-action .button {
     font-size: 0;
@@ -185,7 +186,7 @@
     padding: 6px 3px;
   }
   .workspace-header .header-debt-tabs {
-    width: 94px;
+    width: clamp(164px, 50vw, 190px);
   }
 }
 .notification-panel {

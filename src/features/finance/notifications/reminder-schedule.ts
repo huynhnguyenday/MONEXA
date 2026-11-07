@@ -6,7 +6,7 @@ export type ReminderJob = {
   userId: string;
   debtId: string;
   dueDate: string;
-  kind: 'before' | 'due' | 'due-evening';
+  kind: 'morning' | 'evening' | 'due-evening';
   scheduledAt: Date;
   expiresAt: Date;
   status: 'pending' | 'sent';
@@ -18,15 +18,22 @@ export function debtReminderJobs(debts: Debt[], now = new Date()): ReminderJob[]
   return debts.flatMap(debt => {
     if (debt.settledAt || !debt.dueDate) return [];
     const dueDate = debt.dueDate;
-    return (['before', 'due', 'due-evening'] as const).map(kind => {
+    const slots = Array.from({ length: 11 }, (_, index) => 10 - index).flatMap(daysBefore =>
+      daysBefore <= 2
+        ? [{ daysBefore, morning: true }, { daysBefore, morning: false }]
+        : [{ daysBefore, morning: false }],
+    );
+    return slots.map(({ daysBefore, morning }) => {
       const day = new Date(`${dueDate}T00:00:00Z`);
-      if (kind === 'before') day.setUTCDate(day.getUTCDate() - 1);
+      day.setUTCDate(day.getUTCDate() - daysBefore);
       const date = day.toISOString().slice(0, 10);
+      const kind = morning ? 'morning' : daysBefore === 0 ? 'due-evening' : 'evening';
       return {
-        _id: `${PERSONAL_USER_ID}:${debt.id}:${dueDate}:${kind}`,
+        // Preserve the existing due-evening identity and its delivery receipts.
+        _id: `${PERSONAL_USER_ID}:${debt.id}:${dueDate}:${kind}${kind === 'due-evening' ? '' : `:${date}`}`,
         userId: PERSONAL_USER_ID, debtId: debt.id, dueDate, kind,
-        scheduledAt: new Date(`${date}T${kind === 'due-evening' ? '21' : '09'}:00:00+07:00`),
-        expiresAt: new Date(`${date}T${kind === 'due-evening' ? '23:59:59.999' : '21:00:00'}+07:00`),
+        scheduledAt: new Date(`${date}T${morning ? '08' : '21'}:00:00+07:00`),
+        expiresAt: new Date(`${date}T${morning ? '21:00:00' : '23:59:59.999'}+07:00`),
         status: 'pending' as const, createdAt: now,
       };
     });

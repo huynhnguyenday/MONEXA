@@ -79,26 +79,28 @@ export function DebtForm({ data, save, done, busy, debt }: { debt?: Debt } & For
             setAmount(digits ? new Intl.NumberFormat('vi-VN').format(Number(digits)) : '');
           }} required aria-label="Số tiền (VND)" />
         </label>
-        <label>
-          Hình thức chi tiền
-          <select name="paymentMethod" defaultValue={debt?.paymentMethod || 'cash'}>
-            <option value="cash">Tiền mặt</option>
-            <option value="bank">Chuyển khoản</option>
-          </select>
-        </label>
+        <div className="form-row debt-payment-due-row">
+          <label>
+            Hình thức chi tiền
+            <select name="paymentMethod" defaultValue={debt?.paymentMethod || 'cash'}>
+              <option value="cash">Tiền mặt</option>
+              <option value="bank">Chuyển khoản</option>
+            </select>
+          </label>
+          <DateTimeField
+            id="debt-due"
+            label="Hạn thanh toán"
+            value={due}
+            onChange={setDue}
+            withTime={false}
+          />
+        </div>
         {!data.debtSources.length && (
           <p role="alert" className="form-error">
             Hãy tạo nguồn công nợ trong navbar trước khi ghi công nợ.
           </p>
         )}
         {!data.debtTypes.length && <p role="alert" className="form-error">Chưa có loại công nợ để chọn.</p>}
-        <DateTimeField
-          id="debt-due"
-          label="Hạn thanh toán"
-          value={due}
-          onChange={setDue}
-          withTime={false}
-        />
         <label>
           Ghi chú <span className="optional">(không bắt buộc)</span>
           <textarea name="note" defaultValue={debt?.note} maxLength={500} rows={2} />

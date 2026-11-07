@@ -10,6 +10,7 @@ import DebtSourcePanel from './panels/debt-source-panel';
 import { FinanceError, FinanceFeedback } from './components/finance-feedback';
 import { useDashboard } from './hooks/use-dashboard';
 import { viewLabels } from './types';
+import { useWorkspaceViewport } from './hooks/use-workspace-viewport';
 
 const FinanceDialogs = dynamic(() => import('./dialogs/finance-dialogs'), {
   loading: () => (
@@ -20,6 +21,7 @@ const FinanceDialogs = dynamic(() => import('./dialogs/finance-dialogs'), {
 });
 
 export default function Dashboard() {
+  const workspaceRef = useWorkspaceViewport();
   const dashboard = useDashboard();
   const error = (
     <FinanceError
@@ -31,7 +33,7 @@ export default function Dashboard() {
     />
   );
   return (
-    <div className={`shell compact-layout ${dashboard.navOpen ? 'nav-expanded' : ''}`}>
+    <div ref={workspaceRef} className={`shell compact-layout ${dashboard.navOpen ? 'nav-expanded' : ''}`}>
       {dashboard.navOpen && (
         <AppSidebar
           view={dashboard.tab}

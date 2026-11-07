@@ -48,7 +48,7 @@ export async function dispatchPushReminders(now = new Date()) {
     const gone = new Set<string>();
     const deadline = Date.now() + 45000;
     for (const device of subscriptions) {
-      for (const kind of ['before', 'due', 'due-evening'] as const) {
+      for (const kind of ['morning', 'evening', 'due-evening'] as const) {
         if (gone.has(device._id) || Date.now() >= deadline) continue;
         const candidates = pending.filter(job => job.kind === kind);
         if (!candidates.length) continue;

@@ -81,7 +81,7 @@ export default function PushNotificationSettings({
       </div>
       {infoOpen && (
         <div id="notification-info" className="notification-info">
-          <p>Trước hạn 1 ngày: 1 lần lúc 9h. Ngày đến hạn: 2 lần lúc 9h và 21h (giờ Việt Nam).</p>
+          <p>Còn 3–10 ngày: nhắc mỗi ngày lúc 21h. Còn 1–2 ngày và ngày đến hạn: nhắc lúc 8h và 21h (giờ Việt Nam).</p>
           <p>Gửi thử tới thiết bị tối đa 1 lần/phút.</p>
         </div>
       )}

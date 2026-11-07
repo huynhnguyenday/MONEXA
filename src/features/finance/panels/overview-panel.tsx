@@ -27,6 +27,7 @@ import { categoryIcons } from '../icons';
 import { createNameAmountSearchMatcher } from '@/lib/search';
 import { useHistoryWindow } from '../hooks/use-history-window';
 import HistoryEnd from '../components/history-end';
+import ExpenseTitle from '../components/expense-title';
 import './overview-panel.css';
 
 type Props = {
@@ -266,9 +267,7 @@ export default function OverviewPanel({
                             }}
                           >
                             <td className="expense-title-cell">
-                              <span className="expense-name" title={expense.title}>
-                                {compactTitle}
-                              </span>
+                              <ExpenseTitle title={expense.title} desktopTitle={compactTitle} />
                             </td>
                             <td className="expense-amount-td">
                               <strong className="expense-amount-cell">
@@ -278,6 +277,7 @@ export default function OverviewPanel({
                             <td className="expense-actions-td">
                               <div className="table-actions">
                                 <button
+                                  className="table-edit-action"
                                   aria-label={`Sửa ${expense.title}`}
                                   title="Sửa / xem chi tiết"
                                   disabled={!ready}
@@ -309,7 +309,7 @@ export default function OverviewPanel({
                                   className="expense-expanded-info"
                                   id={`expense-details-${expense.id}`}
                                 >
-                                  <div className="expense-detail-item">
+                                  <div className="expense-detail-item expense-detail-category">
                                     <small>Danh mục</small>
                                     <span>
                                       <Icon
@@ -319,13 +319,13 @@ export default function OverviewPanel({
                                       {category.name}
                                     </span>
                                   </div>
-                                  <div className="expense-detail-item">
+                                  <div className="expense-detail-item expense-detail-time">
                                     <small>Thời gian</small>
                                     <time dateTime={expense.occurredAt}>
                                       {displayTime(expense.occurredAt)}
                                     </time>
                                   </div>
-                                  <div className="expense-detail-item">
+                                  <div className="expense-detail-item expense-detail-payment">
                                     <small>Thanh toán</small>
                                     <span>
                                       {expense.paymentMethod === 'cash'

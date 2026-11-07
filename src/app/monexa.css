@@ -961,3 +961,21 @@ dialog.debt-entry-dialog .react-datepicker__month-container {
     transition: none !important;
   }
 }
+
+dialog .dialog-content .debt-payment-due-row {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+  align-items: start;
+  margin-top: 16px;
+  margin-bottom: 8px;
+}
+.dialog-content .debt-payment-due-row .date-time-field {
+  margin-top: 0;
+}
+
+dialog .dialog-content .debt-payment-due-row label { margin: 0 0 8px; }
+dialog .dialog-content .debt-payment-due-row > label { margin-bottom: 0; }
+dialog .dialog-content .debt-payment-due-row input,
+dialog .dialog-content .debt-payment-due-row select { min-height: 46px; }
+dialog .dialog-content .debt-payment-due-row input { margin-top: 0; }
+dialog .dialog-content .debt-payment-due-row select { margin-top: 8px; }

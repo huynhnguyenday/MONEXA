@@ -1,3 +1,52 @@
+.expense-title-mobile {
+  display: none;
+}
+.table-actions .table-edit-action:hover:not(:disabled),
+.table-actions .table-edit-action:focus-visible:not(:disabled) {
+  background: #1d4ed8;
+  color: #fff;
+}
+@media (max-width: 1023px) {
+  .expense-title-desktop { display: none; }
+  .expense-title-mobile { display: block; }
+  .expense-title-line {
+    display: block;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: pre;
+  }
+  .overview-panel .expense-expanded-info {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    grid-template-areas: 'category payment' 'time time';
+    gap: 12px 16px;
+  }
+  .expense-detail-category { grid-area: category; }
+  .expense-detail-payment { grid-area: payment; }
+  .expense-detail-time { grid-area: time; }
+  .overview-panel .expense-detail-item small {
+    color: #475569;
+    font-size: 12px;
+    line-height: 1.5;
+  }
+  .overview-panel .expense-detail-item span,
+  .overview-panel .expense-detail-item time {
+    color: #142d4e;
+    font-size: 14px;
+    line-height: 1.5;
+    white-space: normal;
+  }
+}
+.overview-panel .overview-grid {
+  height: auto;
+  flex: 1 1 0;
+}
+.overview-panel .chart-card .chart {
+  flex: 1 1 0;
+}
+.overview-panel .chart-card .chart canvas {
+  position: absolute;
+  inset: 0;
+}
 .overview-panel .overview-main > .compact-stats .stat .stat-label,
 .overview-panel .overview-main > .compact-stats .stat > small {
   white-space: nowrap;
