@@ -1,5 +1,6 @@
 'use client';
 import { useState } from 'react';
+import PendingLabel from '@/components/pending-label';
 import Image from 'next/image';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faEye, faEyeSlash } from '@fortawesome/free-solid-svg-icons';
@@ -81,8 +82,8 @@ export default function LoginForm({ missing }: { missing: string[] }) {
                 {error}
               </p>
             )}
-            <button className="button primary full" disabled={busy}>
-              {busy ? 'Đang đăng nhập…' : 'Mở MONEXA'}
+            <button className="button primary full" disabled={busy} aria-busy={busy}>
+              {busy ? <PendingLabel>Đang đăng nhập</PendingLabel> : 'Mở MONEXA'}
             </button>
             <small className="login-hint">
               Phiên đăng nhập được giữ trong 7 ngày trên thiết bị này.

@@ -1,4 +1,5 @@
 'use client';
+import PendingLabel from '@/components/pending-label';
 import { useState } from 'react';
 import DateTimeField from '@/components/date-time-field';
 import { budgetMonth, dateFromKey, dateKey, dateKeyFromLocal } from '../model';
@@ -68,7 +69,7 @@ export function BudgetForm({ data, save, done, busy, month }: FormProps & { mont
           />
         </label>
         {error && <p className="form-error" role="alert">{error}</p>}
-        <button className="button primary full monexa-action monexa-create">{busy ? 'Đang lưu…' : 'Thêm ngân sách'}</button>
+        <button aria-busy={busy} className="button primary full monexa-action monexa-create">{busy ? <PendingLabel>Đang lưu</PendingLabel> : 'Thêm ngân sách'}</button>
       </fieldset>
     </form>
   );

@@ -1,4 +1,5 @@
 'use client';
+import PendingLabel from '@/components/pending-label';
 import { useState } from 'react';
 import DateTimeField from '@/components/date-time-field';
 import { dateFromKey, dateKeyFromLocal, type Debt, PERSONAL_USER_ID } from '../model';
@@ -110,8 +111,8 @@ export function DebtForm({ data, save, done, busy, debt }: { debt?: Debt } & For
             {error}
           </p>
         )}
-        <button className="button primary full monexa-action monexa-create" disabled={!data.debtSources.length || !data.debtTypes.length || busy}>
-          {busy ? 'Đang lưu…' : debt ? 'Lưu thay đổi' : 'Ghi công nợ'}
+        <button aria-busy={busy} className="button primary full monexa-action monexa-create" disabled={!data.debtSources.length || !data.debtTypes.length || busy}>
+          {busy ? <PendingLabel>Đang lưu</PendingLabel> : debt ? 'Lưu thay đổi' : 'Ghi công nợ'}
         </button>
       </fieldset>
     </form>

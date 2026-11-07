@@ -1,4 +1,5 @@
 'use client';
+import PendingLabel from '@/components/pending-label';
 import { useState } from 'react';
 import { FontAwesomeIcon as Icon } from '@fortawesome/react-fontawesome';
 import DateTimeField from '@/components/date-time-field';
@@ -103,8 +104,8 @@ export function ExpenseForm({
             {error}
           </p>
         )}
-        <button className="button primary full monexa-action monexa-create" disabled={busy}>
-          {busy ? 'Đang lưu…' : expense ? 'Lưu thay đổi' : 'Lưu chi tiêu'}
+        <button aria-busy={busy} className="button primary full monexa-action monexa-create" disabled={busy}>
+          {busy ? <PendingLabel>Đang lưu</PendingLabel> : expense ? 'Lưu thay đổi' : 'Lưu chi tiêu'}
         </button>
       </fieldset>
     </form>

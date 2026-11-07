@@ -1,4 +1,5 @@
 'use client';
+import PendingLabel from '@/components/pending-label';
 import { useId, useState } from 'react';
 import { FontAwesomeIcon as Icon } from '@fortawesome/react-fontawesome';
 import { type Category, iconKeys, PERSONAL_USER_ID } from '../model';
@@ -93,8 +94,8 @@ export function CategoryForm({
             {error}
           </p>
         )}
-        <button className="button primary full monexa-action monexa-create">
-          {busy ? 'Đang lưu…' : category ? 'Lưu danh mục' : 'Thêm danh mục'}
+        <button aria-busy={busy} className="button primary full monexa-action monexa-create">
+          {busy ? <PendingLabel>Đang lưu</PendingLabel> : category ? 'Lưu danh mục' : 'Thêm danh mục'}
         </button>
       </fieldset>
     </form>
