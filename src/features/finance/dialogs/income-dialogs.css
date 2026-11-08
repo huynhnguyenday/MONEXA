@@ -1,0 +1,20 @@
+.income-entry-dialog svg {
+  width: 20px;
+  height: 20px;
+}
+dialog.allocation-entry-dialog {
+  width: min(520px, calc(100% - 28px));
+}
+.allocation-entry-dialog .dialog-heading {
+  padding-bottom: 10px;
+}
+.allocation-entry-dialog .dialog-heading .monexa-close {
+  width: 44px;
+  height: 44px;
+  padding: 10px;
+  flex: none;
+}
+.allocation-entry-dialog .dialog-heading .monexa-close svg {
+  width: 16px;
+  height: 16px;
+}

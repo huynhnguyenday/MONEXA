@@ -1,7 +1,8 @@
 import type { Category, Debt, DebtSource, Expense } from './model';
 
-export type FinanceView = 'overview' | 'debts' | 'categories' | 'debt-sources';
+export type FinanceView = 'income' | 'overview' | 'debts' | 'categories' | 'debt-sources';
 export const viewLabels: Record<FinanceView, string> = {
+  income: 'Thu nhập & phân bổ',
   overview: 'Tổng quan',
   debts: 'Công nợ',
   categories: 'Danh mục',

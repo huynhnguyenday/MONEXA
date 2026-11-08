@@ -8,6 +8,9 @@ import {
   faArrowDown,
   faArrowUp,
   faTriangleExclamation,
+  faChevronLeft,
+  faChevronRight,
+  faXmark,
 } from '@fortawesome/free-solid-svg-icons';
 import { type Debt, type FinanceData, dateKey, debtDirection, money } from '../model';
 import { format, startOfMonth } from 'date-fns';
@@ -177,11 +180,11 @@ export default function DebtPanel({
                   renderCustomHeader={({ date, decreaseMonth, increaseMonth }) => (
                     <div className="debt-calendar-header">
                       <button type="button" aria-label="Tháng trước" onClick={decreaseMonth}>
-                        ‹
+                        <Icon icon={faChevronLeft} />
                       </button>
                       <strong>{format(date, 'MMMM yyyy', { locale: vi })}</strong>
                       <button type="button" aria-label="Tháng sau" onClick={increaseMonth}>
-                        ›
+                        <Icon icon={faChevronRight} />
                       </button>
                     </div>
                   )}
@@ -238,7 +241,7 @@ export default function DebtPanel({
                       className="monexa-action monexa-close"
                       onClick={() => setTooltipDate(null)}
                     >
-                      ×
+                      <Icon icon={faXmark} />
                     </button>
                   </div>
                   <div className="debt-day-tooltip-list">

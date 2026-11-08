@@ -1,0 +1,96 @@
+.income-charts {
+  display: grid;
+  grid-template-rows: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+  min-width: 0;
+  min-height: 0;
+}
+.income-chart-slot {
+  min-height: 0;
+  min-width: 0;
+  display: flex;
+}
+.income-chart {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-height: 0;
+  gap: 6px;
+}
+.income-chart-heading {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  min-height: 20px;
+  flex: none;
+}
+.income-chart-heading > h2 {
+  font-size: 13px;
+  line-height: 1.4;
+  min-width: 0;
+}
+.income-chart-canvas {
+  position: relative;
+  flex: 1;
+  min-height: 0;
+  min-width: 0;
+}
+
+.income-charts {
+  flex: 1;
+}
+.income-chart-select {
+  display: none;
+}
+@media (max-width: 1023px) {
+  .income-charts {
+    grid-template-rows: auto minmax(0, 1fr);
+  }
+  .income-chart-select {
+    position: relative;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 14px;
+    background: #fff;
+    border: 1px solid #cbd5e1;
+    border-radius: 12px;
+    color: #1d4ed8;
+    box-shadow: 0 2px 6px #142d4e08;
+  }
+  .income-chart-select > svg {
+    position: absolute;
+    left: 14px;
+    pointer-events: none;
+  }
+  .income-chart-select > .income-chart-select-chevron {
+    left: auto;
+    right: 14px;
+    width: 14px;
+    height: 14px;
+  }
+  .income-chart-select select {
+    flex: 1;
+    min-width: 0;
+    min-height: 44px;
+    appearance: none;
+    border: 0;
+    border-radius: inherit;
+    background: #fff;
+    color: #142d4e;
+    padding: 12px 42px;
+    font: inherit;
+    font-weight: 600;
+    cursor: pointer;
+  }
+  .income-chart-select select:focus-visible {
+    outline: 2px solid #1d4ed8;
+    outline-offset: 2px;
+  }
+  .income-chart-slot {
+    display: none;
+  }
+  .income-chart-slot.is-selected {
+    display: flex;
+  }
+}

@@ -1,0 +1,93 @@
+.income-history {
+  display: flex;
+  flex: 1;
+  min-height: 0;
+  min-width: 0;
+}
+.income-history-rows {
+  flex: 1;
+  min-height: 0;
+  min-width: 0;
+  overflow-y: auto;
+  overflow-x: auto;
+  overscroll-behavior: contain;
+  scrollbar-width: thin;
+  scrollbar-color: #b6c7df transparent;
+}
+.income-history-empty {
+  margin: 8px 0;
+  font-size: 12px;
+  line-height: 1.6;
+  color: #64748b;
+}
+.income-history-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 44px;
+  align-items: center;
+  gap: 6px;
+  border-bottom: 1px solid #e2e8f0;
+  padding: 8px 0;
+  min-width: 0;
+}
+.income-history-summary {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 4px;
+  min-width: 0;
+  min-height: 44px;
+  width: 100%;
+  padding: 2px;
+  background: transparent;
+  border: 0;
+  color: #142d4e;
+  text-align: left;
+  border-radius: 6px;
+}
+.income-history-summary:hover:not(:disabled) {
+  background: #eff6ff;
+}
+.income-history-title {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  min-width: 0;
+}
+.income-history-title strong {
+  min-width: 0;
+  display: block;
+  overflow: clip;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 12px;
+}
+.income-history-title > svg {
+  width: 18px;
+  height: 18px;
+  color: #64748b;
+}
+.income-history-summary > b {
+  font-size: 14px;
+  line-height: 1.4;
+  color: #1d4ed8;
+  overflow-wrap: anywhere;
+}
+.income-history-summary > time,
+.income-history-summary > small {
+  font-size: 11px;
+  line-height: 1.5;
+  color: #64748b;
+  overflow-wrap: anywhere;
+}
+.income-history-summary > small:last-child {
+  white-space: normal;
+}
+.income-history-row .income-history-delete {
+  display: grid;
+  place-items: center;
+  width: 44px;
+  min-width: 44px;
+  height: 44px;
+  min-height: 44px;
+  padding: 8px;
+}

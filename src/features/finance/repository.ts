@@ -1,7 +1,8 @@
 import 'server-only';
 import type { ClientSession, Collection, Db, TransactionOptions } from 'mongodb';
 import { getDatabase, getMongoClient } from '@/lib/mongodb';
-import { financeReadPipeline } from './finance-read-query';
+import { financeReadPipeline, financeCollections } from './finance-read-query';
+import { calculateFunds, defaultFunds } from './income-model';
 import { syncDebtReminders } from './notifications/reminder-schedule';
 import { createPushIndexes } from './notifications/push-repository';
 import {
@@ -19,7 +20,7 @@ import {
   type Snapshot,
 } from './model';
 
-type EntityKey = 'categories' | 'expenses' | 'debtSources' | 'debtTypes' | 'debts' | 'budgets';
+type EntityKey = keyof typeof financeCollections;
 type Entity = FinanceData[EntityKey][number];
 type EntityDocument = {
   _id: string;
@@ -41,7 +42,7 @@ type SettingsDocument = {
   pushScheduleVersion?: number;
 };
 type LegacyDocument = { _id: string; data: unknown; revision: number };
-const entityKeys: EntityKey[] = ['categories', 'expenses', 'debtSources', 'debtTypes', 'debts', 'budgets'];
+const entityKeys = Object.keys(financeCollections) as EntityKey[];
 const transactions: TransactionOptions & { timeoutMS: number } = {
   readConcern: { level: 'snapshot' },
   writeConcern: { w: 'majority' },
@@ -50,10 +51,10 @@ const transactions: TransactionOptions & { timeoutMS: number } = {
   timeoutMS: 20000,
 };
 let indexesReady: Promise<void> | undefined;
-const INDEXES_VERSION = 2;
+const INDEXES_VERSION = 3;
 
 function entities(db: Db, key: EntityKey) {
-  const collection = key === 'debtSources' ? 'debt_sources' : key === 'debtTypes' ? 'debt_types' : key;
+  const collection = financeCollections[key];
   return db.collection<EntityDocument>(collection);
 }
 function settings(db: Db) {
@@ -74,12 +75,23 @@ async function ensureIndexes(db: Db) {
       await Promise.all([
         db.collection<UserDocument>('users').createIndex({ createdAt: 1 }),
         settings(db).createIndex({ userId: 1 }, { unique: true }),
-        ...entityKeys.map((key) => entities(db, key).createIndex({ userId: 1, createdAt: 1, _id: 1 })),
+        ...entityKeys.map((key) =>
+          entities(db, key).createIndex({ userId: 1, createdAt: 1, _id: 1 }),
+        ),
+        db.collection('fund_balances').createIndex({ userId: 1, fundId: 1 }, { unique: true }),
+        entities(db, 'budgets').createIndex(
+          { userId: 1, transferId: 1 },
+          { unique: true, partialFilterExpression: { transferId: { $type: 'string' } } },
+        ),
         entities(db, 'categories').createIndex({ userId: 1, name: 1 }),
         entities(db, 'expenses').createIndexes([
           { key: { userId: 1, occurredAt: -1 } },
           { key: { userId: 1, categoryId: 1 } },
-          { key: { userId: 1, debtId: 1 }, unique: true, partialFilterExpression: { debtId: { $type: 'string' } } },
+          {
+            key: { userId: 1, debtId: 1 },
+            unique: true,
+            partialFilterExpression: { debtId: { $type: 'string' } },
+          },
         ]),
         entities(db, 'debtSources').createIndex({ userId: 1, name: 1 }),
         entities(db, 'debtTypes').createIndex({ userId: 1, name: 1 }),
@@ -140,12 +152,18 @@ async function ensureDebtTypes(db: Db, session: ClientSession) {
 }
 
 async function migrateDebtTypeReferences(db: Db, session: ClientSession) {
-  const oldDebts = await entities(db, 'debts').find({
-    userId: PERSONAL_USER_ID,
-    $or: [{ direction: { $exists: true } }, { debtTypeId: { $exists: false } }],
-  }, { session }).toArray();
+  const oldDebts = await entities(db, 'debts')
+    .find(
+      {
+        userId: PERSONAL_USER_ID,
+        $or: [{ direction: { $exists: true } }, { debtTypeId: { $exists: false } }],
+      },
+      { session },
+    )
+    .toArray();
   for (const debt of oldDebts) {
-    const debtTypeId = debt.debtTypeId || (debt.direction === 'receivable' ? 'debt-type-lend' : 'debt-type-borrow');
+    const debtTypeId =
+      debt.debtTypeId || (debt.direction === 'receivable' ? 'debt-type-lend' : 'debt-type-borrow');
     await entities(db, 'debts').updateOne(
       { _id: debt._id, userId: PERSONAL_USER_ID },
       { $set: { debtTypeId }, $unset: { direction: '', personId: '' } },
@@ -155,16 +173,22 @@ async function migrateDebtTypeReferences(db: Db, session: ClientSession) {
 }
 
 async function migrateDebtDueDates(db: Db, session: ClientSession) {
-  const oldDebts = await entities(db, 'debts').find({
-    userId: PERSONAL_USER_ID,
-    $or: [{ dueAt: { $exists: true } }, { dueDate: { $exists: false } }],
-  }, { session }).toArray();
+  const oldDebts = await entities(db, 'debts')
+    .find(
+      {
+        userId: PERSONAL_USER_ID,
+        $or: [{ dueAt: { $exists: true } }, { dueDate: { $exists: false } }],
+      },
+      { session },
+    )
+    .toArray();
   for (const debt of oldDebts) {
-    const currentDate = typeof debt.dueDate === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(debt.dueDate)
-      ? debt.dueDate
-      : typeof debt.dueAt === 'string' && debt.dueAt
-        ? dateKey(debt.dueAt)
-        : null;
+    const currentDate =
+      typeof debt.dueDate === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(debt.dueDate)
+        ? debt.dueDate
+        : typeof debt.dueAt === 'string' && debt.dueAt
+          ? dateKey(debt.dueAt)
+          : null;
     await entities(db, 'debts').updateOne(
       { _id: debt._id, userId: PERSONAL_USER_ID },
       { $set: { dueDate: currentDate }, $unset: { dueAt: '' } },
@@ -174,7 +198,9 @@ async function migrateDebtDueDates(db: Db, session: ClientSession) {
 }
 
 async function styleDebtSources(db: Db, session: ClientSession) {
-  const sources = await entities(db, 'debtSources').find({ userId: PERSONAL_USER_ID }, { session }).toArray();
+  const sources = await entities(db, 'debtSources')
+    .find({ userId: PERSONAL_USER_ID }, { session })
+    .toArray();
   for (const source of sources) {
     const icon = inferDebtSourceIcon(String(source.name || ''));
     await entities(db, 'debtSources').updateOne(
@@ -190,6 +216,15 @@ async function initialize(db: Db, session: ClientSession) {
   if (existing) {
     if (![1, 2, 3, 4].includes(existing.storageVersion) || existing.userId !== PERSONAL_USER_ID)
       throw new Error('UNSUPPORTED_STORAGE_VERSION');
+    // Add identities only; never infer income from old spending money.
+    for (const fund of defaultFunds) {
+      const { id, ...fields } = fund;
+      await entities(db, 'funds').updateOne(
+        { _id: id, userId: PERSONAL_USER_ID },
+        { $setOnInsert: { ...fields, createdAt: new Date(), updatedAt: new Date() } },
+        { session, upsert: true },
+      );
+    }
     // Publish the marker only inside the successful initialization transaction.
     if (existing.indexesVersion !== INDEXES_VERSION) {
       await settings(db).updateOne(
@@ -200,28 +235,38 @@ async function initialize(db: Db, session: ClientSession) {
     }
     if (existing.storageVersion < 3) {
       if (existing.storageVersion === 1) {
-        const oldSources = await db.collection<EntityDocument>('people').find({ userId: PERSONAL_USER_ID }, { session }).toArray();
+        const oldSources = await db
+          .collection<EntityDocument>('people')
+          .find({ userId: PERSONAL_USER_ID }, { session })
+          .toArray();
         for (const source of oldSources) {
           const icon = inferDebtSourceIcon(String(source.name || ''));
           const now = new Date();
           await entities(db, 'debtSources').updateOne(
             { _id: source._id, userId: PERSONAL_USER_ID },
-            { $setOnInsert: {
-              userId: PERSONAL_USER_ID,
-              name: source.name,
-              color: debtSourceIconColors[icon],
-              icon,
-              createdAt: source.createdAt || now,
-              updatedAt: source.updatedAt || now,
-            } },
+            {
+              $setOnInsert: {
+                userId: PERSONAL_USER_ID,
+                name: source.name,
+                color: debtSourceIconColors[icon],
+                icon,
+                createdAt: source.createdAt || now,
+                updatedAt: source.updatedAt || now,
+              },
+            },
             { upsert: true, session },
           );
         }
-        const oldDebts = await entities(db, 'debts').find({ userId: PERSONAL_USER_ID, personId: { $exists: true } }, { session }).toArray();
+        const oldDebts = await entities(db, 'debts')
+          .find({ userId: PERSONAL_USER_ID, personId: { $exists: true } }, { session })
+          .toArray();
         for (const debt of oldDebts) {
           await entities(db, 'debts').updateOne(
             { _id: debt._id, userId: PERSONAL_USER_ID },
-            { $set: { debtSourceId: debt.debtSourceId || debt.personId }, $unset: { personId: '' } },
+            {
+              $set: { debtSourceId: debt.debtSourceId || debt.personId },
+              $unset: { personId: '' },
+            },
             { session },
           );
         }
@@ -229,13 +274,24 @@ async function initialize(db: Db, session: ClientSession) {
       await styleDebtSources(db, session);
       await ensureDebtTypes(db, session);
       await migrateDebtTypeReferences(db, session);
-      const hasBudget = await entities(db, 'budgets').findOne({ userId: PERSONAL_USER_ID }, { session });
+      const hasBudget = await entities(db, 'budgets').findOne(
+        { userId: PERSONAL_USER_ID },
+        { session },
+      );
       if (!hasBudget && existing.budget > 0) {
         const now = new Date();
-        await entities(db, 'budgets').insertOne({
-          _id: 'budget-migration', userId: PERSONAL_USER_ID, cash: existing.budget, bank: 0,
-          recordedAt: now.toISOString(), createdAt: now, updatedAt: now,
-        }, { session });
+        await entities(db, 'budgets').insertOne(
+          {
+            _id: 'budget-migration',
+            userId: PERSONAL_USER_ID,
+            cash: existing.budget,
+            bank: 0,
+            recordedAt: now.toISOString(),
+            createdAt: now,
+            updatedAt: now,
+          },
+          { session },
+        );
       }
     }
     if (existing.storageVersion < 4) await migrateDebtDueDates(db, session);
@@ -243,7 +299,11 @@ async function initialize(db: Db, session: ClientSession) {
     // above may recover funding from the compatibility settings.budget field.
     if (existing.storageVersion < 4) {
       await settings(db).updateOne(
-        { _id: PERSONAL_USER_ID, userId: PERSONAL_USER_ID, storageVersion: existing.storageVersion },
+        {
+          _id: PERSONAL_USER_ID,
+          userId: PERSONAL_USER_ID,
+          storageVersion: existing.storageVersion,
+        },
         { $set: { storageVersion: 4, updatedAt: new Date() } },
         { session },
       );
@@ -262,10 +322,14 @@ async function initialize(db: Db, session: ClientSession) {
     .collection<LegacyDocument>('finance')
     .findOne({ _id: 'personal' }, { session });
   const data = legacy ? parseBackup(legacy.data) : initialData;
-  if (!data.budgets.length && data.budget > 0) data.budgets.push({
-    id: 'budget-migration', userId: PERSONAL_USER_ID, cash: data.budget, bank: 0,
-    recordedAt: new Date().toISOString(),
-  });
+  if (!data.budgets.length && data.budget > 0)
+    data.budgets.push({
+      id: 'budget-migration',
+      userId: PERSONAL_USER_ID,
+      cash: data.budget,
+      bank: 0,
+      recordedAt: new Date().toISOString(),
+    });
   if (legacy && (!Number.isSafeInteger(legacy.revision) || legacy.revision < 0))
     throw new Error('INVALID_LEGACY_REVISION');
   const now = new Date();
@@ -293,9 +357,11 @@ async function initialize(db: Db, session: ClientSession) {
 }
 
 async function readEntities(db: Db, session: ClientSession) {
-  const joined = await settings(db).aggregate<Record<EntityKey, EntityDocument[]>>(
-    financeReadPipeline(PERSONAL_USER_ID), { session },
-  ).next();
+  const joined = await settings(db)
+    .aggregate<Record<EntityKey, EntityDocument[]>>(financeReadPipeline(PERSONAL_USER_ID), {
+      session,
+    })
+    .next();
   if (!joined) throw new Error('UNINITIALIZED_EXISTING_DATA');
   const result: Record<string, unknown[]> = {};
   for (const key of entityKeys) {
@@ -312,25 +378,102 @@ async function reconcileBalance(db: Db, data: FinanceData, session: ClientSessio
   const accounts = calculateAccounts(data);
   data.balance = accounts.total;
   if (!Number.isSafeInteger(data.balance)) throw new Error('INVALID_BALANCE');
-  await db.collection<EntityDocument>('balances').updateOne(
-    { _id: PERSONAL_USER_ID, userId: PERSONAL_USER_ID },
-    { $set: { ...accounts, updatedAt: new Date() },
-      $setOnInsert: { createdAt: new Date() } },
-    { upsert: true, session },
-  );
+  await db
+    .collection<EntityDocument>('balances')
+    .updateOne(
+      { _id: PERSONAL_USER_ID, userId: PERSONAL_USER_ID },
+      { $set: { ...accounts, updatedAt: new Date() }, $setOnInsert: { createdAt: new Date() } },
+      { upsert: true, session },
+    );
 }
 
 /** Never overwrite evidence of an existing discrepancy during a new payment. */
 async function assertStoredBalance(db: Db, data: FinanceData, session: ClientSession) {
-  const stored = await db.collection<EntityDocument>('balances').findOne(
-    { _id: PERSONAL_USER_ID, userId: PERSONAL_USER_ID }, { session },
-  );
+  const stored = await db
+    .collection<EntityDocument>('balances')
+    .findOne({ _id: PERSONAL_USER_ID, userId: PERSONAL_USER_ID }, { session });
   const expected = calculateAccounts(data);
-  if (stored && (stored.total !== expected.total
-    || (stored.cash !== undefined && stored.cash !== expected.cash)
-    || (stored.bank !== undefined && stored.bank !== expected.bank)))
+  if (
+    stored &&
+    (stored.total !== expected.total ||
+      (stored.cash !== undefined && stored.cash !== expected.cash) ||
+      (stored.bank !== undefined && stored.bank !== expected.bank))
+  )
     throw new Error('BALANCE_MISMATCH');
   return stored;
+}
+
+/** Separate ledgers; mismatch is evidence, not permission to overwrite balances. */
+async function reconcileFundBalances(
+  db: Db,
+  data: FinanceData,
+  session: ClientSession,
+  write: boolean,
+) {
+  const expected = calculateFunds(data);
+  for (const fundId of ['unallocated', 'savings'] as const) {
+    const collection = db.collection<EntityDocument>('fund_balances');
+    const stored = await collection.findOne({ _id: fundId, userId: PERSONAL_USER_ID }, { session });
+    const value = expected[fundId];
+    if (
+      !write &&
+      stored &&
+      (stored.total !== value.total || stored.cash !== value.cash || stored.bank !== value.bank)
+    )
+      throw new Error('BALANCE_MISMATCH');
+    if (
+      !write &&
+      !stored &&
+      (value.total !== 0 ||
+        data.incomes.length ||
+        data.fundTransfers.length ||
+        data.familySupports.length)
+    )
+      throw new Error('BALANCE_MISMATCH');
+    if (write || !stored)
+      await collection.updateOne(
+        { _id: fundId, userId: PERSONAL_USER_ID },
+        {
+          $set: { ...value, fundId, updatedAt: new Date() },
+          $setOnInsert: { createdAt: new Date() },
+        },
+        { upsert: true, session },
+      );
+  }
+}
+
+function assertBudgetChanges(previous: FinanceData, next: FinanceData, replace: boolean) {
+  if (replace) return;
+  const old = new Map(previous.budgets.map((b) => [b.id, b]));
+  for (const b of next.budgets) {
+    if (!b.transferId && !old.has(b.id)) throw new Error('UNLINKED_BUDGET');
+    if (!b.transferId && old.get(b.id)?.transferId) throw new Error('UNLINKED_BUDGET');
+    if (!b.transferId && JSON.stringify(old.get(b.id)) !== JSON.stringify(b))
+      throw new Error('UNLINKED_BUDGET');
+  }
+  // Refunding a funding transfer must not withdraw money already spent.
+  const before = calculateAccounts(previous),
+    after = calculateAccounts(next);
+  for (const method of ['cash', 'bank'] as const) {
+    const reduction =
+      previous.budgets.reduce((s, b) => s + (b.transferId ? b[method] : 0), 0) -
+      next.budgets.reduce((s, b) => s + (b.transferId ? b[method] : 0), 0) +
+      spendingOut(next, method) -
+      spendingOut(previous, method);
+    if (reduction > 0 && after[method] < 0 && after[method] < before[method])
+      throw new Error('SPENT_BUDGET');
+  }
+}
+
+function spendingOut(data: FinanceData, method: 'cash' | 'bank') {
+  return (
+    data.fundTransfers
+      .filter((t) => t.fromFundId === 'spending' && t.paymentMethod === method)
+      .reduce((sum, t) => sum + t.amount, 0) +
+    data.familySupports
+      .filter((s) => s.sourceFundId === 'spending' && s.paymentMethod === method)
+      .reduce((sum, s) => sum + s.amount, 0)
+  );
 }
 
 /** Lightweight change check; application writes increment revision in the same transaction. */
@@ -356,17 +499,24 @@ export async function readFinance(): Promise<Snapshot> {
           const rows = await readEntities(db, session);
           const data = financeSchema.parse({ schemaVersion: 3, budget: state.budget, ...rows });
           const balance = await assertStoredBalance(db, data, session);
+          await reconcileFundBalances(db, data, session, false);
           if (state.pushScheduleVersion !== 3) {
             await syncDebtReminders(db, data.debts, session);
             await settings(db).updateOne(
               { _id: PERSONAL_USER_ID, userId: PERSONAL_USER_ID, revision: state.revision },
-              { $set: { pushScheduleVersion: 3 } }, { session },
+              { $set: { pushScheduleVersion: 3 } },
+              { session },
             );
           }
           const expected = calculateAccounts(data);
-          if (!balance || balance.cash === undefined || balance.bank === undefined) await reconcileBalance(db, data, session);
+          if (!balance || balance.cash === undefined || balance.bank === undefined)
+            await reconcileBalance(db, data, session);
           else {
-            if (balance.total !== expected.total || balance.cash !== expected.cash || balance.bank !== expected.bank)
+            if (
+              balance.total !== expected.total ||
+              balance.cash !== expected.cash ||
+              balance.bank !== expected.bank
+            )
               throw new Error('BALANCE_MISMATCH');
             data.balance = expected.total;
           }
@@ -388,7 +538,11 @@ export async function readFinance(): Promise<Snapshot> {
   throw new Error('INITIALIZATION_FAILED');
 }
 
-export async function writeFinance(input: FinanceData, revision: number): Promise<Snapshot | null> {
+export async function writeFinance(
+  input: FinanceData,
+  revision: number,
+  replace = false,
+): Promise<Snapshot | null> {
   let data = financeSchema.parse(input);
   const db = await getDatabase();
   await ensureIndexes(db);
@@ -400,11 +554,18 @@ export async function writeFinance(input: FinanceData, revision: number): Promis
         { session, returnDocument: 'after' },
       );
       if (!updated) return null;
-      const previous = financeSchema.parse({ schemaVersion: 3, budget: updated.budget, ...await readEntities(db, session) });
+      const previous = financeSchema.parse({
+        schemaVersion: 3,
+        budget: updated.budget,
+        ...(await readEntities(db, session)),
+      });
       await assertStoredBalance(db, previous, session);
+      await reconcileFundBalances(db, previous, session, false);
       data = reconcileDebtExpenses(previous, data);
+      assertBudgetChanges(previous, data, replace);
       for (const key of entityKeys) await syncEntities(entities(db, key), data[key], session);
       await reconcileBalance(db, data, session);
+      await reconcileFundBalances(db, data, session, true);
       await syncDebtReminders(db, data.debts, session, previous.debts);
       return { data, revision: updated.revision };
     }, transactions),

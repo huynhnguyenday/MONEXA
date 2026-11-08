@@ -5,6 +5,7 @@ import AppSidebar from './layout/app-sidebar';
 import OverviewPanel from './panels/overview-panel';
 import FinanceSkeleton from './panels/finance-skeleton';
 import DebtPanel from './panels/debt-panel';
+import IncomePanel from './panels/income-panel';
 import CategoryPanel from './panels/category-panel';
 import DebtSourcePanel from './panels/debt-source-panel';
 import { FinanceError, FinanceFeedback } from './components/finance-feedback';
@@ -33,7 +34,10 @@ export default function Dashboard() {
     />
   );
   return (
-    <div ref={workspaceRef} className={`shell compact-layout ${dashboard.navOpen ? 'nav-expanded' : ''}`}>
+    <div
+      ref={workspaceRef}
+      className={`shell compact-layout ${dashboard.navOpen ? 'nav-expanded' : ''}`}
+    >
       {dashboard.navOpen && (
         <AppSidebar
           view={dashboard.tab}
@@ -73,6 +77,13 @@ export default function Dashboard() {
                 Thử lại
               </button>
             </div>
+          ) : dashboard.tab === 'income' ? (
+            <IncomePanel
+              {...dashboard.formProps}
+              month={dashboard.month}
+              ready={dashboard.ready}
+              error={error}
+            />
           ) : dashboard.tab === 'overview' ? (
             <OverviewPanel
               key={dashboard.month}
@@ -87,7 +98,6 @@ export default function Dashboard() {
                 dashboard.open(debt ? { type: 'debt', debt } : { type: 'expense', expense });
               }}
               onDelete={(expense) => void dashboard.deleteExpense(expense)}
-              onBudget={() => dashboard.open({ type: 'budget' })}
               onBudgetHistory={() => dashboard.open({ type: 'budget-history' })}
             />
           ) : dashboard.tab === 'debts' ? (

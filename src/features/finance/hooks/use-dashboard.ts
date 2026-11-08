@@ -22,7 +22,16 @@ export function useDashboard() {
   const pathname = usePathname();
   const [month, setMonth] = useState('');
   const [debtView, setDebtView] = useState<'calendar' | 'history'>('calendar');
-  const tab: FinanceView = pathname === '/debts' ? 'debts' : pathname === '/categories' ? 'categories' : pathname === '/debt-sources' ? 'debt-sources' : 'overview';
+  const tab: FinanceView =
+    pathname === '/income'
+      ? 'income'
+      : pathname === '/debts'
+        ? 'debts'
+        : pathname === '/categories'
+          ? 'categories'
+          : pathname === '/debt-sources'
+            ? 'debt-sources'
+            : 'overview';
   const [modal, setModal] = useState<FinanceModal>(null);
   const [notice, setNotice] = useState(''),
     [hasLegacy, setHasLegacy] = useState(false),
@@ -54,7 +63,10 @@ export function useDashboard() {
     window.addEventListener('keydown', close);
     return () => window.removeEventListener('keydown', close);
   }, [navOpen, modal]);
-  const stats = useMemo(() => getStatistics(data, month || today.slice(0, 7), today), [data, month, today]);
+  const stats = useMemo(
+    () => getStatistics(data, month || today.slice(0, 7), today),
+    [data, month, today],
+  );
   function toggleNav() {
     const next = !navOpen;
     setNavOpen(next);
@@ -91,9 +103,12 @@ export function useDashboard() {
   async function readReminders(ids: string[]) {
     if (!ready || modal) return false;
     const selected = new Set(ids);
-    return await save({ ...data, debts: data.debts.map((debt) =>
-      selected.has(debt.id) && debt.dueDate ? { ...debt, reminderReadFor: debt.dueDate } : debt,
-    ) });
+    return await save({
+      ...data,
+      debts: data.debts.map((debt) =>
+        selected.has(debt.id) && debt.dueDate ? { ...debt, reminderReadFor: debt.dueDate } : debt,
+      ),
+    });
   }
   const formProps = { data, save: async (next: FinanceData) => await save(next), done, busy };
   async function deleteExpense(expense: Expense) {
@@ -110,7 +125,11 @@ export function useDashboard() {
   async function deleteDebt(debt: Debt) {
     if (
       window.confirm(`Xóa khoản công nợ “${debt.title}” và chi tiêu tự động liên kết (nếu có)?`) &&
-      (await save({ ...data, debts: data.debts.filter((d) => d.id !== debt.id), expenses: data.expenses.filter((expense) => expense.debtId !== debt.id) }))
+      (await save({
+        ...data,
+        debts: data.debts.filter((d) => d.id !== debt.id),
+        expenses: data.expenses.filter((expense) => expense.debtId !== debt.id),
+      }))
     )
       setNotice('Đã xóa công nợ.');
   }
@@ -132,8 +151,12 @@ export function useDashboard() {
       return setNotice('Không thể xóa nguồn đang được công nợ sử dụng.');
     if (
       window.confirm(`Xóa nguồn công nợ “${source.name}”?`) &&
-      (await save({ ...data, debtSources: data.debtSources.filter((item) => item.id !== source.id) }))
-    ) setNotice('Đã xóa nguồn công nợ.');
+      (await save({
+        ...data,
+        debtSources: data.debtSources.filter((item) => item.id !== source.id),
+      }))
+    )
+      setNotice('Đã xóa nguồn công nợ.');
   }
   async function settle(debt: Debt) {
     if (
@@ -155,8 +178,10 @@ export function useDashboard() {
       if (file.size > 1950000) throw new Error();
       const next = parseBackup(JSON.parse(await file.text()));
       if (
-        window.confirm('Thay thế toàn bộ dữ liệu hiện tại bằng bản sao lưu này?') &&
-        (await save(next))
+        window.confirm(
+          'Thay thế toàn bộ dữ liệu ngân sách, thu nhập, gửi mẹ và tiết kiệm bằng bản sao lưu này? Các sổ không có trong tệp cũ sẽ được thay bằng dữ liệu rỗng.',
+        ) &&
+        (await save(next, true))
       )
         setNotice('Đã nhập bản sao lưu.');
     } catch {
@@ -172,9 +197,9 @@ export function useDashboard() {
       const next = parseBackup(JSON.parse(raw));
       if (
         window.confirm(
-          'Chuyển dữ liệu cũ lên MongoDB và thay thế dữ liệu hiện tại? Bản cũ trong trình duyệt được giữ lại.',
+          'Chuyển dữ liệu cũ lên MongoDB và thay thế toàn bộ ngân sách, thu nhập, gửi mẹ và tiết kiệm hiện tại? Sổ không có trong bản cũ sẽ rỗng. Bản cũ trong trình duyệt được giữ lại.',
         ) &&
-        (await save(next))
+        (await save(next, true))
       ) {
         setHasLegacy(false);
         setNotice('Đã chuyển dữ liệu cũ.');

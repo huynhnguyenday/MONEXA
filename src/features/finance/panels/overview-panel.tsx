@@ -7,15 +7,17 @@ import {
   faTrashCan,
   faMagnifyingGlass,
   faWallet,
-  faArrowUp,
-  faArrowDown,
+  faCoins,
+  faReceipt,
   faChartLine,
+  faFileInvoiceDollar,
 } from '@fortawesome/free-solid-svg-icons';
 import Charts from '../charts/finance-charts';
 import BudgetCard from '../components/budget-card';
 import FinanceTooltip from '../components/finance-tooltip';
 import {
   getCashStatistics,
+  getBudgetPeriod,
   dateKey,
   type Expense,
   type FinanceData,
@@ -37,7 +39,6 @@ type Props = {
   onAdd: () => void;
   onEdit: (expense: Expense) => void;
   onDelete: (expense: Expense) => void;
-  onBudget: () => void;
   onBudgetHistory: () => void;
   month: string;
 };
@@ -48,7 +49,6 @@ export default function OverviewPanel({
   onAdd,
   onEdit,
   onDelete,
-  onBudget,
   onBudgetHistory,
   month,
 }: Props) {
@@ -67,6 +67,7 @@ export default function OverviewPanel({
   const selectedMonth = month || dateKey().slice(0, 7);
   const cashStats = getCashStatistics(data, selectedMonth, stats.today);
   const monthBudget = cashStats.income;
+  const periodBalances = getBudgetPeriod(data, selectedMonth);
   return (
     <section
       className={`overview-panel mobile-view-${mobileView}`}
@@ -91,23 +92,32 @@ export default function OverviewPanel({
               content={
                 <>
                   <span>
-                    Ngân sách tháng: <b>{money(monthBudget)}</b>
+                    Dư đầu kỳ: <b>{money(periodBalances.opening.total)}</b>
+                  </span>
+                  <span>
+                    Tiền cấp tháng: <b>{money(monthBudget)}</b>
                   </span>
                   <span>
                     Đã chi tiêu: <b>{money(stats.total)}</b>
                   </span>
                   <span>
-                    Còn lại: <b>{money(monthBudget - stats.total)}</b>
+                    Dư ngân sách cuối kỳ: <b>{money(periodBalances.closing.total)}</b>
+                  </span>
+                  <span>
+                    Bao gồm biến động thu/trả công nợ; không gồm tiết kiệm hoặc thu nhập chưa phân
+                    bổ.
                   </span>
                 </>
               }
             >
               <span className="stat-label">
-                <Icon icon={faArrowUp} aria-hidden="true" />
+                <Icon icon={faCoins} aria-hidden="true" />
                 Còn lại
               </span>
-              <strong>{money(monthBudget - stats.total)}</strong>
-              <small title="Thu gốc tháng trừ tổng chi tháng">Thu − chi</small>
+              <strong>{money(periodBalances.closing.total)}</strong>
+              <small title="Dư đầu kỳ cộng các dòng tiền vào, trừ các dòng tiền ra của ngân sách">
+                Có dư chuyển kỳ
+              </small>
             </FinanceTooltip>
             <FinanceTooltip
               as="article"
@@ -137,12 +147,45 @@ export default function OverviewPanel({
             </FinanceTooltip>
             <article className="stat overview-stat overview-stat-spent">
               <span className="stat-label">
-                <Icon icon={faArrowDown} aria-hidden="true" />
+                <Icon icon={faReceipt} aria-hidden="true" />
                 Chi tiêu
               </span>
               <strong>{money(stats.total)}</strong>
               <small>{stats.expenses.length} khoản chi</small>
             </article>
+            <FinanceTooltip
+              as="article"
+              className="stat overview-stat overview-stat-debt"
+              label="Nợ/ngày"
+              placement="bottom"
+              content={
+                <>
+                  <span>
+                    Nợ phải trả trong tháng: <b>{money(cashStats.reserve)}</b>
+                  </span>
+                  <span>
+                    Số ngày thống kê: <b>{stats.elapsedDays} ngày</b>
+                  </span>
+                  <span>
+                    Nợ trung bình/ngày: <b>{money(cashStats.averageDebt)}</b>
+                  </span>
+                  <span>Chỉ gồm nợ phải trả chưa hoàn tất, đến hạn trong tháng đang xem.</span>
+                  <span>
+                    Tháng hiện tại tính đến hôm nay; tháng đã qua tính đủ ngày; tháng tương lai bằng
+                    0.
+                  </span>
+                </>
+              }
+            >
+              <span className="stat-label">
+                <Icon icon={faFileInvoiceDollar} aria-hidden="true" />
+                Nợ/ngày
+              </span>
+              <strong>{money(cashStats.averageDebt)}</strong>
+              <small title="Tổng nợ phải trả chưa hoàn tất đến hạn trong tháng chia cho số ngày thống kê">
+                Nợ / {stats.elapsedDays} ngày
+              </small>
+            </FinanceTooltip>
             <article className="stat overview-stat overview-stat-average">
               <span className="stat-label">
                 <Icon icon={faChartLine} aria-hidden="true" />
@@ -156,11 +199,11 @@ export default function OverviewPanel({
             <article className="stat overview-stat overview-stat-average">
               <span className="stat-label">
                 <Icon icon={faChartLine} aria-hidden="true" />
-                Thu/ngày
+                Cấp/ngày
               </span>
               <strong>{money(cashStats.averageIncome)}</strong>
-              <small title="Tổng thu gốc tháng chia cho số ngày thống kê">
-                Thu / {stats.elapsedDays} ngày
+              <small title="Tổng tiền cấp ngân sách tháng chia cho số ngày thống kê">
+                Cấp / {stats.elapsedDays} ngày
               </small>
             </article>
           </div>
@@ -172,7 +215,6 @@ export default function OverviewPanel({
             expenses={stats.expenses}
             month={selectedMonth}
             ready={ready}
-            onAdd={onBudget}
             onHistory={onBudgetHistory}
           />
           <article className="card expense-panel">

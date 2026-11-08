@@ -41,7 +41,7 @@ export function useFinance() {
   useEffect(() => {
     void refresh();
   }, [refresh]);
-  async function save(data: FinanceData) {
+  async function save(data: FinanceData, replace = false) {
     if (saving.current || !current.current || loading) return false;
     const validated = financeSchema.safeParse(data);
     if (!validated.success) {
@@ -60,7 +60,7 @@ export function useFinance() {
       const response = await fetch('/api/finance', {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ data: validated.data, revision: current.current.revision }),
+        body: JSON.stringify({ data: validated.data, revision: current.current.revision, replace }),
       });
       const result = await response.json();
       if (response.status === 401) {

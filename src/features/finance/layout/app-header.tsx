@@ -52,7 +52,7 @@ export default function AppHeader({
         </button>
       </div>
       <div className="header-center">
-        {view === 'overview' ? (
+        {view === 'overview' || view === 'income' ? (
           loading ? (
             <MonthPickerSkeleton />
           ) : (

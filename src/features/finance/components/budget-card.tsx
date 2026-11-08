@@ -1,7 +1,7 @@
 'use client';
 
 import { FontAwesomeIcon as Icon } from '@fortawesome/react-fontawesome';
-import { faCirclePlus, faClock } from '@fortawesome/free-solid-svg-icons';
+import { faClock } from '@fortawesome/free-solid-svg-icons';
 import {
   budgetMonth,
   calculateAccounts,
@@ -18,11 +18,10 @@ type Props = {
   expenses: Expense[];
   month: string;
   ready: boolean;
-  onAdd: () => void;
   onHistory: () => void;
 };
 
-export default function BudgetCard({ data, month, ready, onAdd, onHistory }: Props) {
+export default function BudgetCard({ data, month, ready, onHistory }: Props) {
   const { income, reserve } = getCashStatistics(data, month);
   const accounts = calculateAccounts(data);
   const monthlySources = data.budgets
@@ -48,18 +47,9 @@ export default function BudgetCard({ data, month, ready, onAdd, onHistory }: Pro
       <div className="budget-summary">
         <div>
           <h2>Ngân sách tháng</h2>
-          <strong title="Tổng tiền đã kiếm được trong tháng">{money(income)}</strong>
+          <strong title="Tổng tiền được cấp vào ngân sách tháng">{money(income)}</strong>
         </div>
         <div className="budget-actions">
-          <button
-            className="button primary budget-action-button budget-add-button monexa-action monexa-create"
-            aria-label="Thêm ngân sách"
-            title="Thêm ngân sách"
-            disabled={!ready}
-            onClick={onAdd}
-          >
-            <Icon icon={faCirclePlus} />
-          </button>
           <button
             className="button secondary budget-action-button budget-history-button"
             aria-label="Lịch sử ngân sách"
@@ -74,8 +64,10 @@ export default function BudgetCard({ data, month, ready, onAdd, onHistory }: Pro
       <div
         className="budget-progress"
         role="img"
-        aria-label={`Tổng thu tháng: ${money(income)}. Tiền mặt và chuyển khoản còn lại: ${money(remaining)}. Nợ phải trả chưa thanh toán trong tháng: ${money(reserve)}.`}
-        title={income > 0 ? `100% = ${money(income)}` : 'Chưa ghi nhận thu nhập trong tháng'}
+        aria-label={`Tiền cấp tháng: ${money(income)}. Ngân sách hiện có, tất cả thời gian: ${money(remaining)}. Nợ phải trả chưa thanh toán trong tháng: ${money(reserve)}.`}
+        title={
+          income > 0 ? `100% = tiền cấp tháng ${money(income)}` : 'Chưa cấp ngân sách trong tháng'
+        }
       >
         <span
           className="budget-remaining-progress"

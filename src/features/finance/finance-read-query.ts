@@ -7,6 +7,10 @@ export const financeCollections = {
   debtTypes: 'debt_types',
   debts: 'debts',
   budgets: 'budgets',
+  funds: 'funds',
+  incomes: 'incomes',
+  fundTransfers: 'fund_transfers',
+  familySupports: 'family_supports',
 } as const;
 
 /** One database round trip; lookups still read separate collections in one snapshot. */

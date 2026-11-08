@@ -39,7 +39,8 @@ export function BudgetHistory({
   return (
     <div className="budget-history-manager">
       <p className="dialog-description">
-        Xóa khoản thu sẽ giảm số dư tương ứng. Chi tiêu và công nợ được giữ nguyên.
+        Khoản cấp liên kết được sửa/hủy tại Thu nhập & phân bổ. Khoản ngân sách cũ có thể xóa tại
+        đây; chi tiêu và công nợ được giữ nguyên.
       </p>
       <div
         className="budget-history-list"
@@ -105,9 +106,13 @@ export function BudgetHistory({
                       <button
                         type="button"
                         className="button secondary budget-delete"
-                        disabled={busy}
+                        disabled={busy || !!entry.transferId}
                         aria-label={`Xóa khoản thu ${money(entry.cash + entry.bank)}`}
-                        title="Xóa khoản thu"
+                        title={
+                          entry.transferId
+                            ? 'Chỉnh tại Thu nhập & phân bổ'
+                            : 'Xóa khoản ngân sách cũ'
+                        }
                         onClick={() => setPendingDelete(entry.id)}
                       >
                         <Icon icon={faTrashCan} />

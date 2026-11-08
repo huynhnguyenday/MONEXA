@@ -3,7 +3,7 @@ import { forwardRef } from 'react';
 import DatePicker from 'react-datepicker';
 import { vi } from 'date-fns/locale';
 import { FontAwesomeIcon as Icon } from '@fortawesome/react-fontawesome';
-import { faCalendarDays } from '@fortawesome/free-solid-svg-icons';
+import { faCalendarDays, faChevronLeft, faChevronRight } from '@fortawesome/free-solid-svg-icons';
 
 const YearButton = forwardRef<HTMLButtonElement, { value?: string; onClick?: () => void }>(
   function YearButton({ value, onClick }, ref) {
@@ -59,7 +59,7 @@ export default function YearPicker({
               disabled={prevYearButtonDisabled}
               onClick={decreaseYear}
             >
-              ‹
+              <Icon icon={faChevronLeft} />
             </button>
             <strong>
               {visibleYearsRange
@@ -72,7 +72,7 @@ export default function YearPicker({
               disabled={nextYearButtonDisabled}
               onClick={increaseYear}
             >
-              ›
+              <Icon icon={faChevronRight} />
             </button>
           </div>
         )}

@@ -1,0 +1,144 @@
+.income-panel {
+  height: 100%;
+  min-height: 0;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.income-grid {
+  display: grid;
+  flex: 1;
+  min-height: 0;
+  min-width: 0;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-template-rows: auto auto minmax(0, 1fr);
+  grid-template-areas: 'statistics charts' 'balances charts' 'actions charts';
+  gap: 12px;
+}
+.income-analytics {
+  display: contents;
+}
+.income-management {
+  display: contents;
+}
+.income-panel .income-stats {
+  grid-area: statistics;
+}
+.income-panel .income-charts {
+  grid-area: charts;
+}
+.income-panel .income-balances {
+  grid-area: balances;
+}
+.income-action-cards {
+  grid-area: actions;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  min-height: 0;
+  min-width: 0;
+  gap: 10px;
+}
+.income-panel h2 {
+  margin: 0;
+  font-size: 14px;
+  color: #142d4e;
+}
+.income-panel .card {
+  padding: 12px;
+  min-width: 0;
+  border-radius: 16px;
+}
+.income-panel svg {
+  width: 20px;
+  height: 20px;
+  flex-shrink: 0;
+}
+.income-mobile-tabs {
+  display: none;
+}
+@media (max-height: 700px) and (min-width: 1024px) {
+  .income-panel .card {
+    padding: 10px;
+    border-radius: 14px;
+  }
+  .income-grid,
+  .income-action-cards {
+    gap: 8px;
+  }
+}
+@media (max-width: 1023px) {
+  .income-grid {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-rows: minmax(0, 1fr);
+    grid-template-areas: none;
+  }
+  .income-analytics {
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+    min-width: 0;
+    gap: 8px;
+  }
+  .income-management {
+    display: grid;
+    grid-template-rows: auto minmax(0, 1fr);
+    min-height: 0;
+    min-width: 0;
+    gap: 8px;
+  }
+  .income-panel .income-stats,
+  .income-panel .income-charts,
+  .income-panel .income-balances,
+  .income-action-cards {
+    grid-area: auto;
+  }
+  .income-action-cards {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-rows: repeat(2, minmax(0, 1fr));
+    gap: 8px;
+  }
+  .income-mobile-tabs {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 6px;
+    flex: none;
+  }
+  .income-mobile-tabs button {
+    min-height: 44px;
+    border-radius: 10px;
+    background: #fff;
+    color: #405a7c;
+    border: 1px solid #cbd5e1;
+    font-size: 13px;
+    font-weight: 700;
+  }
+  .income-mobile-tabs button[aria-pressed='true'] {
+    background: #1d4ed8;
+    color: #fff;
+    border-color: #1d4ed8;
+  }
+  .income-view-analytics .income-management,
+  .income-view-management .income-analytics {
+    display: none;
+  }
+  .income-panel .card {
+    padding: 10px;
+    border-radius: 14px;
+  }
+  .income-analytics,
+  .income-management {
+    gap: 8px;
+  }
+}
+@media (max-width: 360px) {
+  .income-panel {
+    gap: 6px;
+  }
+  .income-panel .card {
+    padding: 8px;
+  }
+  .income-mobile-tabs button {
+    font-size: 12px;
+  }
+}

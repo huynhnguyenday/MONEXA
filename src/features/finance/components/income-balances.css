@@ -1,0 +1,72 @@
+.income-balances {
+  width: min(320px, 100%);
+  min-width: 0;
+  justify-self: start;
+}
+.income-panel .income-balance {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 10px;
+  background: #fff;
+}
+.income-balance-heading {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+}
+.income-balance-heading h2 {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  line-height: 1.4;
+  flex: none;
+}
+.income-balance-heading h2 > svg,
+.income-balance-heading > strong {
+  color: #1d4ed8;
+}
+.income-balance-heading > strong {
+  font-size: 18px;
+  line-height: 1.3;
+  overflow-wrap: anywhere;
+  text-align: right;
+  min-width: 0;
+}
+.income-balance-sources {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+  min-width: 0;
+}
+.income-balance-sources > span {
+  display: flex;
+  align-items: center;
+  gap: 3px;
+  font-size: 11px;
+  line-height: 1.4;
+  min-width: 0;
+  flex-wrap: wrap;
+}
+.income-balance-sources b {
+  overflow-wrap: anywhere;
+}
+.income-panel .income-balance-sources svg {
+  width: 16px;
+  height: 16px;
+}
+@media (max-width: 1023px) {
+  .income-balances {
+    width: 100%;
+  }
+}
+@media (max-width: 360px) {
+  .income-panel .income-balance-heading h2 {
+    font-size: 12px;
+  }
+  .income-balance-heading > strong {
+    font-size: 16px;
+  }
+}

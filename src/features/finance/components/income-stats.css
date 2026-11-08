@@ -1,0 +1,98 @@
+.income-stats {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  grid-template-rows: repeat(2, auto);
+  grid-auto-flow: column;
+  gap: 8px;
+  min-height: 0;
+  min-width: 0;
+}
+.income-stats:focus-visible {
+  outline: 2px solid #1d4ed8;
+  outline-offset: 2px;
+  border-radius: 12px;
+}
+.income-panel .income-stat {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 6px;
+  padding: 8px 10px;
+}
+.income-stat > span {
+  display: block;
+  font-size: 12px;
+  line-height: 1.4;
+  color: #405a7c;
+}
+.income-stat > span > svg {
+  margin-right: 6px;
+  vertical-align: middle;
+}
+.income-stat > strong {
+  font-size: clamp(14px, 1.25vw, 20px);
+  line-height: 1.3;
+  overflow-wrap: anywhere;
+}
+.income-blue strong,
+.income-blue svg {
+  color: #1d4ed8;
+}
+.income-rose strong,
+.income-rose svg {
+  color: #be185d;
+}
+.income-green strong,
+.income-green svg {
+  color: #047857;
+}
+.income-amber strong,
+.income-amber svg {
+  color: #b45309;
+}
+
+.income-stats {
+  flex: none;
+}
+.income-panel .card.income-stat {
+  min-height: 76px;
+}
+@media (max-width: 1023px) {
+  .income-stats {
+    gap: 6px;
+    grid-template-columns: repeat(4, 148px);
+    overflow-x: auto;
+    width: 100%;
+    max-width: 100%;
+    touch-action: pan-x pinch-zoom;
+    overscroll-behavior-x: contain;
+    scroll-snap-type: x proximity;
+    scrollbar-width: thin;
+    scrollbar-color: #94a3b8 transparent;
+    padding-bottom: 6px;
+  }
+  .income-stats::-webkit-scrollbar {
+    height: 6px;
+  }
+  .income-stats::-webkit-scrollbar-track {
+    background: #cbd5e1;
+    border-radius: 6px;
+  }
+  .income-stats::-webkit-scrollbar-thumb {
+    background: #64748b;
+    border-radius: 6px;
+  }
+  .income-panel .card.income-stat {
+    padding: 7px;
+    gap: 5px;
+    min-height: 74px;
+    scroll-snap-align: start;
+  }
+  .income-stat > span {
+    font-size: 11px;
+  }
+  .income-stat > strong {
+    font-size: clamp(14px, 3.5vw, 20px);
+    letter-spacing: -0.3px;
+  }
+}

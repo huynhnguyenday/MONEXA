@@ -3,7 +3,7 @@ import { forwardRef } from 'react';
 import DatePicker from 'react-datepicker';
 import { vi } from 'date-fns/locale';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faCalendarDays } from '@fortawesome/free-solid-svg-icons';
+import { faCalendarDays, faChevronLeft, faChevronRight } from '@fortawesome/free-solid-svg-icons';
 
 const MonthButton = forwardRef<HTMLButtonElement, { value?: string; onClick?: () => void }>(
   function MonthButton({ value, onClick }, ref) {
@@ -50,11 +50,11 @@ export default function MonthPicker({
         renderCustomHeader={({ date, decreaseYear, increaseYear }) => (
           <div className="month-picker-year">
             <button type="button" aria-label="Năm trước" onClick={decreaseYear}>
-              ‹
+              <FontAwesomeIcon icon={faChevronLeft} />
             </button>
             <strong>Năm {date.getFullYear()}</strong>
             <button type="button" aria-label="Năm sau" onClick={increaseYear}>
-              ›
+              <FontAwesomeIcon icon={faChevronRight} />
             </button>
           </div>
         )}

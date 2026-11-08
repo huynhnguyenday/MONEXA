@@ -4,6 +4,7 @@ import { useLayoutEffect, useRef } from 'react';
 import { FontAwesomeIcon as Icon } from '@fortawesome/react-fontawesome';
 import {
   faShapes,
+  faSackDollar,
   faHandshake,
   faMoneyBillTransfer,
   faDownload,
@@ -67,6 +68,7 @@ export default function AppSidebar({
         <nav className="main-nav" aria-label="Điều hướng">
           {(
             [
+              { id: 'income', name: 'Thu nhập & phân bổ', icon: faSackDollar },
               { id: 'overview', name: 'Tổng quan', icon: faShapes },
               { id: 'debts', name: 'Công nợ', icon: faHandshake },
               { id: 'categories', name: 'Danh mục', icon: faShapes },
