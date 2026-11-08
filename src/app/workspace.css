@@ -997,7 +997,7 @@ dialog .dialog-content textarea { max-height: 150px; }
 }
 @media (max-width: 1023px) {
   .compact-layout .workspace {
-    padding: 8px 12px;
+    padding: 8px 12px 15px;
     gap: 8px;
   }
   .workspace-header {
@@ -1209,7 +1209,7 @@ dialog .dialog-content textarea { max-height: 150px; }
 }
 @media (max-width: 600px) {
   .compact-layout .workspace {
-    padding: 7px 9px;
+    padding: 7px 9px 15px;
     gap: 6px;
   }
   .compact-brand > span {

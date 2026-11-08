@@ -92,7 +92,12 @@ export function usePushDevice(onNotice: (message: string) => void) {
       await request('/api/push/subscription', 'POST', subscription.toJSON());
       current.current = subscription; setSubscribed(true);
       onNotice('Đã bật thông báo trên thiết bị này. Bạn có thể đóng MONEXA.');
-    } catch (err) { setError(err instanceof Error ? err.message : 'Chưa bật được thông báo.'); }
+    } catch (err) {
+      const message = err instanceof Error ? err.message : '';
+      setError(/registration failed\s*[-–:]?\s*push service error/i.test(message)
+        ? 'Dịch vụ Push của trình duyệt chưa đăng ký được thiết bị. Hãy thử đổi Wi-Fi/4G, mở lại ứng dụng rồi bật lại thông báo.'
+        : message || 'Chưa bật được thông báo.');
+    }
     finally { working.current = false; setBusy(false); }
   }
   async function disable() {
