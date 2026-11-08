@@ -64,13 +64,11 @@ export default function PushNotificationSettings({
             type="button"
             className="notification-compact-button push-test-button"
             aria-label="Gửi thông báo thử"
-            title={
-              push.subscribed ? 'Gửi thử trong ứng dụng và tới thiết bị' : 'Gửi thử trong ứng dụng'
-            }
+            title="Gửi thử tới tất cả thiết bị đã đăng ký"
             disabled={push.busy}
             onClick={() => {
               onTest();
-              if (push.subscribed) void push.test();
+              void push.test();
             }}
           >
             <span className="notification-button-face">
@@ -81,8 +79,14 @@ export default function PushNotificationSettings({
       </div>
       {infoOpen && (
         <div id="notification-info" className="notification-info">
-          <p>Còn 3–10 ngày: nhắc mỗi ngày lúc 21h. Còn 1–2 ngày và ngày đến hạn: nhắc lúc 8h và 21h (giờ Việt Nam).</p>
-          <p>Gửi thử tới thiết bị tối đa 1 lần/phút.</p>
+          <p>
+            Còn 3–10 ngày: nhắc mỗi ngày lúc 21h. Còn 1–2 ngày và ngày đến hạn: nhắc lúc 8h và 21h
+            (giờ Việt Nam).
+          </p>
+          <p>
+            Gửi thử tới tất cả thiết bị đã đăng ký, tối đa 1 lần/phút cho mỗi thiết bị. Không cần
+            bật thông báo trên thiết bị bấm gửi.
+          </p>
         </div>
       )}
       {push.supported === false && <p role="status">Thiết bị chưa hỗ trợ thông báo.</p>}

@@ -7,17 +7,31 @@ async function activeRegistration() {
   try {
     return await Promise.race([
       navigator.serviceWorker.ready,
-      new Promise<never>((_, reject) => { timeout = setTimeout(() => reject(new Error('Chưa khởi động được thông báo. Hãy tải lại trang và thử lại.')), 15000); }),
+      new Promise<never>((_, reject) => {
+        timeout = setTimeout(
+          () => reject(new Error('Chưa khởi động được thông báo. Hãy tải lại trang và thử lại.')),
+          15000,
+        );
+      }),
     ]);
-  } finally { clearTimeout(timeout); }
+  } finally {
+    clearTimeout(timeout);
+  }
 }
 function keyBytes(value: string) {
   const base64 = value.replace(/-/g, '+').replace(/_/g, '/');
-  return Uint8Array.from(atob(base64.padEnd(Math.ceil(base64.length / 4) * 4, '=')), char => char.charCodeAt(0));
+  return Uint8Array.from(atob(base64.padEnd(Math.ceil(base64.length / 4) * 4, '=')), (char) =>
+    char.charCodeAt(0),
+  );
 }
 async function request(path: string, method: string, body?: unknown) {
-  const response = await fetch(path, { method, cache: 'no-store', signal: AbortSignal.timeout(15000),
-    ...(body ? { headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) } : {}),
+  const response = await fetch(path, {
+    method,
+    cache: 'no-store',
+    signal: AbortSignal.timeout(15000),
+    ...(body
+      ? { headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) }
+      : {}),
   });
   const result = await response.json();
   if (!response.ok) throw new Error(result.error || 'Không thể cập nhật thông báo.');
@@ -37,10 +51,17 @@ export function usePushDevice(onNotice: (message: string) => void) {
   const working = useRef(false);
 
   useEffect(() => {
-    const available = window.isSecureContext && 'serviceWorker' in navigator
-      && 'PushManager' in window && 'Notification' in window;
+    const available =
+      window.isSecureContext &&
+      'serviceWorker' in navigator &&
+      'PushManager' in window &&
+      'Notification' in window;
     setSupported(available);
-    if (!available) { setBusy(false); setInitialized(true); return; }
+    if (!available) {
+      setBusy(false);
+      setInitialized(true);
+      return;
+    }
     let cancelled = false;
     const updatePermission = () => setPermission(Notification.permission);
     updatePermission();
@@ -60,7 +81,11 @@ export function usePushDevice(onNotice: (message: string) => void) {
         if (existing) {
           const key = existing.options.applicationServerKey;
           const expected = keyBytes(config.publicKey);
-          if (!key || new Uint8Array(key).some((value, index) => value !== expected[index]) || key.byteLength !== expected.length) {
+          if (
+            !key ||
+            new Uint8Array(key).some((value, index) => value !== expected[index]) ||
+            key.byteLength !== expected.length
+          ) {
             // A VAPID rotation requires a new subscription; never silently request permission.
             await existing.unsubscribe();
             existing = null;
@@ -72,53 +97,100 @@ export function usePushDevice(onNotice: (message: string) => void) {
           if (!cancelled) setSubscribed(true);
         }
       } catch (err) {
-        if (!cancelled) setError(err instanceof Error ? err.message : 'Chưa kiểm tra được đăng ký thông báo.');
-      } finally { if (!cancelled) { setBusy(false); setInitialized(true); } }
+        if (!cancelled)
+          setError(err instanceof Error ? err.message : 'Chưa kiểm tra được đăng ký thông báo.');
+      } finally {
+        if (!cancelled) {
+          setBusy(false);
+          setInitialized(true);
+        }
+      }
     })();
-    return () => { cancelled = true; window.removeEventListener('focus', updatePermission); };
+    return () => {
+      cancelled = true;
+      window.removeEventListener('focus', updatePermission);
+    };
   }, []);
 
   async function enable() {
     if (working.current || !supported || !configured) return;
-    working.current = true; setBusy(true); setError('');
+    working.current = true;
+    setBusy(true);
+    setError('');
     try {
       // Request directly from the click gesture, including on iOS Home Screen apps.
       const allowed = await Notification.requestPermission();
       setPermission(allowed);
       if (allowed !== 'granted') return;
-      const ready = registration.current || await activeRegistration();
-      const subscription = await ready.pushManager.getSubscription()
-        || await ready.pushManager.subscribe({ userVisibleOnly: true, applicationServerKey: keyBytes(publicKey.current).buffer });
+      const ready = registration.current || (await activeRegistration());
+      const subscription =
+        (await ready.pushManager.getSubscription()) ||
+        (await ready.pushManager.subscribe({
+          userVisibleOnly: true,
+          applicationServerKey: keyBytes(publicKey.current).buffer,
+        }));
       await request('/api/push/subscription', 'POST', subscription.toJSON());
-      current.current = subscription; setSubscribed(true);
+      current.current = subscription;
+      setSubscribed(true);
       onNotice('Đã bật thông báo trên thiết bị này. Bạn có thể đóng MONEXA.');
     } catch (err) {
       const message = err instanceof Error ? err.message : '';
-      setError(/registration failed\s*[-–:]?\s*push service error/i.test(message)
-        ? 'Dịch vụ Push của trình duyệt chưa đăng ký được thiết bị. Hãy thử đổi Wi-Fi/4G, mở lại ứng dụng rồi bật lại thông báo.'
-        : message || 'Chưa bật được thông báo.');
+      setError(
+        /registration failed\s*[-–:]?\s*push service error/i.test(message)
+          ? 'Dịch vụ Push của trình duyệt chưa đăng ký được thiết bị. Hãy thử đổi Wi-Fi/4G, mở lại ứng dụng rồi bật lại thông báo.'
+          : message || 'Chưa bật được thông báo.',
+      );
+    } finally {
+      working.current = false;
+      setBusy(false);
     }
-    finally { working.current = false; setBusy(false); }
   }
   async function disable() {
     if (working.current || !current.current) return;
-    working.current = true; setBusy(true); setError('');
+    working.current = true;
+    setBusy(true);
+    setError('');
     try {
       const subscription = current.current;
       await subscription.unsubscribe();
-      current.current = null; setSubscribed(false);
+      current.current = null;
+      setSubscribed(false);
       await request('/api/push/subscription', 'DELETE', { endpoint: subscription.endpoint });
       onNotice('Đã tắt thông báo trên thiết bị này.');
-    } catch (err) { setError(err instanceof Error ? err.message : 'Chưa tắt được thông báo.'); }
-    finally { working.current = false; setBusy(false); }
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Chưa tắt được thông báo.');
+    } finally {
+      working.current = false;
+      setBusy(false);
+    }
   }
   async function test() {
-    if (working.current || !current.current) return;
-    working.current = true; setBusy(true); setError('');
+    if (working.current) return;
+    working.current = true;
+    setBusy(true);
+    setError('');
     try {
-      await request('/api/push/test', 'POST', { endpoint: current.current.endpoint });
-    } catch (err) { setError(err instanceof Error ? err.message : 'Chưa gửi được thông báo thử.'); }
-    finally { working.current = false; setBusy(false); }
+      const result = await request('/api/push/test', 'POST');
+      onNotice(
+        `Đã gửi yêu cầu thông báo thử tới ${result.sent}/${result.total} thiết bị.${result.failed ? ` ${result.failed} thiết bị gửi lỗi.` : ''}${result.skipped ? ` ${result.skipped} thiết bị đang chờ đủ một phút.` : ''}`,
+      );
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Chưa gửi được thông báo thử.');
+    } finally {
+      working.current = false;
+      setBusy(false);
+    }
   }
-  return { initialized, supported, permission, subscribed, configured, busy, error, enable, disable, test };
+  return {
+    initialized,
+    supported,
+    permission,
+    subscribed,
+    configured,
+    busy,
+    error,
+    enable,
+    disable,
+    test,
+  };
 }
