@@ -63,7 +63,7 @@ export async function dispatchPushReminders(now = new Date()) {
           }, { projection: { title: 1, amount: 1, dueDate: 1 } });
           if (!debt || !debt.dueDate) continue;
           try {
-            await sendWebPush(device, debtPushMessage({ ...debt, dueDate: debt.dueDate }, `monexa:${job._id}`),
+            await sendWebPush(device, debtPushMessage({ ...debt, dueDate: debt.dueDate }, `monexa:${job._id}`, false, now),
               Math.max(1, Math.floor((job.expiresAt.getTime() - now.getTime()) / 1000)));
             await receipts.updateOne({ _id: deliveryId(job, device), ...owner },
               { $setOnInsert: { ...owner, subscriptionId: device._id, jobId: job._id,

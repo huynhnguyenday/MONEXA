@@ -2,6 +2,7 @@ import 'server-only';
 import { createHmac, createHash, timingSafeEqual } from 'node:crypto';
 import { cookies } from 'next/headers';
 import { getDatabase } from './mongodb';
+const loginIndexes = new Map<string, Promise<string>>();
 export const SESSION_COOKIE = 'monexa_session';
 export const SESSION_AGE = 60 * 60 * 24 * 7;
 export function missingConfig() {
@@ -47,12 +48,21 @@ export function sameOrigin(request: Request) {
   return request.headers.get('origin') === new URL(request.url).origin;
 }
 export async function consumeLoginAttempt(request: Request) {
-  const attempts = (await getDatabase()).collection<{
+  const db = await getDatabase();
+  const attempts = db.collection<{
     _id: string;
     count: number;
     expiresAt: Date;
   }>('login_attempts');
-  await attempts.createIndex({ expiresAt: 1 }, { expireAfterSeconds: 0 });
+  let index = loginIndexes.get(db.databaseName);
+  if (!index) {
+    index = attempts.createIndex({ expiresAt: 1 }, { expireAfterSeconds: 0 }).catch((error) => {
+      loginIndexes.delete(db.databaseName);
+      throw error;
+    });
+    loginIndexes.set(db.databaseName, index);
+  }
+  await index;
   const ip =
     request.headers.get('x-vercel-forwarded-for')?.split(',')[0] ||
     request.headers.get('x-forwarded-for')?.split(',')[0] ||

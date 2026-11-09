@@ -114,8 +114,13 @@ async function syncEntities(
   collection: Collection<EntityDocument>,
   items: Entity[],
   session: ClientSession,
+  snapshot?: Entity[],
 ) {
-  const previous = await collection.find({ userId: PERSONAL_USER_ID }, { session }).toArray();
+  // The caller already read these records in this transaction's snapshot.
+  // Reuse that authoritative state instead of reading every collection again.
+  const previous: { _id: string; [key: string]: unknown }[] = snapshot
+    ? snapshot.map(({ id, ...fields }) => ({ ...fields, _id: id }))
+    : await collection.find({ userId: PERSONAL_USER_ID }, { session }).toArray();
   const byId = new Map(previous.map((record) => [record._id, record]));
   const now = new Date();
   const operations = items.flatMap((item) => {
@@ -411,18 +416,33 @@ async function reconcileFundBalances(
   write: boolean,
 ) {
   const expected = calculateFunds(data);
+  if (write) {
+    const now = new Date();
+    await db.collection<EntityDocument>('fund_balances').bulkWrite(
+      (['unallocated', 'savings'] as const).map((fundId) => ({
+        updateOne: {
+          filter: { _id: fundId, userId: PERSONAL_USER_ID },
+          update: {
+            $set: { ...expected[fundId], fundId, updatedAt: now },
+            $setOnInsert: { createdAt: now },
+          },
+          upsert: true,
+        },
+      })),
+      { session, ordered: true },
+    );
+    return;
+  }
   for (const fundId of ['unallocated', 'savings'] as const) {
     const collection = db.collection<EntityDocument>('fund_balances');
     const stored = await collection.findOne({ _id: fundId, userId: PERSONAL_USER_ID }, { session });
     const value = expected[fundId];
     if (
-      !write &&
       stored &&
       (stored.total !== value.total || stored.cash !== value.cash || stored.bank !== value.bank)
     )
       throw new Error('BALANCE_MISMATCH');
     if (
-      !write &&
       !stored &&
       (value.total !== 0 ||
         data.incomes.length ||
@@ -430,7 +450,7 @@ async function reconcileFundBalances(
         data.familySupports.length)
     )
       throw new Error('BALANCE_MISMATCH');
-    if (write || !stored)
+    if (!stored)
       await collection.updateOne(
         { _id: fundId, userId: PERSONAL_USER_ID },
         {
@@ -500,11 +520,11 @@ export async function readFinance(): Promise<Snapshot> {
           const data = financeSchema.parse({ schemaVersion: 3, budget: state.budget, ...rows });
           const balance = await assertStoredBalance(db, data, session);
           await reconcileFundBalances(db, data, session, false);
-          if (state.pushScheduleVersion !== 3) {
+          if (state.pushScheduleVersion !== 4) {
             await syncDebtReminders(db, data.debts, session);
             await settings(db).updateOne(
               { _id: PERSONAL_USER_ID, userId: PERSONAL_USER_ID, revision: state.revision },
-              { $set: { pushScheduleVersion: 3 } },
+              { $set: { pushScheduleVersion: 4 } },
               { session },
             );
           }
@@ -563,7 +583,8 @@ export async function writeFinance(
       await reconcileFundBalances(db, previous, session, false);
       data = reconcileDebtExpenses(previous, data);
       assertBudgetChanges(previous, data, replace);
-      for (const key of entityKeys) await syncEntities(entities(db, key), data[key], session);
+      for (const key of entityKeys)
+        await syncEntities(entities(db, key), data[key], session, previous[key]);
       await reconcileBalance(db, data, session);
       await reconcileFundBalances(db, data, session, true);
       await syncDebtReminders(db, data.debts, session, previous.debts);

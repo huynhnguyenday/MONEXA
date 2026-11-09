@@ -2,7 +2,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { FontAwesomeIcon as Icon } from '@fortawesome/react-fontawesome';
 import { faBell, faTrashCan } from '@fortawesome/free-solid-svg-icons';
-import { dateKey, debtDirection, money, upcomingDebtReminders, type FinanceData } from '../model';
+import { dateKey, upcomingDebtReminders, type FinanceData } from '../model';
 import PushNotificationSettings from '../components/push-notification-settings';
 import NotificationBody from '../components/notification-body';
 import { useNotificationFeed } from '../hooks/use-notification-feed';
@@ -179,12 +179,12 @@ export default function DebtNotifications({
                       </button>
                     </div>
                     <span>
-                      {debtDirection(data, debt) === 'payable' ? 'Phải trả' : 'Phải thu'} ·{' '}
-                      {money(debt.amount)}
-                    </span>
-                    <span>
-                      {data.debtSources.find((source) => source.id === debt.debtSourceId)?.name} ·
-                      Hạn {debt.dueDate!.split('-').reverse().join('/')}
+                      <NotificationBody
+                        body={
+                          debtPushMessage({ ...debt, dueDate: debt.dueDate! }, `monexa:${debt.id}`)
+                            .body
+                        }
+                      />
                     </span>
                     <small>{debt.reminderReadFor === debt.dueDate ? 'Đã đọc' : 'Chưa đọc'}</small>
                   </li>

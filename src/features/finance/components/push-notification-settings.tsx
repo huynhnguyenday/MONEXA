@@ -80,8 +80,8 @@ export default function PushNotificationSettings({
       {infoOpen && (
         <div id="notification-info" className="notification-info">
           <p>
-            Còn 3–10 ngày: nhắc mỗi ngày lúc 21h. Còn 1–2 ngày và ngày đến hạn: nhắc lúc 8h và 21h
-            (giờ Việt Nam).
+            Còn 4–10 ngày: nhắc mỗi ngày lúc 19h30. Còn 1–3 ngày và ngày đến hạn: nhắc lúc 6h30 và
+            19h30 (giờ Việt Nam).
           </p>
           <p>
             Gửi thử tới tất cả thiết bị đã đăng ký, tối đa 1 lần/phút cho mỗi thiết bị. Không cần

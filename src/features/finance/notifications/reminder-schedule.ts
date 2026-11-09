@@ -15,12 +15,15 @@ export type ReminderJob = {
 };
 
 export function debtReminderJobs(debts: Debt[], now = new Date()): ReminderJob[] {
-  return debts.flatMap(debt => {
+  return debts.flatMap((debt) => {
     if (debt.settledAt || !debt.dueDate) return [];
     const dueDate = debt.dueDate;
-    const slots = Array.from({ length: 11 }, (_, index) => 10 - index).flatMap(daysBefore =>
-      daysBefore <= 2
-        ? [{ daysBefore, morning: true }, { daysBefore, morning: false }]
+    const slots = Array.from({ length: 11 }, (_, index) => 10 - index).flatMap((daysBefore) =>
+      daysBefore <= 3
+        ? [
+            { daysBefore, morning: true },
+            { daysBefore, morning: false },
+          ]
         : [{ daysBefore, morning: false }],
     );
     return slots.map(({ daysBefore, morning }) => {
@@ -31,26 +34,48 @@ export function debtReminderJobs(debts: Debt[], now = new Date()): ReminderJob[]
       return {
         // Preserve the existing due-evening identity and its delivery receipts.
         _id: `${PERSONAL_USER_ID}:${debt.id}:${dueDate}:${kind}${kind === 'due-evening' ? '' : `:${date}`}`,
-        userId: PERSONAL_USER_ID, debtId: debt.id, dueDate, kind,
-        scheduledAt: new Date(`${date}T${morning ? '08' : '21'}:00:00+07:00`),
-        expiresAt: new Date(`${date}T${morning ? '21:00:00' : '23:59:59.999'}+07:00`),
-        status: 'pending' as const, createdAt: now,
+        userId: PERSONAL_USER_ID,
+        debtId: debt.id,
+        dueDate,
+        kind,
+        scheduledAt: new Date(`${date}T${morning ? '06:30' : '19:30'}:00+07:00`),
+        expiresAt: new Date(`${date}T${morning ? '19:30:00' : '23:59:59.999'}+07:00`),
+        status: 'pending' as const,
+        createdAt: now,
       };
     });
   });
 }
 
 /** Must commit with debt documents, balance and finance revision. */
-export async function syncDebtReminders(db: Db, debts: Debt[], session: ClientSession, previous?: Debt[]) {
+export async function syncDebtReminders(
+  db: Db,
+  debts: Debt[],
+  session: ClientSession,
+  previous?: Debt[],
+) {
   const jobs = debtReminderJobs(debts);
-  const previousIds = previous && new Set(debtReminderJobs(previous).map(job => job._id));
-  const currentIds = new Set(jobs.map(job => job._id));
-  const added = jobs.filter(job => !previousIds?.has(job._id));
-  const removed = previousIds && [...previousIds].filter(id => !currentIds.has(id));
+  const previousIds = previous && new Set(debtReminderJobs(previous).map((job) => job._id));
+  const currentIds = new Set(jobs.map((job) => job._id));
+  const added = jobs.filter((job) => !previousIds?.has(job._id));
+  const removed = previousIds && [...previousIds].filter((id) => !currentIds.has(id));
   const collection = db.collection<ReminderJob>('reminder_jobs');
-  if (added.length) await collection.bulkWrite(added.map(job => ({
-    updateOne: { filter: { _id: job._id, userId: PERSONAL_USER_ID }, update: { $setOnInsert: job }, upsert: true },
-  })), { session, ordered: true });
-  if (removed?.length) await collection.deleteMany({ userId: PERSONAL_USER_ID, _id: { $in: removed } }, { session });
-  if (!previousIds) await collection.deleteMany({ userId: PERSONAL_USER_ID, _id: { $nin: [...currentIds] } }, { session });
+  if (added.length)
+    await collection.bulkWrite(
+      added.map(({ scheduledAt, expiresAt, ...job }) => ({
+        updateOne: {
+          filter: { _id: job._id, userId: PERSONAL_USER_ID },
+          update: { $set: { scheduledAt, expiresAt }, $setOnInsert: job },
+          upsert: true,
+        },
+      })),
+      { session, ordered: true },
+    );
+  if (removed?.length)
+    await collection.deleteMany({ userId: PERSONAL_USER_ID, _id: { $in: removed } }, { session });
+  if (!previousIds)
+    await collection.deleteMany(
+      { userId: PERSONAL_USER_ID, _id: { $nin: [...currentIds] } },
+      { session },
+    );
 }
