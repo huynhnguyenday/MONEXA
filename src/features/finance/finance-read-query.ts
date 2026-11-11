@@ -7,6 +7,7 @@ export const financeCollections = {
   debtTypes: 'debt_types',
   debts: 'debts',
   budgets: 'budgets',
+  budgetExchanges: 'budget_exchanges',
   funds: 'funds',
   incomes: 'incomes',
   fundTransfers: 'fund_transfers',

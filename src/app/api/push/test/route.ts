@@ -4,7 +4,8 @@ import type { PushDevice } from '@/features/finance/notifications/push-repositor
 import { pushAuthEpoch, pushConfig } from '@/features/finance/notifications/push-config';
 import { expiredPush, sendWebPush } from '@/features/finance/notifications/push-sender';
 import { PERSONAL_USER_ID } from '@/features/finance/model';
-import { debtPushMessage } from '@/features/finance/notifications/push-message';
+import { groupedDebtPushMessage } from '@/features/finance/notifications/push-message';
+import { readDebtSourceName } from '@/features/finance/notifications/debt-source-name';
 
 export const runtime = 'nodejs';
 export async function POST(request: Request) {
@@ -46,20 +47,35 @@ export async function POST(request: Request) {
         },
         404,
       );
-    const debt = await db
-      .collection<{
-        _id: string;
-        userId: string;
-        title: string;
-        amount: number;
-        dueDate: string | null;
-      }>('debts')
-      .findOne(
-        { userId: PERSONAL_USER_ID, settledAt: null, dueDate: { $ne: null } },
-        { sort: { dueDate: 1, _id: 1 } },
-      );
+    const debts = db.collection<{
+      _id: string;
+      userId: string;
+      title: string;
+      debtSourceId?: string;
+      amount: number;
+      dueDate: string | null;
+    }>('debts');
+    const debt = await debts.findOne(
+      { userId: PERSONAL_USER_ID, settledAt: null, dueDate: { $ne: null } },
+      { sort: { dueDate: 1, _id: 1 } },
+    );
+    const sameDate = debt?.dueDate
+      ? await debts
+          .find({ userId: PERSONAL_USER_ID, settledAt: null, dueDate: debt.dueDate })
+          .toArray()
+      : [];
     const message = debt?.dueDate
-      ? debtPushMessage({ ...debt, dueDate: debt.dueDate }, 'monexa:test', true)
+      ? groupedDebtPushMessage(
+          await Promise.all(
+            sameDate.map(async (item) => ({
+              ...item,
+              sourceName: await readDebtSourceName(db, item.debtSourceId),
+              dueDate: item.dueDate!,
+            })),
+          ),
+          'monexa:test',
+          true,
+        )
       : {
           title: 'MONEXA · Thông báo thử',
           body: 'Đã nhận Web Push. Hiện không có khoản công nợ chưa thanh toán có hạn để gửi thử.',

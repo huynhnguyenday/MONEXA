@@ -1,7 +1,7 @@
 'use client';
 
 import { FontAwesomeIcon as Icon } from '@fortawesome/react-fontawesome';
-import { faClock } from '@fortawesome/free-solid-svg-icons';
+import { faClock, faRightLeft } from '@fortawesome/free-solid-svg-icons';
 import {
   budgetMonth,
   calculateAccounts,
@@ -19,9 +19,10 @@ type Props = {
   month: string;
   ready: boolean;
   onHistory: () => void;
+  onExchange: () => void;
 };
 
-export default function BudgetCard({ data, month, ready, onHistory }: Props) {
+export default function BudgetCard({ data, month, ready, onHistory, onExchange }: Props) {
   const { income, reserve } = getCashStatistics(data, month);
   const accounts = calculateAccounts(data);
   const monthlySources = data.budgets
@@ -50,6 +51,16 @@ export default function BudgetCard({ data, month, ready, onHistory }: Props) {
           <strong title="Tổng tiền được cấp vào ngân sách tháng">{money(income)}</strong>
         </div>
         <div className="budget-actions">
+          <button
+            type="button"
+            className="monexa-action monexa-create"
+            aria-label="Trao đổi tiền ngân sách"
+            title="Trao đổi tiền ngân sách"
+            disabled={!ready}
+            onClick={onExchange}
+          >
+            <Icon icon={faRightLeft} />
+          </button>
           <button
             className="button secondary budget-action-button budget-history-button"
             aria-label="Lịch sử ngân sách"

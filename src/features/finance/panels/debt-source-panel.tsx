@@ -2,7 +2,6 @@
 import { useMemo, useState } from 'react';
 import { FontAwesomeIcon as Icon } from '@fortawesome/react-fontawesome';
 import { faMagnifyingGlass, faPen, faPlus, faTrashCan } from '@fortawesome/free-solid-svg-icons';
-import Pagination, { useViewportRows } from '@/components/pagination';
 import { createSearchMatcher } from '@/lib/search';
 import { type DebtSource, type FinanceData } from '../model';
 import ClassificationScreen from './classification-screen';
@@ -23,16 +22,8 @@ export default function DebtSourcePanel({
   onDelete: (item: DebtSource) => void;
 }) {
   const [search, setSearch] = useState('');
-  const [page, setPage] = useState(0);
-  const { ref, size } = useViewportRows(168, 0);
   const matchesSearch = createSearchMatcher(search);
   const sources = data.debtSources.filter((item) => matchesSearch(item.name));
-  const filteredItems = sources;
-  const capacity = size * 2;
-  const pages = Math.max(1, Math.ceil(filteredItems.length / capacity));
-  const activePage = Math.min(page, pages - 1);
-  const visibleItems = filteredItems.slice(activePage * capacity, (activePage + 1) * capacity);
-  const listLabel = 'Nguồn công nợ';
   const records = useMemo(
     () =>
       data.debts.map((item) => ({
@@ -58,7 +49,6 @@ export default function DebtSourcePanel({
               placeholder="Tìm…"
               onChange={(event) => {
                 setSearch(event.target.value);
-                setPage(0);
               }}
             />
           </label>
@@ -72,7 +62,12 @@ export default function DebtSourcePanel({
             <Icon icon={faPlus} />
           </button>
         </div>
-        <div className="category-grid-viewport" ref={ref}>
+        <div
+          className="category-grid-viewport"
+          role="region"
+          aria-label="Nguồn công nợ"
+          tabIndex={0}
+        >
           {!sources.length ? (
             <div className="compact-empty">
               <p>
@@ -83,7 +78,7 @@ export default function DebtSourcePanel({
             </div>
           ) : (
             <div className="category-grid">
-              {visibleItems.map((source) => {
+              {sources.map((source) => {
                 const linked = data.debts.some((debt) => debt.debtSourceId === source.id);
                 return (
                   <article className="category-tile" key={source.id}>
@@ -131,13 +126,6 @@ export default function DebtSourcePanel({
             </div>
           )}
         </div>
-        <Pagination
-          label={listLabel}
-          page={activePage}
-          pages={pages}
-          total={filteredItems.length}
-          onChange={setPage}
-        />
       </article>
     </ClassificationScreen>
   );

@@ -51,7 +51,7 @@ const transactions: TransactionOptions & { timeoutMS: number } = {
   timeoutMS: 20000,
 };
 let indexesReady: Promise<void> | undefined;
-const INDEXES_VERSION = 3;
+const INDEXES_VERSION = 4;
 
 function entities(db: Db, key: EntityKey) {
   const collection = financeCollections[key];
@@ -563,6 +563,7 @@ export async function writeFinance(
   revision: number,
   replace = false,
 ): Promise<Snapshot | null> {
+  if (!replace && !Object.hasOwn(input, 'budgetExchanges')) throw new Error('MISSING_EXCHANGES');
   let data = financeSchema.parse(input);
   const db = await getDatabase();
   await ensureIndexes(db);
@@ -583,6 +584,21 @@ export async function writeFinance(
       await reconcileFundBalances(db, previous, session, false);
       data = reconcileDebtExpenses(previous, data);
       assertBudgetChanges(previous, data, replace);
+      if (!replace) {
+        const next = new Map(data.budgetExchanges.map((entry) => [entry.id, entry]));
+        for (const entry of previous.budgetExchanges)
+          if (JSON.stringify(next.get(entry.id)) !== JSON.stringify(entry))
+            throw new Error('EXCHANGE_HISTORY_CHANGED');
+        const accounts = calculateAccounts(previous);
+        const oldIds = new Set(previous.budgetExchanges.map((entry) => entry.id));
+        for (const entry of data.budgetExchanges
+          .filter((entry) => !oldIds.has(entry.id))
+          .sort((a, b) => a.occurredAt.localeCompare(b.occurredAt) || a.id.localeCompare(b.id))) {
+          if (accounts[entry.from] < entry.amount) throw new Error('INSUFFICIENT_EXCHANGE');
+          accounts[entry.from] -= entry.amount;
+          accounts[entry.to] += entry.amount;
+        }
+      }
       for (const key of entityKeys)
         await syncEntities(entities(db, key), data[key], session, previous[key]);
       await reconcileBalance(db, data, session);

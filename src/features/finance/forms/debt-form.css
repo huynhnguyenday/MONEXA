@@ -1,0 +1,43 @@
+.debt-entry-dialog .debt-type-source-row {
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: 10px;
+}
+.debt-entry-dialog .dialog-heading {
+  padding-bottom: 5px;
+}
+.debt-category-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-top: 10px;
+}
+.debt-entry-dialog .debt-category-heading > label {
+  margin: 0;
+}
+:root .debt-category-heading button.monexa-reset {
+  width: 26.4px;
+  height: 26.4px;
+  min-width: 26.4px;
+  min-height: 26.4px;
+  border-radius: 6px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: none;
+}
+.debt-category-heading .monexa-reset svg {
+  width: 14.4px;
+  height: 14.4px;
+}
+:root dialog:is(.debt-entry-dialog, .debt-payment-dialog) .dialog-heading > button.monexa-close {
+  width: 30.8px;
+  height: 30.8px;
+  min-width: 30.8px;
+  min-height: 30.8px;
+  padding: 0;
+}
+:root dialog:is(.debt-entry-dialog, .debt-payment-dialog) .dialog-heading > button.monexa-close > svg {
+  width: 14px;
+  height: 14px;
+}

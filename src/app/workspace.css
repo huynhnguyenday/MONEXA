@@ -1,4 +1,4 @@
-/* Viewport-first workspace. Pagination controls content length instead of scroll areas. */
+/* Viewport-first workspace; long content scrolls inside its panel. */
 :root {
   --bg: #dce5f1;
   --line: #d4deed;
@@ -697,7 +697,7 @@ dialog .dialog-content textarea { max-height: 150px; }
 .compact-debts > .compact-stats.debt-overview-stats .stat > small { font-size: 11px; font-weight: 500; }
 .compact-debts > .compact-stats.debt-overview-stats .debt-stat { background: #fff; border: 1px solid #dbe4f0; color: #142d4e; box-shadow: 0 2px 7px #142d4e0a; }
 .compact-debts > .compact-stats.debt-overview-stats .debt-stat .stat-label { display: flex; align-items: center; gap: 5px; color: #334155; font-weight: 700; white-space: nowrap; }
-.compact-debts > .compact-stats.debt-overview-stats .debt-stat .stat-label svg { width: 13px; height: 13px; flex: none; }
+.compact-debts > .compact-stats.debt-overview-stats .debt-stat .stat-label svg { width: 20px; height: 20px; flex: none; }
 .compact-debts > .compact-stats.debt-overview-stats .debt-stat > strong { font-size: clamp(16px, 1.55vw, 23px); font-weight: 850; line-height: 1.1; letter-spacing: -0.35px; }
 .compact-debts > .compact-stats.debt-overview-stats .debt-stat > small { color: #475569; }
 .compact-debts > .compact-stats.debt-overview-stats .debt-stat-receivable > strong,

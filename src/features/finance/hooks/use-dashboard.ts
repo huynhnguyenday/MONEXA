@@ -3,6 +3,7 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import { usePathname, useRouter } from 'next/navigation';
 import { useFinance } from './use-finance';
 import { useVietnamToday } from './use-vietnam-today';
+import { debtPaymentGroup } from '../debt-payments';
 import type { FinanceView, FinanceModal } from '../types';
 import {
   type Expense,
@@ -134,8 +135,11 @@ export function useDashboard() {
       setNotice('Đã xóa công nợ.');
   }
   async function deleteCategory(category: Category) {
-    if (data.expenses.some((expense) => expense.categoryId === category.id))
-      return setNotice('Không thể xóa danh mục đang có chi tiêu.');
+    if (
+      data.expenses.some((expense) => expense.categoryId === category.id) ||
+      data.debts.some((debt) => debt.categoryId === category.id)
+    )
+      return setNotice('Không thể xóa danh mục đang có chi tiêu hoặc công nợ.');
     if (data.categories.length === 1) return setNotice('Cần giữ ít nhất một danh mục.');
     if (
       window.confirm(`Xóa danh mục “${category.name}”?`) &&
@@ -159,6 +163,14 @@ export function useDashboard() {
       setNotice('Đã xóa nguồn công nợ.');
   }
   async function settle(debt: Debt) {
+    if (!ready) return;
+    const current = data.debts.find((item) => item.id === debt.id);
+    if (!current) return;
+    const group = debtPaymentGroup(data, current.id);
+    if (group.length >= 2) {
+      open({ type: 'debt-payment', debtIds: group.map((item) => item.id) });
+      return;
+    }
     if (
       window.confirm(
         debt.settledAt ? 'Mở lại khoản công nợ này?' : 'Xác nhận đã thanh toán đầy đủ?',

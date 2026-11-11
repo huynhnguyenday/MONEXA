@@ -1,11 +1,12 @@
 import { NextResponse } from 'next/server';
-import { isAuthenticated, sameOrigin } from './auth';
+import { isAuthenticated, sameOrigin, renewSession } from './auth';
 export function json(value: unknown, status = 200) {
   return NextResponse.json(value, { status, headers: { 'Cache-Control': 'no-store' } });
 }
 export async function guard(request: Request, mutation = false) {
   if (!(await isAuthenticated())) return json({ error: 'Phiên đăng nhập đã hết hạn.' }, 401);
   if (mutation && !sameOrigin(request)) return json({ error: 'Yêu cầu không hợp lệ.' }, 403);
+  await renewSession();
   return null;
 }
 export async function readJson(request: Request, maxBytes = 2_000_000): Promise<unknown> {

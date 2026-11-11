@@ -44,6 +44,23 @@
   --action-hover-border: #eab308;
   --action-focus: #854d0e;
 }
+:root button:is(.monexa-reset, .monexa-cancel) {
+  --action-bg: #fff1f2;
+  --action-ink: #f87171;
+  --action-border: #fecaca;
+  --action-shadow: #991b1b14;
+  --action-hover-bg: #991b1b;
+  --action-hover-ink: #fff;
+  --action-hover-border: #991b1b;
+  --action-focus: #991b1b;
+  width: 44px;
+  height: 44px;
+  padding: 0;
+}
+:root button:is(.monexa-bell, .monexa-close) > .svg-inline--fa {
+  width: 20px;
+  height: 20px;
+}
 :root button.monexa-action:hover:not(:disabled) {
   background: var(--action-hover-bg) !important;
   color: var(--action-hover-ink) !important;

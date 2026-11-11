@@ -8,7 +8,9 @@ import { DebtForm } from '../forms/debt-form';
 import { CategoryForm } from '../forms/category-form';
 import { BudgetForm } from '../forms/budget-form';
 import { DebtSourceForm } from '../forms/debt-source-form';
+import { BudgetExchange } from '../forms/budget-exchange';
 import { BudgetHistory } from '../forms/budget-history';
+import DebtPaymentConfirmation from './debt-payment-confirmation';
 
 type Props = {
   modal: FinanceModal;
@@ -17,39 +19,60 @@ type Props = {
   error: ReactNode;
   month: string;
 };
-export default function FinanceDialogs({
-  modal,
-  onClose,
-  formProps,
-  error,
-  month,
-}: Props) {
+export default function FinanceDialogs({ modal, onClose, formProps, error, month }: Props) {
   if (!modal) return null;
-  const title = modal.type === 'expense'
-      ? modal.expense
-        ? 'Sửa khoản chi'
-        : 'Ghi một khoản chi'
-      : modal.type === 'debt'
-        ? modal.debt
-          ? 'Sửa công nợ'
-          : 'Ghi công nợ'
-        : modal.type === 'category'
-          ? modal.category
-            ? 'Sửa danh mục'
-            : 'Thêm danh mục'
+  const title =
+    modal.type === 'debt-payment'
+      ? 'Xác nhận trả nợ'
+      : modal.type === 'budget-exchange'
+        ? 'Trao đổi tiền ngân sách'
+        : modal.type === 'expense'
+          ? modal.expense
+            ? 'Sửa khoản chi'
+            : 'Ghi một khoản chi'
+          : modal.type === 'debt'
+            ? modal.debt
+              ? 'Sửa công nợ'
+              : 'Ghi công nợ'
+            : modal.type === 'category'
+              ? modal.category
+                ? 'Sửa danh mục'
+                : 'Thêm danh mục'
               : modal.type === 'debtSource'
                 ? modal.debtSource
                   ? 'Sửa nguồn công nợ'
                   : 'Thêm nguồn công nợ'
-              : modal.type === 'budget-history'
-              ? 'Lịch sử ngân sách'
-            : 'Ngân sách của bạn';
+                : modal.type === 'budget-history'
+                  ? 'Lịch sử ngân sách'
+                  : 'Ngân sách của bạn';
   return (
-    <Dialog title={title} onClose={onClose} busy={formProps.busy} compact={modal.type === 'debt'} className={modal.type === 'debt' ? 'debt-entry-dialog' : modal.type === 'budget-history' ? 'budget-history-dialog' : undefined}>
+    <Dialog
+      title={title}
+      onClose={onClose}
+      busy={formProps.busy}
+      compact={modal.type === 'debt'}
+      className={
+        modal.type === 'debt-payment'
+          ? 'debt-payment-dialog'
+          : modal.type === 'budget-exchange'
+            ? 'budget-exchange-dialog'
+            : modal.type === 'debt'
+              ? 'debt-entry-dialog'
+              : modal.type === 'budget-history'
+                ? 'budget-history-dialog'
+                : undefined
+      }
+    >
       {error}
+      {modal.type === 'debt-payment' && (
+        <DebtPaymentConfirmation {...formProps} debtIds={modal.debtIds} onCancel={onClose} />
+      )}
+      {modal.type === 'budget-exchange' && <BudgetExchange {...formProps} />}
       {modal.type === 'expense' && <ExpenseForm {...formProps} expense={modal.expense} />}
       {modal.type === 'category' && <CategoryForm {...formProps} category={modal.category} />}
-      {modal.type === 'debtSource' && <DebtSourceForm {...formProps} debtSource={modal.debtSource} />}
+      {modal.type === 'debtSource' && (
+        <DebtSourceForm {...formProps} debtSource={modal.debtSource} />
+      )}
       {modal.type === 'debt' && <DebtForm {...formProps} debt={modal.debt} />}
       {modal.type === 'budget' && <BudgetForm {...formProps} month={month} />}
       {modal.type === 'budget-history' && <BudgetHistory {...formProps} month={month} />}

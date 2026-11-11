@@ -8,7 +8,7 @@ self.addEventListener('push', (event) => {
   } catch { /* Always show a visible notification. */ }
   event.waitUntil(Promise.all([self.registration.showNotification(
     typeof message.title === 'string' ? message.title.slice(0, 120) : 'MONEXA · Nhắc hạn công nợ', {
-      body: typeof message.body === 'string' ? message.body.slice(0, 400) : 'Mở MONEXA để xem công nợ đến hạn.',
+      body: typeof message.body === 'string' ? message.body.slice(0, 16000) : 'Mở MONEXA để xem công nợ đến hạn.',
       icon: '/pwa-192.png', badge: '/favicon.png',
       tag: typeof message.tag === 'string' ? message.tag.slice(0, 180) : 'monexa:reminder',
       data: { url: '/debts' },
@@ -18,7 +18,7 @@ self.addEventListener('push', (event) => {
       if (new URL(client.url).origin === self.location.origin) client.postMessage({
         type: 'monexa:notification',
         title: typeof message.title === 'string' ? message.title.slice(0, 120) : 'MONEXA',
-        body: typeof message.body === 'string' ? message.body.slice(0, 400) : 'Mở MONEXA để xem công nợ đến hạn.',
+        body: typeof message.body === 'string' ? message.body.slice(0, 16000) : 'Mở MONEXA để xem công nợ đến hạn.',
         tag: typeof message.tag === 'string' ? message.tag.slice(0, 180) : 'monexa:reminder',
       });
     }

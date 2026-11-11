@@ -30,7 +30,7 @@ export function useNotificationFeed() {
         return;
       receive({
         title: message.title.slice(0, 120),
-        body: message.body.slice(0, 400),
+        body: message.body.slice(0, 16000),
         tag: message.tag.slice(0, 180),
       });
     };

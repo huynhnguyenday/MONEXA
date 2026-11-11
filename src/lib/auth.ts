@@ -4,7 +4,7 @@ import { cookies } from 'next/headers';
 import { getDatabase } from './mongodb';
 const loginIndexes = new Map<string, Promise<string>>();
 export const SESSION_COOKIE = 'monexa_session';
-export const SESSION_AGE = 60 * 60 * 24 * 7;
+export const SESSION_AGE = 60 * 60 * 24 * 400;
 export function missingConfig() {
   return ['MONGODB_URI', 'APP_PASSWORD', 'SESSION_SECRET'].filter(
     (key) =>
@@ -29,6 +29,16 @@ function signature(value: string) {
 export function createSession() {
   const expires = String(Math.floor(Date.now() / 1000) + SESSION_AGE);
   return `${expires}.${signature(expires)}`;
+}
+// Call only from Route Handlers after authentication.
+export async function renewSession() {
+  (await cookies()).set(SESSION_COOKIE, createSession(), {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === 'production',
+    sameSite: 'strict',
+    path: '/',
+    maxAge: SESSION_AGE,
+  });
 }
 export async function isAuthenticated() {
   if (missingConfig().length) return false;

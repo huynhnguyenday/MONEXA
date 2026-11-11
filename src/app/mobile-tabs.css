@@ -1,0 +1,63 @@
+/* Income is the shared visual reference for mobile content tabs. Layout and state stay local. */
+@media (max-width: 1023px) {
+  html:root :is(.income-mobile-tabs, .mobile-panel-tabs, .category-mobile-tabs, .header-debt-tabs) {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    align-items: stretch;
+    flex: none;
+    gap: 6px;
+    min-height: 44px;
+    height: auto;
+    padding: 0;
+    border: 0;
+    border-radius: 0;
+    background: transparent;
+  }
+  html:root
+    :is(.income-mobile-tabs, .mobile-panel-tabs, .category-mobile-tabs, .header-debt-tabs)
+    > button {
+    min-width: 0;
+    min-height: 44px;
+    padding: 8px;
+    border: 1px solid #cbd5e1;
+    border-radius: 10px;
+    background: #fff;
+    color: #405a7c;
+    box-shadow: none;
+    font-size: 13px;
+    font-weight: 700;
+    line-height: 1.4;
+    text-align: center;
+    transition:
+      background-color 0.15s,
+      border-color 0.15s,
+      color 0.15s;
+  }
+  html:root
+    :is(.income-mobile-tabs, .mobile-panel-tabs, .category-mobile-tabs, .header-debt-tabs)
+    > button:is([aria-pressed='true'], [aria-selected='true'], .active) {
+    background: #1d4ed8;
+    color: #fff;
+    border-color: #1d4ed8;
+  }
+  html:root
+    :is(.income-mobile-tabs, .mobile-panel-tabs, .category-mobile-tabs, .header-debt-tabs)
+    > button:focus-visible {
+    outline: 2px solid #1d4ed8;
+    outline-offset: 2px;
+  }
+}
+@media (max-width: 360px) {
+  html:root
+    :is(.income-mobile-tabs, .mobile-panel-tabs, .category-mobile-tabs, .header-debt-tabs)
+    > button {
+    font-size: 12px;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  html:root
+    :is(.income-mobile-tabs, .mobile-panel-tabs, .category-mobile-tabs, .header-debt-tabs)
+    > button {
+    transition: none;
+  }
+}

@@ -7,6 +7,8 @@ import {
   faPlus,
   faArrowDown,
   faArrowUp,
+  faArrowTrendUp,
+  faArrowTrendDown,
   faTriangleExclamation,
   faChevronLeft,
   faChevronRight,
@@ -98,7 +100,7 @@ export default function DebtPanel({
       <div className="compact-stats debt-overview-stats">
         <article className="stat debt-stat debt-stat-receivable debt-stat-month">
           <span className="stat-label">
-            <Icon icon={faArrowUp} aria-hidden="true" />
+            <Icon icon={faArrowTrendUp} fixedWidth aria-hidden="true" />
             Phải thu
           </span>
           <strong>{money(monthReceivable)}</strong>
@@ -106,7 +108,7 @@ export default function DebtPanel({
         </article>
         <article className="stat debt-stat debt-stat-receivable debt-stat-total">
           <span className="stat-label">
-            <Icon icon={faArrowUp} aria-hidden="true" />
+            <Icon icon={faArrowTrendUp} fixedWidth aria-hidden="true" />
             Phải thu
           </span>
           <strong>{money(totalReceivable)}</strong>
@@ -114,7 +116,7 @@ export default function DebtPanel({
         </article>
         <article className="stat debt-stat debt-stat-payable debt-stat-month">
           <span className="stat-label">
-            <Icon icon={faArrowDown} aria-hidden="true" />
+            <Icon icon={faArrowTrendDown} fixedWidth aria-hidden="true" />
             Phải trả
           </span>
           <strong>{money(monthPayable)}</strong>
@@ -122,7 +124,7 @@ export default function DebtPanel({
         </article>
         <article className="stat debt-stat debt-stat-payable debt-stat-total">
           <span className="stat-label">
-            <Icon icon={faArrowDown} aria-hidden="true" />
+            <Icon icon={faArrowTrendDown} fixedWidth aria-hidden="true" />
             Phải trả
           </span>
           <strong>{money(totalPayable)}</strong>

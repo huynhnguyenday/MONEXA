@@ -98,12 +98,6 @@ export function IncomeForm({
             ))}
           </select>
         </label>
-        {type === 'opening' && (
-          <p className="dialog-description">
-            Chỉ ghi tiền đang giữ ngoài ngân sách cũ. Không tính vào thu nhập tháng/năm; không nhập
-            lại tiền đã có trong ngân sách.
-          </p>
-        )}
         <label>
           Nhận vào
           <select

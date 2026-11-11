@@ -12,7 +12,7 @@
   overflow-x: auto;
   overscroll-behavior: contain;
   scrollbar-width: thin;
-  scrollbar-color: #b6c7df transparent;
+  scrollbar-color: var(--scrollbar-thumb) transparent;
 }
 .income-history-empty {
   margin: 8px 0;

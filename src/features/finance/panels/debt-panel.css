@@ -13,6 +13,10 @@
 .debt-calendar-directions {
   display: none;
 }
+.compact-debts .debt-create-stat > .svg-inline--fa {
+  width: 20px;
+  height: 20px;
+}
 .debt-calendar-viewport .react-datepicker {
   max-width: 100%;
 }

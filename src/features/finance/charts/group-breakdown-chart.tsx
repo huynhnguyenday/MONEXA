@@ -11,6 +11,7 @@ import {
 } from 'chart.js';
 import { money } from '../model';
 import { moneyAxisMaximum } from './money-axis';
+import { categoryAxisIcons } from './category-axis-icons';
 import { groupBreakdown, type BreakdownGroup, type BreakdownRecord } from './group-breakdown';
 
 ChartJS.register(CategoryScale, LinearScale, BarElement, Tooltip);
@@ -60,6 +61,10 @@ export default function GroupBreakdownChart({
   const slotWidth = Math.max(1, (width - 54) / Math.max(1, totals.length));
   const labelSize = slotWidth < 24 ? 8 : slotWidth < 48 ? 9 : 11;
   const labelCapacity = Math.max(1, Math.min(14, Math.floor(slotWidth / (labelSize * 0.65))));
+  const compactLabels = kind === 'expense' && width < 480;
+  const iconState = useRef({ groups: totals, enabled: compactLabels });
+  iconState.current = { groups: totals, enabled: compactLabels };
+  const iconPlugin = useMemo(() => categoryAxisIcons(() => iconState.current), []);
   const noun = kind === 'expense' ? 'chi tiêu' : 'công nợ';
   const periodLabel =
     period.length === 4 ? `năm ${period}` : `tháng ${period.slice(5)}/${period.slice(0, 4)}`;
@@ -89,9 +94,13 @@ export default function GroupBreakdownChart({
     },
     scales: {
       x: {
+        afterFit: (axis) => {
+          if (compactLabels) axis.height = 32;
+        },
         grid: { display: false },
         border: { display: false },
         ticks: {
+          callback: compactLabels ? () => '' : undefined,
           autoSkip: false,
           maxRotation: 0,
           minRotation: 0,
@@ -129,12 +138,14 @@ export default function GroupBreakdownChart({
       </div>
       <div
         className="category-chart"
+        data-axis-labels={compactLabels ? 'icons' : 'text'}
         ref={ref}
         role="img"
         aria-label={`${title}, ${periodLabel}. Tổng: ${money(totals.reduce((sum, group) => sum + group.amount, 0))}`}
       >
         {totals.length ? (
           <Bar
+            plugins={[iconPlugin]}
             options={options}
             data={{
               labels: totals.map((group) => wrapName(group.name, labelCapacity)),

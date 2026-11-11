@@ -13,10 +13,32 @@
   background: #1d4ed8;
   color: #fff;
 }
+.overview-panel .expense-expanded-info {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-template-areas: 'category source' 'time payment';
+}
+.expense-detail-category {
+  grid-area: category;
+}
+.expense-detail-source {
+  grid-area: source;
+}
+.expense-detail-time {
+  grid-area: time;
+}
+.expense-detail-payment {
+  grid-area: payment;
+}
+.overview-panel .expense-detail-time time {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 2px;
+}
 @media (max-width: 1023px) {
   .overview-panel .expense-expanded-info {
     grid-template-columns: repeat(2, minmax(0, 1fr));
-    grid-template-areas: 'category payment' 'time time';
+    grid-template-areas: 'category source' 'time payment';
     gap: 12px 16px;
   }
   .expense-detail-category {

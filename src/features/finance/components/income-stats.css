@@ -68,7 +68,7 @@
     overscroll-behavior-x: contain;
     scroll-snap-type: x proximity;
     scrollbar-width: thin;
-    scrollbar-color: #94a3b8 transparent;
+    scrollbar-color: var(--scrollbar-thumb) transparent;
     padding-bottom: 6px;
   }
   .income-stats::-webkit-scrollbar {
@@ -79,7 +79,7 @@
     border-radius: 6px;
   }
   .income-stats::-webkit-scrollbar-thumb {
-    background: #64748b;
+    background: var(--scrollbar-thumb);
     border-radius: 6px;
   }
   .income-panel .card.income-stat {

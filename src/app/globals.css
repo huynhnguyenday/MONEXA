@@ -10,8 +10,8 @@
   --line: #e2e8f0;
   --green: #1d4ed8;
   --scrollbar-track: transparent;
-  --scrollbar-thumb: #94a9c4;
-  --scrollbar-thumb-hover: #647fa3;
+  --scrollbar-thumb: #1d4ed8;
+  --scrollbar-thumb-hover: #1e40af;
 }
 * {
   box-sizing: border-box;
@@ -790,11 +790,6 @@ form input[type='color'] {
 .full {
   width: 100%;
   margin-top: 16px;
-}
-.dialog-description {
-  font-size: 11px;
-  color: #64748b;
-  line-height: 1.9;
 }
 .category-chips {
   display: flex;

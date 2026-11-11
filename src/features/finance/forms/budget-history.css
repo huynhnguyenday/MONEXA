@@ -1,6 +1,5 @@
 .budget-history-dialog .dialog-body { display: flex; flex-direction: column; min-height: 0; }
 .budget-history-manager { display: flex; flex-direction: column; flex: 1; min-height: 0; gap: 12px; }
-.budget-history-manager > .dialog-description { flex: none; }
 .budget-history-dialog .budget-history-manager .budget-history-list { flex: 1; min-height: 0; gap: 8px; overflow-y: auto; overscroll-behavior-y: contain; scrollbar-gutter: stable; }
 .budget-history-list li.budget-history-entry { grid-template-columns: 42px minmax(0, 1fr) auto; gap: 6px; }
 .budget-history-amounts { display: grid; gap: 4px; min-width: 0; }

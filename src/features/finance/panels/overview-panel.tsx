@@ -22,10 +22,9 @@ import {
   type Expense,
   type FinanceData,
   type getStatistics,
-  displayTime,
   money,
 } from '../model';
-import { categoryIcons } from '../icons';
+import ExpenseDetails from '../components/expense-details';
 import { createNameAmountSearchMatcher } from '@/lib/search';
 import { useHistoryWindow } from '../hooks/use-history-window';
 import HistoryEnd from '../components/history-end';
@@ -40,6 +39,7 @@ type Props = {
   onEdit: (expense: Expense) => void;
   onDelete: (expense: Expense) => void;
   onBudgetHistory: () => void;
+  onBudgetExchange: () => void;
   month: string;
 };
 export default function OverviewPanel({
@@ -50,6 +50,7 @@ export default function OverviewPanel({
   onEdit,
   onDelete,
   onBudgetHistory,
+  onBudgetExchange,
   month,
 }: Props) {
   const [mobileView, setMobileView] = useState<'charts' | 'expenses'>('charts');
@@ -216,6 +217,7 @@ export default function OverviewPanel({
             month={selectedMonth}
             ready={ready}
             onHistory={onBudgetHistory}
+            onExchange={onBudgetExchange}
           />
           <article className="card expense-panel">
             <div className="panel-heading">
@@ -283,7 +285,6 @@ export default function OverviewPanel({
                   </thead>
                   <tbody>
                     {filtered.slice(0, visibleCount).map((expense) => {
-                      const category = data.categories.find((c) => c.id === expense.categoryId)!;
                       const expanded = expandedExpense === expense.id;
                       return (
                         <Fragment key={expense.id}>
@@ -343,35 +344,7 @@ export default function OverviewPanel({
                           {expanded && (
                             <tr className="expense-details-row">
                               <td colSpan={3}>
-                                <div
-                                  className="expense-expanded-info"
-                                  id={`expense-details-${expense.id}`}
-                                >
-                                  <div className="expense-detail-item expense-detail-category">
-                                    <small>Danh mục</small>
-                                    <span>
-                                      <Icon
-                                        icon={categoryIcons[category.icon]}
-                                        style={{ color: category.color }}
-                                      />{' '}
-                                      {category.name}
-                                    </span>
-                                  </div>
-                                  <div className="expense-detail-item expense-detail-time">
-                                    <small>Thời gian</small>
-                                    <time dateTime={expense.occurredAt}>
-                                      {displayTime(expense.occurredAt)}
-                                    </time>
-                                  </div>
-                                  <div className="expense-detail-item expense-detail-payment">
-                                    <small>Thanh toán</small>
-                                    <span>
-                                      {expense.paymentMethod === 'cash'
-                                        ? 'Tiền mặt'
-                                        : 'Chuyển khoản'}
-                                    </span>
-                                  </div>
-                                </div>
+                                <ExpenseDetails data={data} expense={expense} />
                               </td>
                             </tr>
                           )}

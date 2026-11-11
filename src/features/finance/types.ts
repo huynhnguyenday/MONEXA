@@ -11,8 +11,10 @@ export const viewLabels: Record<FinanceView, string> = {
 export type FinanceModal =
   | { type: 'expense'; expense?: Expense }
   | { type: 'debt'; debt?: Debt }
+  | { type: 'debt-payment'; debtIds: string[] }
   | { type: 'category'; category?: Category }
   | { type: 'debtSource'; debtSource?: DebtSource }
   | { type: 'budget' }
   | { type: 'budget-history' }
+  | { type: 'budget-exchange' }
   | null;

@@ -62,7 +62,7 @@ export async function PUT(request: Request) {
   const rawData = (body as { data: Record<string, unknown> }).data;
   if (
     !parsed.data.replace &&
-    ['funds', 'incomes', 'fundTransfers', 'familySupports'].some(
+    ['funds', 'incomes', 'fundTransfers', 'familySupports', 'budgetExchanges'].some(
       (key) => !Object.hasOwn(rawData, key),
     )
   )
@@ -89,6 +89,19 @@ export async function PUT(request: Request) {
       );
     return json(snapshot);
   } catch (error) {
+    if (
+      error instanceof Error &&
+      ['INSUFFICIENT_EXCHANGE', 'EXCHANGE_HISTORY_CHANGED', 'MISSING_EXCHANGES'].includes(
+        error.message,
+      )
+    )
+      return json(
+        {
+          error:
+            'Không đủ số dư để chuyển đổi hoặc lịch sử chuyển đổi đã bị thay đổi. Giữ nội dung và tải lại dữ liệu.',
+        },
+        400,
+      );
     if (error instanceof Error && error.message === 'UNLINKED_BUDGET')
       return json(
         {

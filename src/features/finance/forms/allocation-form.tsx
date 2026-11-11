@@ -202,16 +202,6 @@ export function AllocationForm({
             </div>
           </>
         )}
-        {target === 'mother' && (
-          <p className="dialog-description">
-            Tiền gửi mẹ được trừ từ sổ nguồn đã chọn và ghi riêng, không ghi thêm vào chi tiêu.
-          </p>
-        )}
-        {target === 'savings' && (
-          <p className="dialog-description">
-            Tiền vẫn thuộc sở hữu của bạn, được dành riêng trong sổ tiết kiệm.
-          </p>
-        )}
         {error && (
           <p className="form-error" role="alert">
             {error}

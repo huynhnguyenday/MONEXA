@@ -99,6 +99,7 @@ export default function Dashboard() {
               }}
               onDelete={(expense) => void dashboard.deleteExpense(expense)}
               onBudgetHistory={() => dashboard.open({ type: 'budget-history' })}
+              onBudgetExchange={() => dashboard.open({ type: 'budget-exchange' })}
             />
           ) : dashboard.tab === 'debts' ? (
             <DebtPanel

@@ -35,13 +35,9 @@ export function BudgetHistory({
     grouped.set(day, [...(grouped.get(day) || []), entry]);
   });
   if (!entries.length)
-    return <p className="dialog-description">Tháng này chưa ghi thêm ngân sách.</p>;
+    return <p className="empty-state">Tháng này chưa ghi thêm ngân sách.</p>;
   return (
     <div className="budget-history-manager">
-      <p className="dialog-description">
-        Khoản cấp liên kết được sửa/hủy tại Thu nhập & phân bổ. Khoản ngân sách cũ có thể xóa tại
-        đây; chi tiêu và công nợ được giữ nguyên.
-      </p>
       <div
         className="budget-history-list"
         ref={viewportRef}

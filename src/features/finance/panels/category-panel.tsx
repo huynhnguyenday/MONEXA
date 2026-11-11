@@ -2,9 +2,8 @@
 import { useMemo, useState } from 'react';
 import { FontAwesomeIcon as Icon } from '@fortawesome/react-fontawesome';
 import { faMagnifyingGlass, faPen, faPlus, faTrashCan } from '@fortawesome/free-solid-svg-icons';
-import Pagination, { useViewportRows } from '@/components/pagination';
 import { createSearchMatcher } from '@/lib/search';
-import { type Category, type FinanceData, dateKey } from '../model';
+import { type Category, type FinanceData, dateKey, expenseCategoryId } from '../model';
 import ClassificationScreen from './classification-screen';
 import { categoryIcons } from '../icons';
 export default function CategoryPanel({
@@ -23,24 +22,15 @@ export default function CategoryPanel({
   onDelete: (item: Category) => void;
 }) {
   const [search, setSearch] = useState('');
-  const [page, setPage] = useState(0);
-  const { ref, size } = useViewportRows(168, 0);
   const matchesSearch = createSearchMatcher(search);
   const filteredCategories = data.categories.filter((item) => matchesSearch(item.name));
-  const filteredItems = filteredCategories;
-  const capacity = size * 2;
-  const pages = Math.max(1, Math.ceil(filteredItems.length / capacity));
-  const activePage = Math.min(page, pages - 1);
-  const visibleItems = filteredItems.slice(activePage * capacity, (activePage + 1) * capacity);
-  const listLabel = 'Danh mục';
   const records = useMemo(
     () =>
-      data.expenses.map((item) => ({
-        groupId: item.categoryId,
-        amount: item.amount,
-        date: dateKey(item.occurredAt),
-      })),
-    [data.expenses],
+      data.expenses.flatMap((item) => {
+        const groupId = expenseCategoryId(data, item);
+        return groupId ? [{ groupId, amount: item.amount, date: dateKey(item.occurredAt) }] : [];
+      }),
+    [data.expenses, data.debts],
   );
   return (
     <ClassificationScreen month={month} groups={data.categories} records={records} kind="expense">
@@ -58,7 +48,6 @@ export default function CategoryPanel({
               placeholder="Tìm…"
               onChange={(event) => {
                 setSearch(event.target.value);
-                setPage(0);
               }}
             />
           </label>
@@ -72,22 +61,23 @@ export default function CategoryPanel({
             <Icon icon={faPlus} />
           </button>
         </div>
-        <div className="category-grid-viewport" ref={ref}>
+        <div className="category-grid-viewport" role="region" aria-label="Danh mục" tabIndex={0}>
           {!filteredCategories.length ? (
             <div className="compact-empty">
               <p>Không tìm thấy danh mục phù hợp.</p>
             </div>
           ) : (
             <div className="category-grid">
-              {visibleItems.map((category) => {
+              {filteredCategories.map((category) => {
                 const expenses = data.expenses.filter(
                   (expense) => expense.categoryId === category.id,
                 );
-                const deleteReason = expenses.length
-                  ? 'Danh mục đang có chi tiêu'
-                  : data.categories.length === 1
-                    ? 'Cần giữ ít nhất một danh mục'
-                    : '';
+                const deleteReason =
+                  expenses.length || data.debts.some((debt) => debt.categoryId === category.id)
+                    ? 'Danh mục đang được sử dụng'
+                    : data.categories.length === 1
+                      ? 'Cần giữ ít nhất một danh mục'
+                      : '';
                 return (
                   <article className="category-tile" key={category.id}>
                     <span
@@ -134,13 +124,6 @@ export default function CategoryPanel({
             </div>
           )}
         </div>
-        <Pagination
-          label={listLabel}
-          page={activePage}
-          pages={pages}
-          total={filteredItems.length}
-          onChange={setPage}
-        />
       </article>
     </ClassificationScreen>
   );

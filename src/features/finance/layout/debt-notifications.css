@@ -109,6 +109,9 @@
   align-items: center;
   line-height: 1.5;
 }
+.notification-panel li > span {
+  white-space: pre-line;
+}
 .notification-panel li > span,
 .notification-panel li > small {
   grid-column: 1 / -1;

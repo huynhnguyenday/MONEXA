@@ -116,6 +116,7 @@ export const debtSchema = z
     title: text(100),
     debtSourceId: id,
     debtTypeId: id,
+    categoryId: id.nullable().optional(),
     paymentMethod: z.enum(['cash', 'bank']).default('cash'),
     amount,
     occurredAt: pastInstant,
@@ -129,9 +130,20 @@ export const debtSchema = z
     'Hạn thanh toán phải từ ngày ghi nhận trở đi.',
   )
   .refine((d) => !d.settledAt || d.settledAt >= d.occurredAt, 'Thời gian hoàn tất không hợp lệ.');
+export const budgetExchangeSchema = z
+  .object({
+    id,
+    userId: ownerId,
+    amount,
+    from: z.enum(['cash', 'bank']),
+    to: z.enum(['cash', 'bank']),
+    occurredAt: pastInstant,
+  })
+  .refine((entry) => entry.from !== entry.to, 'Nguồn và đích phải khác nhau.');
 export const financeSchema = z
   .object({
     ...incomeFields,
+    budgetExchanges: z.array(budgetExchangeSchema).max(5000).default([]),
     schemaVersion: z.literal(3),
     balance: z.number().int().safe().default(0),
     budget: z.number().int().min(0).max(1_000_000_000_000),
@@ -158,11 +170,18 @@ export const financeSchema = z
       'debtTypes',
       'debts',
       'budgets',
+      'budgetExchanges',
     ] as const) {
       if (new Set(data[key].map((item) => item.id)).size !== data[key].length)
         ctx.addIssue({ code: 'custom', message: `ID trùng trong ${key}.`, path: [key] });
     }
     const categories = new Set(data.categories.map((c) => c.id));
+    if (data.debts.some((debt) => debt.categoryId && !categories.has(debt.categoryId)))
+      ctx.addIssue({
+        code: 'custom',
+        message: 'Công nợ tham chiếu danh mục không tồn tại.',
+        path: ['debts'],
+      });
     const debtSources = new Set(data.debtSources.map((source) => source.id));
     const debtTypes = new Set(data.debtTypes.map((type) => type.id));
     const debtIds = new Set(data.debts.map((debt) => debt.id));
@@ -224,6 +243,7 @@ export const initialData: FinanceData = {
   incomes: [],
   fundTransfers: [],
   familySupports: [],
+  budgetExchanges: [],
   schemaVersion: 3,
   balance: 0,
   budget: 0,
@@ -438,18 +458,30 @@ function spendingMovements(data: FinanceData) {
   for (const support of data.familySupports)
     if (support.sourceFundId === 'spending')
       add(support.occurredAt, -support.amount, support.paymentMethod, true);
+  for (const exchange of [...(data.budgetExchanges ?? [])].sort(
+    (a, b) => a.occurredAt.localeCompare(b.occurredAt) || a.id.localeCompare(b.id),
+  )) {
+    movements.push({
+      at: exchange.occurredAt,
+      cash: exchange.from === 'cash' ? -exchange.amount : exchange.amount,
+      bank: exchange.from === 'bank' ? -exchange.amount : exchange.amount,
+      withdrawal: true,
+    });
+  }
   return movements;
 }
 
 function validSpendingAllocations(data: FinanceData) {
   if (
+    !data.budgetExchanges?.length &&
     !data.fundTransfers.some((t) => t.fromFundId === 'spending') &&
     !data.familySupports.some((s) => s.sourceFundId === 'spending')
   )
     return true;
   const accounts = { cash: 0, bank: 0 };
   const movements = spendingMovements(data).sort(
-    (a, b) => Date.parse(a.at) - Date.parse(b.at) || Number(!!a.withdrawal) - Number(!!b.withdrawal),
+    (a, b) =>
+      Date.parse(a.at) - Date.parse(b.at) || Number(!!a.withdrawal) - Number(!!b.withdrawal),
   );
   for (const movement of movements) {
     accounts.cash += movement.cash;
@@ -483,6 +515,7 @@ export function getBudgetPeriod(data: FinanceData, month: string, now = new Date
   const at = (until: number) =>
     calculateAccounts({
       ...data,
+      budgetExchanges: (data.budgetExchanges ?? []).filter((e) => Date.parse(e.occurredAt) < until),
       budgets: data.budgets.filter((e) => Date.parse(e.recordedAt) < until),
       fundTransfers: data.fundTransfers.filter((e) => Date.parse(e.occurredAt) < until),
       familySupports: data.familySupports.filter((e) => Date.parse(e.occurredAt) < until),
@@ -516,9 +549,6 @@ export function reconcileDebtExpenses(previous: FinanceData, next: FinanceData):
   );
   const categories = [...next.categories];
   let category =
-    [...previousLinks.values(), ...proposedLinks.values()]
-      .map((expense) => categories.find((item) => item.id === expense.categoryId))
-      .find(Boolean) ??
     categories.find((item) => item.name.trim().toLocaleLowerCase('vi') === 'công nợ') ??
     categories.find((item) => item.icon === 'debt');
 
@@ -532,7 +562,13 @@ export function reconcileDebtExpenses(previous: FinanceData, next: FinanceData):
       : !!debt.settledAt &&
         (!!linked || !old || !old.settledAt || debtDirection(previous, old) !== 'payable');
     if (!needsExpense) continue;
-    if (!category) {
+    const selectedCategory = debt.categoryId
+      ? categories.find((item) => item.id === debt.categoryId)
+      : debt.categoryId === undefined && linked
+        ? categories.find((item) => item.id === linked.categoryId)
+        : undefined;
+    if (debt.categoryId && !selectedCategory) throw new Error('INVALID_DEBT_CATEGORY');
+    if (!selectedCategory && !category) {
       category = {
         id: crypto.randomUUID(),
         userId: PERSONAL_USER_ID,
@@ -552,10 +588,7 @@ export function reconcileDebtExpenses(previous: FinanceData, next: FinanceData):
       id: linked?.id ?? crypto.randomUUID(),
       userId: PERSONAL_USER_ID,
       debtId: debt.id,
-      categoryId:
-        linked && categories.some((item) => item.id === linked.categoryId)
-          ? linked.categoryId
-          : category.id,
+      categoryId: selectedCategory?.id ?? category!.id,
       title: debt.title,
       amount: debt.amount,
       note: debt.note,
@@ -565,6 +598,16 @@ export function reconcileDebtExpenses(previous: FinanceData, next: FinanceData):
   }
   return financeSchema.parse({ ...next, categories, expenses });
 }
+/** Optional debt purpose is distinct from the technical fallback category of its ledger entry. */
+export function expenseCategoryId(
+  data: Pick<FinanceData, 'debts'>,
+  expense: Pick<Expense, 'debtId' | 'categoryId'>,
+): string | null {
+  return expense.debtId
+    ? data.debts.find((debt) => debt.id === expense.debtId)?.categoryId || null
+    : expense.categoryId;
+}
+
 export function getCashStatistics(data: FinanceData, month: string, today = localDate()) {
   const days = statisticsDays(month, today);
   const income = data.budgets

@@ -6,7 +6,7 @@ import { dateKey, upcomingDebtReminders, type FinanceData } from '../model';
 import PushNotificationSettings from '../components/push-notification-settings';
 import NotificationBody from '../components/notification-body';
 import { useNotificationFeed } from '../hooks/use-notification-feed';
-import { debtPushMessage } from '../notifications/push-message';
+import { debtsByDueDate, groupedDebtPushMessage } from '../notifications/push-message';
 import './debt-notifications.css';
 
 export default function DebtNotifications({
@@ -58,7 +58,23 @@ export default function DebtNotifications({
       )
     : [];
   const unread = reminders.filter((debt) => debt.reminderReadFor !== debt.dueDate);
-  const unreadCount = unread.length + feed.items.filter((item) => !item.read).length;
+  const reminderGroups = debtsByDueDate(reminders).map((entries) => ({
+    entries,
+    id: entries[0].dueDate!,
+    title: `Công nợ đến hạn ${entries[0].dueDate!.split('-').reverse().join('/')}`,
+    read: entries.every((debt) => debt.reminderReadFor === debt.dueDate),
+    message: groupedDebtPushMessage(
+      entries.map((debt) => ({
+        ...debt,
+        dueDate: debt.dueDate!,
+        sourceName: data.debtSources.find((source) => source.id === debt.debtSourceId)?.name,
+      })),
+      `monexa:due:${entries[0].dueDate}`,
+    ),
+  }));
+  const unreadCount =
+    reminderGroups.filter((group) => !group.read).length +
+    feed.items.filter((item) => !item.read).length;
   const hasContent = reminders.length > 0 || feed.items.length > 0;
   const testNotification = () => {
     const debt = data.debts
@@ -66,7 +82,18 @@ export default function DebtNotifications({
       .sort((a, b) => a.dueDate!.localeCompare(b.dueDate!) || a.id.localeCompare(b.id))[0];
     feed.receive(
       debt?.dueDate
-        ? debtPushMessage({ ...debt, dueDate: debt.dueDate }, 'monexa:test', true)
+        ? groupedDebtPushMessage(
+            data.debts
+              .filter((item) => !item.settledAt && item.dueDate === debt.dueDate)
+              .map((item) => ({
+                ...item,
+                sourceName: data.debtSources.find((source) => source.id === item.debtSourceId)
+                  ?.name,
+                dueDate: item.dueDate!,
+              })),
+            'monexa:test',
+            true,
+          )
         : {
             tag: 'monexa:test',
             title: 'MONEXA · Thông báo thử',
@@ -157,19 +184,19 @@ export default function DebtNotifications({
                     </small>
                   </li>
                 ))}
-                {reminders.map((debt) => (
-                  <li key={debt.id}>
-                    <strong>{debt.title}</strong>
+                {reminderGroups.map((group) => (
+                  <li key={group.id}>
+                    <strong>{group.title}</strong>
                     <div className="notification-item-actions">
                       <button
                         type="button"
                         className="notification-compact-button notification-delete-button"
-                        aria-label={`Xóa thông báo ${debt.title}`}
+                        aria-label={`Xóa thông báo ${group.title}`}
                         title="Xóa thông báo"
                         onClick={() =>
                           setDismissedReminders((previous) => [
                             ...previous,
-                            `${debt.id}:${debt.dueDate}`,
+                            ...group.entries.map((debt) => `${debt.id}:${debt.dueDate}`),
                           ])
                         }
                       >
@@ -179,14 +206,9 @@ export default function DebtNotifications({
                       </button>
                     </div>
                     <span>
-                      <NotificationBody
-                        body={
-                          debtPushMessage({ ...debt, dueDate: debt.dueDate! }, `monexa:${debt.id}`)
-                            .body
-                        }
-                      />
+                      <NotificationBody body={group.message.body} />
                     </span>
-                    <small>{debt.reminderReadFor === debt.dueDate ? 'Đã đọc' : 'Chưa đọc'}</small>
+                    <small>{group.read ? 'Đã đọc' : 'Chưa đọc'}</small>
                   </li>
                 ))}
               </ul>
