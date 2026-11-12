@@ -13,12 +13,14 @@ export default function ClassificationScreen({
   records,
   kind,
   children,
+  charts,
 }: {
   month: string;
   groups: BreakdownGroup[];
   records: BreakdownRecord[];
   kind: 'expense' | 'debt';
   children: ReactNode;
+  charts?: ReactNode;
 }) {
   const initialMonth = month || dateKey().slice(0, 7);
   const [chartMonth, setChartMonth] = useState(initialMonth);
@@ -62,22 +64,26 @@ export default function ClassificationScreen({
         </button>
       </div>
       <div className="category-charts" id={`${id}-charts`}>
-        <GroupBreakdownChart
-          groups={groups}
-          records={records}
-          period={chartMonth}
-          kind={kind}
-          title={`${chartLabel} theo tháng`}
-          picker={<MonthPicker value={chartMonth} onChange={setChartMonth} />}
-        />
-        <GroupBreakdownChart
-          groups={groups}
-          records={records}
-          period={year}
-          kind={kind}
-          title={`Tổng ${chartLabel.toLocaleLowerCase('vi')} theo năm`}
-          picker={<YearPicker value={year} onChange={setYear} />}
-        />
+        {charts || (
+          <>
+            <GroupBreakdownChart
+              groups={groups}
+              records={records}
+              period={chartMonth}
+              kind={kind}
+              title={`${chartLabel} theo tháng`}
+              picker={<MonthPicker value={chartMonth} onChange={setChartMonth} />}
+            />
+            <GroupBreakdownChart
+              groups={groups}
+              records={records}
+              period={year}
+              kind={kind}
+              title={`Tổng ${chartLabel.toLocaleLowerCase('vi')} theo năm`}
+              picker={<YearPicker value={year} onChange={setYear} />}
+            />
+          </>
+        )}
       </div>
       <div className="category-management" id={`${id}-list`}>
         {children}

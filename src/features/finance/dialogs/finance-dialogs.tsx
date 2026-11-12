@@ -23,7 +23,9 @@ export default function FinanceDialogs({ modal, onClose, formProps, error, month
   if (!modal) return null;
   const title =
     modal.type === 'debt-payment'
-      ? 'Xác nhận trả nợ'
+      ? modal.reopen
+        ? 'Xác nhận mở lại công nợ'
+        : 'Xác nhận thanh toán'
       : modal.type === 'budget-exchange'
         ? 'Trao đổi tiền ngân sách'
         : modal.type === 'expense'
@@ -65,7 +67,12 @@ export default function FinanceDialogs({ modal, onClose, formProps, error, month
     >
       {error}
       {modal.type === 'debt-payment' && (
-        <DebtPaymentConfirmation {...formProps} debtIds={modal.debtIds} onCancel={onClose} />
+        <DebtPaymentConfirmation
+          {...formProps}
+          debtIds={modal.debtIds}
+          reopen={modal.reopen}
+          onCancel={onClose}
+        />
       )}
       {modal.type === 'budget-exchange' && <BudgetExchange {...formProps} />}
       {modal.type === 'expense' && <ExpenseForm {...formProps} expense={modal.expense} />}

@@ -6,7 +6,16 @@ import { faArrowRotateLeft } from '@fortawesome/free-solid-svg-icons';
 import { categoryIcons } from '../icons';
 import './debt-form.css';
 import DateTimeField from '@/components/date-time-field';
-import { dateFromKey, dateKeyFromLocal, type Debt, PERSONAL_USER_ID } from '../model';
+import {
+  assertLendingFunds,
+  reconcileDebtExpenses,
+  calculateAccounts,
+  money,
+  dateFromKey,
+  dateKeyFromLocal,
+  type Debt,
+  PERSONAL_USER_ID,
+} from '../model';
 import { type FormProps, field } from './types';
 export function DebtForm({ data, save, done, busy, debt }: { debt?: Debt } & FormProps) {
   const [amount, setAmount] = useState(
@@ -17,6 +26,8 @@ export function DebtForm({ data, save, done, busy, debt }: { debt?: Debt } & For
     debt?.debtSourceId || data.debtSources[0]?.id || '',
   );
   const [debtTypeId, setDebtTypeId] = useState(debt?.debtTypeId || data.debtTypes[0]?.id || '');
+  const lending = data.debtTypes.find((type) => type.id === debtTypeId)?.direction === 'receivable';
+  const accounts = calculateAccounts(data);
   const [error, setError] = useState('');
   const [categoryId, setCategoryId] = useState(
     debt?.categoryId === undefined
@@ -41,7 +52,7 @@ export function DebtForm({ data, save, done, busy, debt }: { debt?: Debt } & For
           amount: Number(String(f.get('amount')).replace(/\D/g, '')),
           debtTypeId: debtType.id,
           debtSourceId: source.id,
-          categoryId: categoryId || null,
+          categoryId: lending ? null : categoryId || null,
           paymentMethod: field(f, 'paymentMethod') as Debt['paymentMethod'],
           occurredAt: debt?.occurredAt || new Date().toISOString(),
           dueDate: dateKeyFromLocal(due),
@@ -49,15 +60,18 @@ export function DebtForm({ data, save, done, busy, debt }: { debt?: Debt } & For
           settledAt: debt?.settledAt || null,
           note: debt?.note || '',
         };
-        if (
-          await save({
-            ...data,
-            debts: debt
-              ? data.debts.map((d) => (d.id === debt.id ? next : d))
-              : [next, ...data.debts],
-          })
-        )
-          done();
+        const proposed = {
+          ...data,
+          debts: debt
+            ? data.debts.map((d) => (d.id === debt.id ? next : d))
+            : [next, ...data.debts],
+        };
+        try {
+          assertLendingFunds(data, reconcileDebtExpenses(data, proposed));
+          if (await save(proposed)) done();
+        } catch {
+          setError('Không đủ số dư nguồn tiền đã chọn để cho mượn hoặc dữ liệu không hợp lệ.');
+        }
       }}
     >
       <fieldset disabled={busy}>
@@ -126,8 +140,12 @@ export function DebtForm({ data, save, done, busy, debt }: { debt?: Debt } & For
           <label>
             Hình thức chi tiền
             <select name="paymentMethod" defaultValue={debt?.paymentMethod || 'cash'}>
-              <option value="cash">Tiền mặt</option>
-              <option value="bank">Chuyển khoản</option>
+              <option value="cash">
+                Tiền mặt{lending ? ` — hiện có ${money(accounts.cash)}` : ''}
+              </option>
+              <option value="bank">
+                Chuyển khoản{lending ? ` — hiện có ${money(accounts.bank)}` : ''}
+              </option>
             </select>
           </label>
           <DateTimeField
@@ -148,35 +166,43 @@ export function DebtForm({ data, save, done, busy, debt }: { debt?: Debt } & For
             Chưa có loại công nợ để chọn.
           </p>
         )}
-        <div className="debt-category-heading">
-          <label id="debt-category-label">
-            Danh mục <span className="optional">(không bắt buộc)</span>
-          </label>
-          <button
-            type="button"
-            className="monexa-action monexa-reset"
-            aria-label="Xóa chọn danh mục"
-            title="Xóa chọn danh mục"
-            disabled={!categoryId || busy}
-            onClick={() => setCategoryId('')}
-          >
-            <Icon icon={faArrowRotateLeft} fixedWidth />
-          </button>
-        </div>
-        <div className="expense-category-picker" role="group" aria-labelledby="debt-category-label">
-          {data.categories.map((category) => (
-            <button
-              type="button"
-              key={category.id}
-              className={categoryId === category.id ? 'selected' : ''}
-              aria-pressed={categoryId === category.id}
-              onClick={() => setCategoryId(category.id)}
+        {!lending && (
+          <>
+            <div className="debt-category-heading">
+              <label id="debt-category-label">
+                Danh mục <span className="optional">(không bắt buộc)</span>
+              </label>
+              <button
+                type="button"
+                className="monexa-action monexa-reset"
+                aria-label="Xóa chọn danh mục"
+                title="Xóa chọn danh mục"
+                disabled={!categoryId || busy}
+                onClick={() => setCategoryId('')}
+              >
+                <Icon icon={faArrowRotateLeft} fixedWidth />
+              </button>
+            </div>
+            <div
+              className="expense-category-picker"
+              role="group"
+              aria-labelledby="debt-category-label"
             >
-              <Icon icon={categoryIcons[category.icon]} style={{ color: category.color }} />
-              <span>{category.name}</span>
-            </button>
-          ))}
-        </div>
+              {data.categories.map((category) => (
+                <button
+                  type="button"
+                  key={category.id}
+                  className={categoryId === category.id ? 'selected' : ''}
+                  aria-pressed={categoryId === category.id}
+                  onClick={() => setCategoryId(category.id)}
+                >
+                  <Icon icon={categoryIcons[category.icon]} style={{ color: category.color }} />
+                  <span>{category.name}</span>
+                </button>
+              ))}
+            </div>
+          </>
+        )}
         {error && (
           <p role="alert" className="form-error">
             {error}

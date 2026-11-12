@@ -8,10 +8,13 @@ import './expense-chart-tooltip.css';
 
 export type ExpenseChartSelection = {
   title: string;
-  items: Expense[];
+  items: Pick<Expense, 'id' | 'title' | 'amount'>[];
   x: number;
   y: number;
   average?: number;
+  detailLabel?: string;
+  totalLabel?: string;
+  emptyLabel?: string;
 };
 export default function ExpenseChartTooltip({
   selection,
@@ -59,7 +62,7 @@ export default function ExpenseChartTooltip({
       ref={ref}
       className="expense-chart-tooltip"
       role="dialog"
-      aria-label="Chi tiết khoản chi trên biểu đồ"
+      aria-label={selection.detailLabel || 'Chi tiết khoản chi trên biểu đồ'}
       style={{
         width,
         maxHeight,
@@ -90,11 +93,12 @@ export default function ExpenseChartTooltip({
             </div>
           ))
         ) : (
-          <p>Không có khoản chi.</p>
+          <p>{selection.emptyLabel || 'Không có khoản chi.'}</p>
         )}
       </div>
       <div className="expense-chart-tooltip-total">
-        Tổng chi <b>{money(selection.items.reduce((sum, item) => sum + item.amount, 0))}</b>
+        {selection.totalLabel || 'Tổng chi'}{' '}
+        <b>{money(selection.items.reduce((sum, item) => sum + item.amount, 0))}</b>
       </div>
       {selection.average !== undefined && (
         <div className="expense-chart-tooltip-total">

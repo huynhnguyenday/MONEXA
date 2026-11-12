@@ -87,12 +87,12 @@ dialog.debt-payment-dialog {
 }
 .debt-payment-actions {
   display: flex;
-  justify-content: flex-end;
+  justify-content: center;
   gap: 10px;
 }
 :root .debt-payment-actions > button.monexa-action {
-  width: 52px;
-  min-width: 52px;
+  width: 68px;
+  min-width: 68px;
   height: 34px;
   min-height: 34px;
   padding: 0;

@@ -14,16 +14,19 @@ export default function DebtPaymentConfirmation({
   done,
   busy,
   debtIds,
+  reopen = false,
   onCancel,
-}: FormProps & { debtIds: string[]; onCancel: () => void }) {
+}: FormProps & { debtIds: string[]; reopen?: boolean; onCancel: () => void }) {
   const [error, setError] = useState('');
   const group = debtPaymentGroup(data, debtIds[0]);
   const ids = new Set(debtIds);
   const unchanged =
-    debtIds.length >= 2 &&
-    ids.size === debtIds.length &&
-    group.length === debtIds.length &&
-    group.every((debt) => ids.has(debt.id));
+    debtIds.length === 1
+      ? !!data.debts.find((debt) => debt.id === debtIds[0] && !!debt.settledAt === reopen)
+      : debtIds.length >= 2 &&
+        ids.size === debtIds.length &&
+        group.length === debtIds.length &&
+        group.every((debt) => ids.has(debt.id));
   const entries = data.debts.filter((debt) => ids.has(debt.id));
   const source = data.debtSources.find((source) => source.id === entries[0]?.debtSourceId);
   const dueDate = entries[0]?.dueDate;
@@ -36,7 +39,19 @@ export default function DebtPaymentConfirmation({
         if (busy) return;
         setError('');
         try {
-          if (await save(settleDebtPaymentGroup(data, debtIds))) done();
+          const next =
+            debtIds.length === 1
+              ? {
+                  ...data,
+                  debts: data.debts.map((debt) =>
+                    ids.has(debt.id)
+                      ? { ...debt, settledAt: reopen ? null : new Date().toISOString() }
+                      : debt,
+                  ),
+                }
+              : settleDebtPaymentGroup(data, debtIds);
+          if (!unchanged) throw new Error('Công nợ đã thay đổi. Hãy đóng và mở lại xác nhận.');
+          if (await save(next)) done();
         } catch (reason) {
           setError(reason instanceof Error ? reason.message : 'Chưa thể xác nhận thanh toán.');
         }
@@ -105,8 +120,8 @@ export default function DebtPaymentConfirmation({
           type="submit"
           disabled={busy || !unchanged}
           aria-busy={busy}
-          aria-label={busy ? 'Đang thanh toán' : 'Xác nhận thanh toán'}
-          title="Xác nhận thanh toán"
+          aria-label={busy ? 'Đang lưu' : reopen ? 'Xác nhận mở lại' : 'Xác nhận thanh toán'}
+          title={reopen ? 'Xác nhận mở lại' : 'Xác nhận thanh toán'}
         >
           <Icon icon={busy ? faSpinner : faCheck} spin={busy} />
           {busy && (

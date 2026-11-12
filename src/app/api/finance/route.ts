@@ -91,14 +91,19 @@ export async function PUT(request: Request) {
   } catch (error) {
     if (
       error instanceof Error &&
-      ['INSUFFICIENT_EXCHANGE', 'EXCHANGE_HISTORY_CHANGED', 'MISSING_EXCHANGES'].includes(
-        error.message,
-      )
+      [
+        'INSUFFICIENT_LENDING',
+        'INSUFFICIENT_EXCHANGE',
+        'EXCHANGE_HISTORY_CHANGED',
+        'MISSING_EXCHANGES',
+      ].includes(error.message)
     )
       return json(
         {
           error:
-            'Không đủ số dư để chuyển đổi hoặc lịch sử chuyển đổi đã bị thay đổi. Giữ nội dung và tải lại dữ liệu.',
+            error.message === 'INSUFFICIENT_LENDING'
+              ? 'Không đủ số dư nguồn tiền đã chọn để cho mượn.'
+              : 'Không đủ số dư để chuyển đổi hoặc lịch sử chuyển đổi đã bị thay đổi. Giữ nội dung và tải lại dữ liệu.',
         },
         400,
       );

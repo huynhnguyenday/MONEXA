@@ -6,6 +6,7 @@ import { createSearchMatcher } from '@/lib/search';
 import { type DebtSource, type FinanceData } from '../model';
 import ClassificationScreen from './classification-screen';
 import { DebtSourceIcon } from '../debt-source-icon';
+import DebtSourceCharts from '../charts/debt-source-charts';
 export default function DebtSourcePanel({
   data,
   ready,
@@ -34,7 +35,13 @@ export default function DebtSourcePanel({
     [data.debts],
   );
   return (
-    <ClassificationScreen month={month} groups={data.debtSources} records={records} kind="debt">
+    <ClassificationScreen
+      month={month}
+      groups={data.debtSources}
+      records={records}
+      kind="debt"
+      charts={<DebtSourceCharts data={data} month={month} records={records} />}
+    >
       <article className="card category-list-panel debt-source-list-panel">
         <div className="category-toolbar">
           <h2>

@@ -8,6 +8,7 @@ import { createPushIndexes } from './notifications/push-repository';
 import {
   financeSchema,
   calculateAccounts,
+  assertLendingFunds,
   reconcileDebtExpenses,
   defaultDebtTypes,
   debtSourceIconColors,
@@ -583,6 +584,7 @@ export async function writeFinance(
       await assertStoredBalance(db, previous, session);
       await reconcileFundBalances(db, previous, session, false);
       data = reconcileDebtExpenses(previous, data);
+      assertLendingFunds(previous, data);
       assertBudgetChanges(previous, data, replace);
       if (!replace) {
         const next = new Map(data.budgetExchanges.map((entry) => [entry.id, entry]));

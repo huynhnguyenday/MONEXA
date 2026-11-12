@@ -36,6 +36,7 @@ export default function GroupBreakdownChart({
   title,
   kind,
   picker,
+  titleAction,
 }: {
   groups: BreakdownGroup[];
   records: BreakdownRecord[];
@@ -43,6 +44,7 @@ export default function GroupBreakdownChart({
   title: string;
   kind: 'expense' | 'debt';
   picker: ReactNode;
+  titleAction?: ReactNode;
 }) {
   const [width, setWidth] = useState(640);
   const ref = useRef<HTMLDivElement>(null);
@@ -133,7 +135,10 @@ export default function GroupBreakdownChart({
   return (
     <article className="card category-chart-panel">
       <div className="category-chart-toolbar">
-        <h2>{title}</h2>
+        <h2>
+          {title}
+          {titleAction}
+        </h2>
         {picker}
       </div>
       <div

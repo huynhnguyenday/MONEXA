@@ -171,18 +171,7 @@ export function useDashboard() {
       open({ type: 'debt-payment', debtIds: group.map((item) => item.id) });
       return;
     }
-    if (
-      window.confirm(
-        debt.settledAt ? 'Mở lại khoản công nợ này?' : 'Xác nhận đã thanh toán đầy đủ?',
-      ) &&
-      (await save({
-        ...data,
-        debts: data.debts.map((d) =>
-          d.id === debt.id ? { ...d, settledAt: d.settledAt ? null : new Date().toISOString() } : d,
-        ),
-      }))
-    )
-      setNotice(debt.settledAt ? 'Đã mở lại công nợ.' : 'Đã đánh dấu hoàn tất.');
+    open({ type: 'debt-payment', debtIds: [current.id], reopen: !!current.settledAt });
   }
   async function importData(file?: File) {
     if (!file) return;

@@ -392,7 +392,9 @@ function statisticsDays(month: string, today: string) {
       : new Date(Date.UTC(year, monthNumber, 0)).getUTCDate();
 }
 export function getStatistics(data: FinanceData, month: string, today = localDate()) {
-  const expenses = data.expenses.filter((e) => dateKey(e.occurredAt).startsWith(month));
+  const expenses = data.expenses.filter(
+    (e) => isSpendingExpense(data, e) && dateKey(e.occurredAt).startsWith(month),
+  );
   const total = expenses.reduce((sum, e) => sum + e.amount, 0);
   const [year, m] = month.split('-').map(Number);
   const days = statisticsDays(month, today);
@@ -598,11 +600,43 @@ export function reconcileDebtExpenses(previous: FinanceData, next: FinanceData):
   }
   return financeSchema.parse({ ...next, categories, expenses });
 }
+/** Lending affects the balance but is not consumption. */
+export function isSpendingExpense(
+  data: Pick<FinanceData, 'debts' | 'debtTypes'>,
+  expense: Pick<Expense, 'debtId'>,
+) {
+  const debt = expense.debtId && data.debts.find((item) => item.id === expense.debtId);
+  return !debt || debtDirection(data, debt) === 'payable';
+}
+
+export function assertLendingFunds(previous: FinanceData, next: FinanceData) {
+  const accounts = calculateAccounts(previous);
+  const closing = calculateAccounts(next);
+  for (const method of ['cash', 'bank'] as const) {
+    let increase = 0;
+    for (const debt of next.debts) {
+      if (debtDirection(next, debt) !== 'receivable' || (debt.paymentMethod ?? 'cash') !== method)
+        continue;
+      const old = previous.debts.find((item) => item.id === debt.id);
+      const oldAmount =
+        old &&
+        debtDirection(previous, old) === 'receivable' &&
+        (old.paymentMethod ?? 'cash') === method
+          ? old.amount
+          : 0;
+      increase += Math.max(0, debt.amount - oldAmount);
+    }
+    if (increase > 0 && (increase > accounts[method] || closing[method] < 0))
+      throw new Error('INSUFFICIENT_LENDING');
+  }
+}
+
 /** Optional debt purpose is distinct from the technical fallback category of its ledger entry. */
 export function expenseCategoryId(
-  data: Pick<FinanceData, 'debts'>,
+  data: Pick<FinanceData, 'debts' | 'debtTypes'>,
   expense: Pick<Expense, 'debtId' | 'categoryId'>,
 ): string | null {
+  if (!isSpendingExpense(data, expense)) return null;
   return expense.debtId
     ? data.debts.find((debt) => debt.id === expense.debtId)?.categoryId || null
     : expense.categoryId;

@@ -30,7 +30,7 @@ export default function CategoryPanel({
         const groupId = expenseCategoryId(data, item);
         return groupId ? [{ groupId, amount: item.amount, date: dateKey(item.occurredAt) }] : [];
       }),
-    [data.expenses, data.debts],
+    [data.expenses, data.debts, data.debtTypes],
   );
   return (
     <ClassificationScreen month={month} groups={data.categories} records={records} kind="expense">
