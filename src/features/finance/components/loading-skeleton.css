@@ -40,11 +40,6 @@
 .category-skeleton .category-tile-info { gap: 8px; }
 .category-skeleton .category-tile-actions { gap: 22px; }
 .category-skeleton .category-chart { display: flex; }
-.debt-skeleton .skeleton-debt-calendar { display: flex; flex-direction: column; gap: 8px; flex: 1; width: 100%; min-height: 0; }
-.skeleton-calendar-heading { display: flex; align-items: center; justify-content: space-between; gap: 16px; min-height: 44px; }
-.skeleton-calendar-weekdays { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); justify-items: center; gap: 4px; padding: 8px 0; }
-.skeleton-calendar-days { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); flex: 1; min-height: 0; gap: 4px; }
-.skeleton-calendar-days .skeleton-calendar-cell { height: 100%; border-radius: 10px; }
 .skeleton-debt-history { display: grid; grid-template-rows: repeat(4, minmax(0, 1fr)); flex: 1; min-height: 0; }
 .skeleton-history-row { display: grid; grid-template-columns: 2fr 1.5fr 1fr 1.5fr 1fr .7fr; align-items: center; gap: 16px; border-bottom: 1px solid #edf2f8; }
 @keyframes skeleton-shimmer { from { background-position: 180% 0; } to { background-position: -60% 0; } }
@@ -54,8 +49,6 @@
   .category-skeleton .category-grid { height: 100%; grid-template-rows: repeat(2, minmax(0, 1fr)); }
   .category-skeleton .category-tile { min-height: 0; }
   .category-skeleton .category-tile:nth-child(n + 5) { display: none; }
-  .debt-skeleton .skeleton-calendar-days .skeleton-calendar-cell { height: 76px; }
-  .debt-skeleton .skeleton-calendar-days { flex: none; grid-auto-rows: 76px; }
   .skeleton-history-row { grid-template-columns: minmax(0, 1fr) 90px; gap: 8px 16px; padding: 10px 0; }
 }
 @media (max-width: 767px) {

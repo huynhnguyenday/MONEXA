@@ -1,11 +1,11 @@
+'use client';
 import { LoadingSkeleton as Skeleton } from '../components/loading-skeleton';
-import { dateKey } from '../model';
+import { dateKey, initialData } from '../model';
+import DebtCalendar from './debt-calendar';
+import './debt-calendar-layout.css';
 
 export default function DebtSkeleton({ view }: { view: 'calendar' | 'history' }) {
   const [year, month] = dateKey().split('-').map(Number);
-  const weekday = (new Date(Date.UTC(year, month - 1, 1)).getUTCDay() + 6) % 7;
-  const days = new Date(Date.UTC(year, month, 0)).getUTCDate();
-  const cells = Math.ceil((weekday + days) / 7) * 7;
   return (
     <section
       className="compact-debts finance-skeleton debt-skeleton"
@@ -18,54 +18,89 @@ export default function DebtSkeleton({ view }: { view: 'calendar' | 'history' })
       <div className="compact-stats debt-overview-stats" aria-hidden="true">
         {Array.from({ length: 7 }, (_, index) => (
           <article
-            className={`stat debt-stat ${index % 2 ? 'debt-stat-total' : 'debt-stat-month'}`}
+            className={`stat ${index === 6 ? 'debt-stat debt-create-stat debt-create-skeleton' : 'debt-stat'} ${index % 2 ? 'debt-stat-total' : 'debt-stat-month'}`}
             key={index}
           >
-            <Skeleton className="skeleton-label" />
-            <Skeleton className="skeleton-value" />
-            <Skeleton className="skeleton-detail" />
+            {index === 6 ? (
+              <>
+                <Skeleton className="skeleton-icon" />
+                <Skeleton className="skeleton-label" />
+              </>
+            ) : (
+              <>
+                <span className="stat-label">
+                  <span className="debt-skeleton-stat-icon" />
+                  <Skeleton className="skeleton-label" />
+                </span>
+                <strong className="debt-skeleton-stat-line">
+                  <span className="debt-skeleton-stat-text">0 đ</span>
+                  <Skeleton className="skeleton-value" />
+                </strong>
+                <small className="debt-skeleton-stat-line">
+                  <span className="debt-skeleton-stat-text">Tháng 11/2026</span>
+                  <Skeleton className="skeleton-detail" />
+                </small>
+              </>
+            )}
           </article>
         ))}
       </div>
-      <article className="card compact-debt-card" aria-hidden="true">
-        {view === 'calendar' ? (
-          <div className="debt-table-viewport debt-calendar-viewport">
-            <div className="skeleton-debt-calendar">
-              <div className="skeleton-calendar-heading">
-                <Skeleton className="skeleton-action" />
-                <Skeleton className="skeleton-heading" />
-                <Skeleton className="skeleton-action" />
-              </div>
-              <div className="skeleton-calendar-weekdays">
-                {Array.from({ length: 7 }, (_, index) => (
-                  <Skeleton className="skeleton-label" key={index} />
-                ))}
-              </div>
+      <div className="debt-calendar-layout" aria-hidden="true">
+        <div
+          className={view === 'calendar' ? 'debt-calendar-slides' : undefined}
+          style={view === 'history' ? { display: 'flex', flex: 1, minHeight: 0 } : undefined}
+        >
+          {view === 'calendar' &&
+            [0, 1].map((index) => (
               <div
-                className="skeleton-calendar-days"
-                style={{ gridTemplateRows: `repeat(${cells / 7}, minmax(0, 1fr))` }}
+                key={index}
+                className={`debt-daily-pane ${index ? 'debt-payable-pane' : 'debt-receivable-pane'}`}
               >
-                {Array.from({ length: cells }, (_, index) => (
-                  <Skeleton className="skeleton-calendar-cell" key={index} />
-                ))}
+                <article
+                  className="card"
+                  style={{
+                    flex: 1,
+                    display: 'flex',
+                    flexDirection: 'column',
+                    gap: 12,
+                    padding: 12,
+                  }}
+                >
+                  <Skeleton className="skeleton-heading" />
+                  <Skeleton style={{ flex: 1 }} />
+                </article>
               </div>
-            </div>
+            ))}
+          <div
+            className={view === 'calendar' ? 'debt-calendar-pane' : undefined}
+            style={view === 'history' ? { display: 'flex', flex: 1, minHeight: 0 } : undefined}
+          >
+            {view === 'calendar' ? (
+              <DebtCalendar
+                data={initialData}
+                month={new Date(year, month - 1, 1)}
+                setMonth={() => {}}
+                loading
+              />
+            ) : (
+              <article className="card compact-debt-card">
+                <>
+                  <Skeleton className="skeleton-heading" />
+                  <div className="skeleton-debt-history">
+                    {Array.from({ length: 4 }, (_, row) => (
+                      <div className="skeleton-history-row" key={row}>
+                        {Array.from({ length: 6 }, (_, column) => (
+                          <Skeleton key={column} />
+                        ))}
+                      </div>
+                    ))}
+                  </div>
+                </>
+              </article>
+            )}
           </div>
-        ) : (
-          <>
-            <Skeleton className="skeleton-heading" />
-            <div className="skeleton-debt-history">
-              {Array.from({ length: 4 }, (_, row) => (
-                <div className="skeleton-history-row" key={row}>
-                  {Array.from({ length: 6 }, (_, column) => (
-                    <Skeleton key={column} />
-                  ))}
-                </div>
-              ))}
-            </div>
-          </>
-        )}
-      </article>
+        </div>
+      </div>
     </section>
   );
 }

@@ -11,42 +11,30 @@ import {
   Tooltip,
   type ChartOptions,
 } from 'chart.js';
-import { FontAwesomeIcon as Icon } from '@fortawesome/react-fontawesome';
-import { faRepeat } from '@fortawesome/free-solid-svg-icons';
 import MonthPicker from '@/components/month-picker';
-import YearPicker from '../components/year-picker';
-import GroupBreakdownChart from './group-breakdown-chart';
 import ExpenseChartTooltip, { type ExpenseChartSelection } from './expense-chart-tooltip';
 import { dateKey, money, type FinanceData } from '../model';
 import { useVietnamToday } from '../hooks/use-vietnam-today';
 import { debtSourceHistory } from './debt-source-history';
-import type { BreakdownRecord } from './group-breakdown';
-import './debt-source-charts.css';
 
 ChartJS.register(CategoryScale, LinearScale, LineElement, PointElement, Filler, Tooltip);
 
-export default function DebtSourceCharts({
+export default function DebtDailyChart({
   data,
   month,
-  records,
+  direction,
 }: {
   data: FinanceData;
   month: string;
-  records: BreakdownRecord[];
+  direction: 'receivable' | 'payable';
 }) {
   const initial = month || dateKey().slice(0, 7);
-  const [period, setPeriod] = useState<'month' | 'year'>('month');
-  const [chartMonth, setChartMonth] = useState(initial);
-  const [year, setYear] = useState(initial.slice(0, 4));
   const [dailyMonth, setDailyMonth] = useState(initial);
-  const [direction, setDirection] = useState<'receivable' | 'payable'>('receivable');
   const [selection, setSelection] = useState<ExpenseChartSelection | null>(null);
   const today = useVietnamToday();
   const close = useCallback(() => setSelection(null), []);
   useEffect(() => {
     const next = month || dateKey().slice(0, 7);
-    setChartMonth(next);
-    setYear(next.slice(0, 4));
     setDailyMonth(next);
   }, [month]);
   useEffect(close, [data, dailyMonth, direction, today, close]);
@@ -112,52 +100,9 @@ export default function DebtSourceCharts({
   };
   return (
     <>
-      <GroupBreakdownChart
-        groups={data.debtSources}
-        records={records}
-        kind="debt"
-        period={period === 'month' ? chartMonth : year}
-        title="Nguồn"
-        titleAction={
-          <button
-            type="button"
-            className="debt-chart-switch"
-            onClick={() => setPeriod(period === 'month' ? 'year' : 'month')}
-            aria-label={
-              period === 'month' ? 'Chuyển sang thống kê năm' : 'Chuyển sang thống kê tháng'
-            }
-            title="Đổi thống kê tháng/năm"
-          >
-            <Icon icon={faRepeat} />
-            {period === 'month' ? 'Tháng' : 'Năm'}
-          </button>
-        }
-        picker={
-          period === 'month' ? (
-            <MonthPicker value={chartMonth} onChange={setChartMonth} />
-          ) : (
-            <YearPicker value={year} onChange={setYear} />
-          )
-        }
-      />
       <article className="card category-chart-panel debt-daily-chart daily-expenses-card">
         <div className="category-chart-toolbar">
-          <h2>
-            {label}
-            <button
-              type="button"
-              className="debt-chart-switch"
-              onClick={() => setDirection(direction === 'receivable' ? 'payable' : 'receivable')}
-              aria-label={
-                direction === 'receivable'
-                  ? 'Chuyển sang trả nợ theo ngày'
-                  : 'Chuyển sang thu hồi cho mượn theo ngày'
-              }
-              title="Đổi thu hồi cho mượn/trả nợ"
-            >
-              <Icon icon={faRepeat} />
-            </button>
-          </h2>
+          <h2>{label}</h2>
           <MonthPicker value={dailyMonth} onChange={setDailyMonth} />
         </div>
         <div className="category-chart">

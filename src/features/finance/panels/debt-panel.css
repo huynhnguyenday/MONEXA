@@ -124,3 +124,28 @@
     font-size: 8px;
   }
 }
+@media (max-width: 600px) and (orientation: portrait) {
+  .debt-calendar-viewport .debt-calendar-money-mobile {
+    display: grid;
+    font-family: Arial, sans-serif;
+    font-variant-numeric: tabular-nums;
+    font-size: calc(10px * var(--debt-money-scale, 1));
+    font-weight: 700;
+    letter-spacing: -0.15px;
+    line-height: 1.2;
+  }
+  .debt-calendar-money-mobile > span {
+    white-space: nowrap;
+    overflow-wrap: normal;
+    word-break: normal;
+  }
+  .debt-calendar-day small .debt-calendar-amount {
+    flex: 1;
+    width: 100%;
+  }
+}
+@media (max-width: 360px) and (orientation: portrait) {
+  .debt-calendar-viewport .debt-calendar-money-mobile {
+    font-size: calc(9px * var(--debt-money-scale, 1));
+  }
+}
