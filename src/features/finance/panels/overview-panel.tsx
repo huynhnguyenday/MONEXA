@@ -29,6 +29,7 @@ import { createNameAmountSearchMatcher } from '@/lib/search';
 import { useHistoryWindow } from '../hooks/use-history-window';
 import HistoryEnd from '../components/history-end';
 import ExpenseTitle from '../components/expense-title';
+import WorkspaceTabs from '../layout/workspace-tabs';
 import { useWorkspaceCarousel } from '../hooks/use-workspace-carousel';
 import '../layout/workspace-carousel.css';
 import './overview-panel.css';
@@ -77,6 +78,7 @@ export default function OverviewPanel({
       className={`overview-panel workspace-swipe mobile-view-${mobileView}`}
       aria-label="Tổng quan tài chính"
     >
+      <WorkspaceTabs kind="overview" active={carousel.active} onSelect={carousel.select} />
       <div
         className="overview-grid workspace-carousel"
         ref={carousel.ref}

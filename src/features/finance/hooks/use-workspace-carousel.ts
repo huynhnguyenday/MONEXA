@@ -32,6 +32,9 @@ export function useWorkspaceCarousel() {
   return {
     ref,
     active,
+    select: (index: number) => {
+      if (index !== active && (index === 0 || index === 1)) move();
+    },
     mobile,
     paneStyle: (index: number): CSSProperties => {
       const position = index === active ? 0 : side;

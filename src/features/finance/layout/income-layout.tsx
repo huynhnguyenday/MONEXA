@@ -1,5 +1,6 @@
 ﻿'use client';
 import type { ReactNode } from 'react';
+import WorkspaceTabs from './workspace-tabs';
 import { useWorkspaceCarousel } from '../hooks/use-workspace-carousel';
 import './income-layout.css';
 import './workspace-carousel.css';
@@ -23,6 +24,12 @@ export default function IncomeLayout({
       role={loading ? 'status' : undefined}
       aria-label={loading ? 'Đang tải thu nhập và phân bổ' : 'Thu nhập và phân bổ'}
     >
+      <WorkspaceTabs
+        kind="income"
+        active={carousel.active}
+        onSelect={carousel.select}
+        loading={loading}
+      />
       <div
         className="income-grid workspace-carousel"
         ref={carousel.ref}

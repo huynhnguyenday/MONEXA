@@ -1,5 +1,12 @@
 'use client';
 import { useState } from 'react';
+import { FontAwesomeIcon as Icon } from '@fortawesome/react-fontawesome';
+import {
+  faRightLeft,
+  faMoneyBillWave,
+  faBuildingColumns,
+  faClock,
+} from '@fortawesome/free-solid-svg-icons';
 import PendingLabel from '@/components/pending-label';
 import { calculateAccounts, displayTime, money, PERSONAL_USER_ID } from '../model';
 import type { FormProps } from './types';
@@ -18,7 +25,7 @@ export function BudgetExchange({ data, save, busy }: FormProps) {
   );
   return (
     <div className="budget-exchange">
-      <div className="mobile-panel-tabs" role="tablist" aria-label="Trao đổi ngân sách">
+      <div className="exchange-tabs" role="tablist" aria-label="Trao đổi ngân sách">
         <button
           type="button"
           role="tab"
@@ -28,7 +35,7 @@ export function BudgetExchange({ data, save, busy }: FormProps) {
           className={tab === 'convert' ? 'active' : ''}
           onClick={() => setTab('convert')}
         >
-          Chuyển đổi
+          <Icon icon={faRightLeft} aria-hidden="true" /> Chuyển đổi
         </button>
         <button
           type="button"
@@ -39,7 +46,7 @@ export function BudgetExchange({ data, save, busy }: FormProps) {
           className={tab === 'history' ? 'active' : ''}
           onClick={() => setTab('history')}
         >
-          Lịch sử
+          <Icon icon={faClock} aria-hidden="true" /> Lịch sử
         </button>
       </div>
       {tab === 'convert' ? (
@@ -78,28 +85,45 @@ export function BudgetExchange({ data, save, busy }: FormProps) {
         >
           <fieldset disabled={busy}>
             <div className="exchange-sources">
-              <label>
-                Chuyển từ
-                <select
-                  aria-label="Chuyển từ"
-                  value={from}
-                  onChange={(event) => {
-                    setFrom(event.target.value as 'cash' | 'bank');
-                    setError('');
-                    setSuccess('');
-                  }}
-                >
-                  <option value="cash">Tiền mặt</option>
-                  <option value="bank">Chuyển khoản</option>
-                </select>
-              </label>
-              <label>
-                Chuyển đến
-                <input value={labels[to]} readOnly />
-              </label>
+              <div className="exchange-source" aria-label={`Chuyển từ ${labels[from]}`}>
+                <span>Chuyển từ</span>
+                <strong>
+                  <Icon
+                    icon={from === 'cash' ? faMoneyBillWave : faBuildingColumns}
+                    aria-hidden="true"
+                  />
+                  {labels[from]}
+                </strong>
+              </div>
+              <button
+                type="button"
+                className="monexa-action monexa-create exchange-swap"
+                aria-label="Đảo chiều chuyển đổi"
+                title="Đảo chiều chuyển đổi"
+                onClick={() => {
+                  setFrom(to);
+                  setError('');
+                  setSuccess('');
+                }}
+              >
+                <Icon icon={faRightLeft} />
+              </button>
+              <div className="exchange-source" aria-label={`Chuyển đến ${labels[to]}`}>
+                <span>Chuyển đến</span>
+                <strong>
+                  <Icon
+                    icon={to === 'cash' ? faMoneyBillWave : faBuildingColumns}
+                    aria-hidden="true"
+                  />
+                  {labels[to]}
+                </strong>
+              </div>
             </div>
-            <p className="exchange-balance">
-              Số dư {labels[from].toLocaleLowerCase('vi')}: <strong>{money(accounts[from])}</strong>
+            <p
+              className={`exchange-balance ${accounts[from] < 0 ? 'is-negative' : accounts[from] > 0 ? 'is-positive' : ''}`}
+            >
+              <span>Số dư {labels[from].toLocaleLowerCase('vi')}</span>
+              <strong>{money(accounts[from])}</strong>
             </p>
             <label>
               Số tiền (VND)

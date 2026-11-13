@@ -1,6 +1,7 @@
 'use client';
 
 import { ChartSkeleton, LoadingSkeleton as Skeleton } from '../components/loading-skeleton';
+import WorkspaceTabs from '../layout/workspace-tabs';
 import { useWorkspaceCarousel } from '../hooks/use-workspace-carousel';
 import '../layout/workspace-carousel.css';
 import './overview-panel.css';
@@ -17,6 +18,7 @@ export default function OverviewSkeleton() {
       <span className="sr-only" role="status">
         Đang tải dữ liệu tổng quan…
       </span>
+      <WorkspaceTabs kind="overview" active={carousel.active} onSelect={carousel.select} loading />
       <div
         className="overview-grid workspace-carousel"
         ref={carousel.ref}

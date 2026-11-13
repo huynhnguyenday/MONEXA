@@ -1,6 +1,6 @@
-dialog.budget-exchange-dialog {
-  width: min(520px, calc(100vw - 24px));
-  height: min(480px, 90dvh);
+﻿dialog.budget-exchange-dialog {
+  width: min(440px, calc(100vw - 24px));
+  height: min(460px, 90dvh);
 }
 .budget-exchange-dialog .dialog-content {
   height: 100%;
@@ -13,49 +13,150 @@ dialog.budget-exchange-dialog {
   display: flex;
   flex-direction: column;
   flex: 1;
+  min-height: 0;
 }
 .budget-exchange {
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 16px;
   flex: 1;
   min-height: 0;
 }
 .budget-exchange > form {
+  display: flex;
+  flex: 1;
   min-height: 0;
   overflow-y: auto;
   overscroll-behavior: contain;
-  scrollbar-gutter: stable both-edges;
 }
-.budget-exchange .mobile-panel-tabs {
-  display: flex;
-  flex: none;
-}
-.budget-exchange .mobile-panel-tabs button {
+.budget-exchange fieldset {
   flex: 1;
+  justify-content: space-between;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+.budget-exchange form label {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin: 0;
+}
+.budget-exchange form input {
+  margin-top: 0;
   min-height: 44px;
+}
+.exchange-tabs {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  flex: none;
+  gap: 6px;
+}
+.exchange-tabs button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: 44px;
+  padding: 8px;
+  border: 1px solid #cbd5e1;
+  border-radius: 10px;
+  background: #fff;
+  color: #142d4e;
+  font-size: 13px;
+  font-weight: 700;
+}
+.exchange-tabs button[aria-selected='true'] {
+  background: #1d4ed8;
+  border-color: #1d4ed8;
+  color: #fff;
+}
+.exchange-tabs button svg {
+  width: 16px;
+  height: 16px;
+}
+.exchange-tabs button:focus-visible {
+  outline: 2px solid #1d4ed8;
+  outline-offset: 2px;
 }
 .exchange-sources {
   display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 12px;
+  grid-template-columns: minmax(0, 1fr) 44px minmax(0, 1fr);
+  align-items: stretch;
+  gap: 8px;
 }
-.exchange-sources label {
+.exchange-source {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
   min-width: 0;
+  min-height: 72px;
+  gap: 4px;
+  padding: 8px 4px;
+  border: 1px solid #cbd5e1;
+  border-radius: 10px;
+  background: #f8fafc;
+}
+.exchange-source > span {
+  font-size: 12px;
+  color: #64748b;
+}
+.exchange-source strong {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 5px;
+  font-size: 13px;
+  color: #142d4e;
+}
+.exchange-source strong svg {
+  width: 16px;
+  height: 16px;
+}
+.exchange-swap {
+  align-self: center;
+  padding: 0;
+  width: 44px;
+  height: 44px;
+}
+.exchange-swap svg {
+  width: 18px;
+  height: 18px;
 }
 .exchange-balance {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
   margin: 0;
-  color: #64748b;
+  padding: 8px;
+  border-radius: 8px;
+  background: #f1f5f9;
+  color: #475569;
+  font-size: 13px;
+}
+.exchange-balance strong {
+  font-size: 16px;
+}
+.exchange-balance.is-positive {
+  background: #f0fdf4;
+  color: #15803d;
+}
+.exchange-balance.is-negative {
+  background: #fef2f2;
+  color: #b91c1c;
 }
 :root .budget-exchange button.exchange-submit {
   display: flex;
   align-items: center;
   justify-content: center;
   width: min(100%, 280px);
-  min-height: 52px;
-  margin: 20px auto 0;
-  padding: 12px 24px;
-  font-size: 16px;
+  min-height: 44px;
+  margin: 4px auto 0;
+  padding: 10px 20px;
+  font-size: 15px;
   font-weight: 700;
 }
 .exchange-history {
@@ -101,29 +202,22 @@ dialog.budget-exchange-dialog {
   white-space: nowrap;
 }
 @media (max-width: 360px) {
-  .exchange-history li {
+  .exchange-history li,
+  .exchange-source strong {
     font-size: 12px;
   }
+  .exchange-source strong {
+    flex-wrap: wrap;
+  }
 }
-
-.budget-exchange .mobile-panel-tabs {
-  height: auto;
-  gap: 4px;
-}
-.budget-exchange .mobile-panel-tabs button {
-  border: 1px solid #c9d7ea;
-  border-radius: 8px;
-  background: #d3dfef;
-  color: #526581;
-  font-size: 14px;
-  font-weight: 700;
-}
-.budget-exchange .mobile-panel-tabs button[aria-selected='true'] {
-  background: white;
-  color: #1d4ed8;
-  border-color: #b6cdf0;
-}
-.budget-exchange .mobile-panel-tabs button:focus-visible {
-  outline: 2px solid #1d4ed8;
-  outline-offset: 2px;
+@media (prefers-reduced-motion: no-preference) {
+  .exchange-tabs button {
+    transition:
+      background-color 150ms,
+      color 150ms,
+      transform 150ms;
+  }
+  .exchange-tabs button:hover:not(:disabled) {
+    transform: translateY(-1px);
+  }
 }

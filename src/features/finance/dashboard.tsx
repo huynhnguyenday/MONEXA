@@ -1,6 +1,7 @@
 'use client';
 import dynamic from 'next/dynamic';
 import AppHeader from './layout/app-header';
+import { useSidebarPresence } from './hooks/use-sidebar-presence';
 import AppSidebar from './layout/app-sidebar';
 import OverviewPanel from './panels/overview-panel';
 import FinanceSkeleton from './panels/finance-skeleton';
@@ -21,9 +22,10 @@ const FinanceDialogs = dynamic(() => import('./dialogs/finance-dialogs'), {
   ),
 });
 
-export default function Dashboard() {
+export default function Dashboard({ passwordLoginEnabled }: { passwordLoginEnabled: boolean }) {
   const workspaceRef = useWorkspaceViewport();
   const dashboard = useDashboard();
+  const navVisible = useSidebarPresence(dashboard.navOpen);
   const error = (
     <FinanceError
       error={dashboard.error}
@@ -36,10 +38,12 @@ export default function Dashboard() {
   return (
     <div
       ref={workspaceRef}
-      className={`shell compact-layout ${dashboard.navOpen ? 'nav-expanded' : ''}`}
+      className={`shell compact-layout ${navVisible ? 'nav-expanded' : ''} ${navVisible && !dashboard.navOpen ? 'nav-closing' : ''}`}
     >
-      {dashboard.navOpen && (
+      {navVisible && (
         <AppSidebar
+          closing={!dashboard.navOpen}
+          showLogout={passwordLoginEnabled}
           view={dashboard.tab}
           ready={dashboard.ready}
           busy={dashboard.busy}

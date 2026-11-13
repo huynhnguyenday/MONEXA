@@ -2,6 +2,7 @@ import { cookies } from 'next/headers';
 import { z } from 'zod';
 import {
   consumeLoginAttempt,
+  passwordLoginEnabled,
   createSession,
   matchesPassword,
   missingConfig,
@@ -13,6 +14,7 @@ import { json, readJson } from '@/lib/http';
 export const runtime = 'nodejs';
 export async function POST(request: Request) {
   if (!sameOrigin(request)) return json({ error: 'Yêu cầu không hợp lệ.' }, 403);
+  if (!passwordLoginEnabled()) return json({ ok: true });
   if (missingConfig().length)
     return json({ error: 'Cần hoàn tất cấu hình MONEXA trên máy chủ.' }, 503);
   try {

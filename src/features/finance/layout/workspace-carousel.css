@@ -68,3 +68,52 @@
     transition: none;
   }
 }
+.workspace-icon-tabs {
+  display: none;
+}
+@media (max-width: 1023px) {
+  .workspace-icon-tabs {
+    display: flex;
+    align-self: center;
+    flex: none;
+    gap: 6px;
+    height: 36px;
+  }
+  .workspace-icon-tabs button {
+    position: relative;
+    display: grid;
+    place-items: center;
+    width: 48px;
+    height: 36px;
+    min-height: 36px;
+    padding: 4px;
+    border: 1px solid #cbd5e1;
+    border-radius: 9px;
+    background: #fff;
+    color: #142d4e;
+  }
+  /* Extend the hit area to 44px without adding height to the content tab row. */
+  .workspace-icon-tabs button::after {
+    content: '';
+    position: absolute;
+    inset: -4px 0;
+  }
+  .workspace-icon-tabs button[aria-pressed='true'] {
+    background: #1d4ed8;
+    border-color: #1d4ed8;
+    color: #fff;
+  }
+  .workspace-icon-tabs button svg {
+    width: 17px;
+    height: 17px;
+  }
+  .workspace-icon-tabs button:focus-visible {
+    outline: 2px solid #1d4ed8;
+    outline-offset: 2px;
+  }
+  .workspace-icon-tabs.is-loading button {
+    background: #f1f5f9;
+    border-color: #cbd5e1;
+    color: #94a3b8;
+  }
+}

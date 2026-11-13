@@ -14,6 +14,8 @@ import {
 import type { FinanceView } from '../types';
 import './app-sidebar.css';
 type Props = {
+  closing?: boolean;
+  showLogout?: boolean;
   view: FinanceView;
   ready: boolean;
   busy: boolean;
@@ -25,6 +27,8 @@ type Props = {
   onDismiss: () => void;
 };
 export default function AppSidebar({
+  closing = false,
+  showLogout = true,
   view,
   ready,
   busy,
@@ -59,8 +63,18 @@ export default function AppSidebar({
   }, []);
   return (
     <>
-      <button className="nav-backdrop" aria-label="Đóng thanh điều hướng" onClick={onDismiss} />
-      <aside className="sidebar" id="main-navigation">
+      <button
+        disabled={closing}
+        className="nav-backdrop"
+        aria-label="Đóng thanh điều hướng"
+        onClick={onDismiss}
+      />
+      <aside
+        className="sidebar"
+        id="main-navigation"
+        inert={closing}
+        aria-hidden={closing || undefined}
+      >
         <a ref={brandRef} className="sidebar-brand" href="/overview" aria-label="MONEXA">
           <Image src="/monexa.webp" width={28} height={28} alt="" />
           <span>MONEXA</span>
@@ -94,9 +108,11 @@ export default function AppSidebar({
             <Icon icon={faUpload} /> Nhập dữ liệu
           </button>
         </div>
-        <button className="nav-button sidebar-logout" disabled={busy} onClick={onLogout}>
-          <Icon icon={faRightFromBracket} /> Đăng xuất
-        </button>
+        {showLogout && (
+          <button className="nav-button sidebar-logout" disabled={busy} onClick={onLogout}>
+            <Icon icon={faRightFromBracket} /> Đăng xuất
+          </button>
+        )}
       </aside>
     </>
   );

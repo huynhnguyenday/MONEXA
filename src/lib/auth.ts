@@ -5,6 +5,10 @@ import { getDatabase } from './mongodb';
 const loginIndexes = new Map<string, Promise<string>>();
 export const SESSION_COOKIE = 'monexa_session';
 export const SESSION_AGE = 60 * 60 * 24 * 400;
+// Personal mode temporarily skips password entry; set APP_LOGIN_ENABLED=true to restore it.
+export function passwordLoginEnabled() {
+  return process.env.APP_LOGIN_ENABLED === 'true';
+}
 export function missingConfig() {
   return ['MONGODB_URI', 'APP_PASSWORD', 'SESSION_SECRET'].filter(
     (key) =>
@@ -32,6 +36,7 @@ export function createSession() {
 }
 // Call only from Route Handlers after authentication.
 export async function renewSession() {
+  if (!passwordLoginEnabled()) return;
   (await cookies()).set(SESSION_COOKIE, createSession(), {
     httpOnly: true,
     secure: process.env.NODE_ENV === 'production',
@@ -41,6 +46,7 @@ export async function renewSession() {
   });
 }
 export async function isAuthenticated() {
+  if (!passwordLoginEnabled()) return true;
   if (missingConfig().length) return false;
   const token = (await cookies()).get(SESSION_COOKIE)?.value;
   if (!token) return false;

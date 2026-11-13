@@ -27,7 +27,7 @@ export default function FinanceDialogs({ modal, onClose, formProps, error, month
         ? 'Xác nhận mở lại công nợ'
         : 'Xác nhận thanh toán'
       : modal.type === 'budget-exchange'
-        ? 'Trao đổi tiền ngân sách'
+        ? 'Đổi nguồn tiền'
         : modal.type === 'expense'
           ? modal.expense
             ? 'Sửa khoản chi'

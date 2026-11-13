@@ -1,5 +1,11 @@
-.compact-layout.nav-expanded .workspace-header { position: relative; z-index: auto; }
-.compact-layout .workspace-header .menu-toggle { position: relative; z-index: 56; }
+.compact-layout.nav-expanded .workspace-header {
+  position: relative;
+  z-index: auto;
+}
+.compact-layout .workspace-header .menu-toggle {
+  position: relative;
+  z-index: 56;
+}
 .compact-layout.nav-expanded .sidebar {
   position: fixed;
   top: 0;
@@ -33,7 +39,10 @@
   background: #142d4e40;
   backdrop-filter: blur(2px);
 }
-.compact-layout .sidebar .main-nav { gap: 8px; flex: none; }
+.compact-layout .sidebar .main-nav {
+  gap: 8px;
+  flex: none;
+}
 .compact-layout .sidebar .main-nav > button,
 .compact-layout .sidebar .sidebar-data > button,
 .compact-layout .sidebar > .sidebar-logout {
@@ -51,7 +60,11 @@
   line-height: 1.4;
   flex: none;
 }
-.compact-layout .sidebar button > svg { width: 22px; height: 22px; flex: none; }
+.compact-layout .sidebar button > svg {
+  width: 22px;
+  height: 22px;
+  flex: none;
+}
 .compact-layout .sidebar button::after {
   content: '';
   position: absolute;
@@ -62,18 +75,111 @@
   pointer-events: none;
   transition: opacity 120ms ease;
 }
-.compact-layout .sidebar button:hover:not(:disabled)::after { opacity: .08; }
-.compact-layout .sidebar button:focus-visible { outline: 2px solid #1d4ed8; outline-offset: 2px; }
-.compact-layout .sidebar .sidebar-data { padding-top: 10px; gap: 6px; }
-.compact-layout .sidebar .sidebar-section-label { padding: 4px 16px; font-size: 12px; font-weight: 700; }
-@keyframes navigation-enter { from { transform: translateX(-100%); } to { transform: translateX(0); } }
-@media (prefers-reduced-motion: reduce) { .compact-layout.nav-expanded .sidebar { animation: none; } }
-.sidebar-brand { position: fixed; top: 12px; left: 74px; height: 44px; display: flex; align-items: center; gap: 8px; color: #142d4e; font-size: 18px; font-weight: 800; letter-spacing: -.6px; white-space: nowrap; }
-@media (min-width: 1600px) { .sidebar-brand { top: 14px; left: 80px; } }
-@media (min-width: 1024px) and (max-width: 1200px) { .sidebar-brand { top: 10px; left: 68px; } }
-@media (max-height: 650px) and (min-width: 1024px) { .sidebar-brand { top: 6px; } }
-@media (max-width: 1023px) { .sidebar-brand { top: 8px; left: 68px; } }
+.compact-layout .sidebar button:hover:not(:disabled)::after {
+  opacity: 0.08;
+}
+.compact-layout .sidebar button:focus-visible {
+  outline: 2px solid #1d4ed8;
+  outline-offset: 2px;
+}
+.compact-layout .sidebar .sidebar-data {
+  padding-top: 10px;
+  gap: 6px;
+}
+.compact-layout .sidebar .sidebar-section-label {
+  padding: 4px 16px;
+  font-size: 12px;
+  font-weight: 700;
+}
+@keyframes navigation-enter {
+  from {
+    transform: translateX(-100%);
+  }
+  to {
+    transform: translateX(0);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .compact-layout.nav-expanded .sidebar {
+    animation: none;
+  }
+}
+.sidebar-brand {
+  position: fixed;
+  top: 12px;
+  left: 74px;
+  height: 44px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: #142d4e;
+  font-size: 18px;
+  font-weight: 800;
+  letter-spacing: -0.6px;
+  white-space: nowrap;
+}
+@media (min-width: 1600px) {
+  .sidebar-brand {
+    top: 14px;
+    left: 80px;
+  }
+}
+@media (min-width: 1024px) and (max-width: 1200px) {
+  .sidebar-brand {
+    top: 10px;
+    left: 68px;
+  }
+}
+@media (max-height: 650px) and (min-width: 1024px) {
+  .sidebar-brand {
+    top: 6px;
+  }
+}
+@media (max-width: 1023px) {
+  .sidebar-brand {
+    top: 8px;
+    left: 68px;
+  }
+}
 @media (max-width: 600px) {
-  .compact-layout.nav-expanded .sidebar { width: min(260px, calc(100vw - 48px)); padding-left: 12px; padding-right: 12px; }
-  .sidebar-brand { top: 7px; left: 65px; font-size: 17px; }
+  .compact-layout.nav-expanded .sidebar {
+    width: min(260px, calc(100vw - 48px));
+    padding-left: 12px;
+    padding-right: 12px;
+  }
+  .sidebar-brand {
+    top: 7px;
+    left: 65px;
+    font-size: 17px;
+  }
+}
+.compact-layout.nav-expanded.nav-closing .sidebar {
+  animation: navigation-exit 140ms ease-in forwards;
+  pointer-events: none;
+}
+.compact-layout.nav-expanded.nav-closing .nav-backdrop {
+  animation: navigation-backdrop-exit 140ms ease-in forwards;
+  pointer-events: none;
+}
+@keyframes navigation-exit {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(-100%);
+  }
+}
+@keyframes navigation-backdrop-exit {
+  from {
+    opacity: 1;
+  }
+  to {
+    opacity: 0;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .compact-layout.nav-expanded.nav-closing .sidebar,
+  .compact-layout.nav-expanded.nav-closing .nav-backdrop {
+    animation: none;
+  }
 }
