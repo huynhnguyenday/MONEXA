@@ -127,21 +127,6 @@
     overflow: clip;
     touch-action: pan-y pinch-zoom;
   }
-  .debt-calendar-slides > .debt-calendar-pane,
-  .debt-calendar-slides > .debt-daily-pane {
-    grid-area: 1 / 1;
-    width: 100%;
-    min-width: 0;
-    transform: translate3d(
-      calc(var(--debt-slide-position, 0%) + var(--debt-slide-drag, 0px)),
-      0,
-      0
-    );
-    transition: var(--debt-slide-transition, none);
-  }
-  .debt-skeleton .debt-daily-pane {
-    display: none;
-  }
   .debt-calendar-layout .debt-calendar-shell {
     flex: 1 !important;
   }
@@ -153,12 +138,6 @@
   }
   .debt-daily-pane > .card {
     min-height: 0;
-  }
-}
-@media (prefers-reduced-motion: reduce) {
-  .debt-calendar-slides > .debt-calendar-pane,
-  .debt-calendar-slides > .debt-daily-pane {
-    transition: none;
   }
 }
 @media (min-width: 1024px) {
@@ -384,5 +363,72 @@
     padding-inline: 0;
     line-height: 1;
     text-align: right;
+  }
+}
+/* The mobile carousel covers the whole workspace content, including its stats. */
+.debt-workspace {
+  height: 100%;
+  min-height: 0;
+  min-width: 0;
+  display: flex;
+}
+.debt-workspace .debt-calendar-slides {
+  grid-template-rows: auto minmax(0, 1fr);
+}
+.debt-workspace .debt-overview-screen {
+  display: contents;
+}
+.debt-workspace .debt-overview-screen > .debt-overview-stats {
+  grid-column: 1 / -1;
+  grid-row: 1;
+}
+.debt-workspace .debt-calendar-pane {
+  grid-column: 2;
+  grid-row: 2;
+}
+.debt-workspace .debt-charts-screen {
+  grid-column: 1;
+  grid-row: 2;
+  min-width: 0;
+  min-height: 0;
+  display: grid;
+  grid-template-rows: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+@media (max-width: 1023px) {
+  .debt-workspace .debt-calendar-slides {
+    grid-template-rows: minmax(0, 1fr);
+  }
+  .debt-workspace .debt-calendar-slides > .debt-overview-screen,
+  .debt-workspace .debt-calendar-slides > .debt-charts-screen {
+    grid-area: 1 / 1;
+    width: 100%;
+    min-height: 0;
+    transform: translate3d(
+      calc(var(--workspace-slide-position, 0%) + var(--workspace-slide-drag, 0px)),
+      0,
+      0
+    );
+    transition: var(--workspace-slide-transition, none);
+  }
+  .debt-workspace .debt-overview-screen {
+    display: flex;
+    flex-direction: column;
+  }
+  .debt-workspace .debt-overview-screen > .debt-overview-stats {
+    flex: none;
+  }
+  .debt-workspace .debt-calendar-pane {
+    flex: 1;
+    min-height: 0;
+  }
+  .debt-workspace .debt-charts-screen {
+    gap: 10px;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .debt-workspace .debt-calendar-slides > .debt-overview-screen,
+  .debt-workspace .debt-calendar-slides > .debt-charts-screen {
+    transition: none;
   }
 }

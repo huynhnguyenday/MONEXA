@@ -29,6 +29,8 @@ import { createNameAmountSearchMatcher } from '@/lib/search';
 import { useHistoryWindow } from '../hooks/use-history-window';
 import HistoryEnd from '../components/history-end';
 import ExpenseTitle from '../components/expense-title';
+import { useWorkspaceCarousel } from '../hooks/use-workspace-carousel';
+import '../layout/workspace-carousel.css';
 import './overview-panel.css';
 
 type Props = {
@@ -53,7 +55,8 @@ export default function OverviewPanel({
   onBudgetExchange,
   month,
 }: Props) {
-  const [mobileView, setMobileView] = useState<'charts' | 'expenses'>('charts');
+  const carousel = useWorkspaceCarousel();
+  const mobileView = carousel.active === 0 ? 'charts' : 'expenses';
   const [search, setSearch] = useState('');
   const [expandedExpense, setExpandedExpense] = useState<string | null>(null);
   const filtered = useMemo(
@@ -71,19 +74,28 @@ export default function OverviewPanel({
   const periodBalances = getBudgetPeriod(data, selectedMonth);
   return (
     <section
-      className={`overview-panel mobile-view-${mobileView}`}
+      className={`overview-panel workspace-swipe mobile-view-${mobileView}`}
       aria-label="Tổng quan tài chính"
     >
-      <div className="mobile-panel-tabs" aria-label="Nội dung tổng quan">
-        <button aria-pressed={mobileView === 'charts'} onClick={() => setMobileView('charts')}>
-          Chỉ số & biểu đồ
-        </button>
-        <button aria-pressed={mobileView === 'expenses'} onClick={() => setMobileView('expenses')}>
-          Chi tiêu ({stats.expenses.length})
-        </button>
-      </div>
-      <div className="overview-grid">
-        <section className="overview-main">
+      <div
+        className="overview-grid workspace-carousel"
+        ref={carousel.ref}
+        data-active-panel={carousel.active}
+        onTouchStart={carousel.onTouchStart}
+        onTouchMove={carousel.onTouchMove}
+        onTouchEnd={carousel.onTouchEnd}
+        onTouchCancel={carousel.onTouchCancel}
+        onClickCapture={carousel.onClickCapture}
+        onKeyDown={carousel.onKeyDown}
+        role="region"
+        aria-label="Tổng quan và chi tiêu. Vuốt ngang để chuyển màn hình."
+        tabIndex={0}
+      >
+        <section
+          className="overview-main workspace-carousel-screen"
+          style={carousel.paneStyle(0)}
+          inert={carousel.mobile && carousel.active !== 0}
+        >
           <div className="compact-stats">
             <FinanceTooltip
               as="article"
@@ -210,7 +222,11 @@ export default function OverviewPanel({
           </div>
           <Charts stats={stats} />
         </section>
-        <aside className="overview-aside right-column">
+        <aside
+          className="overview-aside right-column workspace-carousel-screen"
+          style={carousel.paneStyle(1)}
+          inert={carousel.mobile && carousel.active !== 1}
+        >
           <BudgetCard
             data={data}
             expenses={stats.expenses}

@@ -52,81 +52,87 @@ export default function DebtPanel({
     .reduce((sum, debt) => sum + debt.amount, 0);
   const monthOverdueCount = monthOutstanding.filter(overdue).length;
   const totalOverdueCount = outstanding.filter(overdue).length;
+  const overview = (
+    <div className="compact-stats debt-overview-stats">
+      <article className="stat debt-stat debt-stat-receivable debt-stat-month">
+        <span className="stat-label">
+          <Icon icon={faArrowTrendUp} fixedWidth aria-hidden="true" />
+          Phải thu
+        </span>
+        <strong>{money(monthReceivable)}</strong>
+        <small>Tháng {format(month ?? new Date(), 'MM/yyyy')}</small>
+      </article>
+      <article className="stat debt-stat debt-stat-receivable debt-stat-total">
+        <span className="stat-label">
+          <Icon icon={faArrowTrendUp} fixedWidth aria-hidden="true" />
+          Phải thu
+        </span>
+        <strong>{money(totalReceivable)}</strong>
+        <small>Tất cả thời gian</small>
+      </article>
+      <article className="stat debt-stat debt-stat-payable debt-stat-month">
+        <span className="stat-label">
+          <Icon icon={faArrowTrendDown} fixedWidth aria-hidden="true" />
+          Phải trả
+        </span>
+        <strong>{money(monthPayable)}</strong>
+        <small>Tháng {format(month ?? new Date(), 'MM/yyyy')}</small>
+      </article>
+      <article className="stat debt-stat debt-stat-payable debt-stat-total">
+        <span className="stat-label">
+          <Icon icon={faArrowTrendDown} fixedWidth aria-hidden="true" />
+          Phải trả
+        </span>
+        <strong>{money(totalPayable)}</strong>
+        <small>Tất cả thời gian</small>
+      </article>
+      <article className="stat debt-stat debt-stat-overdue debt-stat-month">
+        <span className="stat-label">
+          <Icon icon={faTriangleExclamation} aria-hidden="true" />
+          Quá hạn
+        </span>
+        <strong>{monthOverdueCount}</strong>
+        <small>Tháng đang xem</small>
+      </article>
+      <article className="stat debt-stat debt-stat-overdue debt-stat-total">
+        <span className="stat-label">
+          <Icon icon={faTriangleExclamation} aria-hidden="true" />
+          Quá hạn
+        </span>
+        <strong>{totalOverdueCount}</strong>
+        <small>Tất cả thời gian</small>
+      </article>
+      <button
+        type="button"
+        className="stat debt-create-stat button primary monexa-action monexa-create"
+        disabled={!ready}
+        onClick={onAdd}
+      >
+        <Icon icon={faPlus} />
+        <span>Ghi công nợ</span>
+      </button>
+    </div>
+  );
+  if (view === 'calendar') {
+    return (
+      <section className="debt-workspace" aria-label="Quản lý công nợ">
+        <DebtCalendarLayout data={data} month={month} setMonth={setMonth} overview={overview} />
+      </section>
+    );
+  }
   return (
-    <section className="compact-debts" aria-label="Quản lý công nợ">
-      <div className="compact-stats debt-overview-stats">
-        <article className="stat debt-stat debt-stat-receivable debt-stat-month">
-          <span className="stat-label">
-            <Icon icon={faArrowTrendUp} fixedWidth aria-hidden="true" />
-            Phải thu
-          </span>
-          <strong>{money(monthReceivable)}</strong>
-          <small>Tháng {format(month ?? new Date(), 'MM/yyyy')}</small>
-        </article>
-        <article className="stat debt-stat debt-stat-receivable debt-stat-total">
-          <span className="stat-label">
-            <Icon icon={faArrowTrendUp} fixedWidth aria-hidden="true" />
-            Phải thu
-          </span>
-          <strong>{money(totalReceivable)}</strong>
-          <small>Tất cả thời gian</small>
-        </article>
-        <article className="stat debt-stat debt-stat-payable debt-stat-month">
-          <span className="stat-label">
-            <Icon icon={faArrowTrendDown} fixedWidth aria-hidden="true" />
-            Phải trả
-          </span>
-          <strong>{money(monthPayable)}</strong>
-          <small>Tháng {format(month ?? new Date(), 'MM/yyyy')}</small>
-        </article>
-        <article className="stat debt-stat debt-stat-payable debt-stat-total">
-          <span className="stat-label">
-            <Icon icon={faArrowTrendDown} fixedWidth aria-hidden="true" />
-            Phải trả
-          </span>
-          <strong>{money(totalPayable)}</strong>
-          <small>Tất cả thời gian</small>
-        </article>
-        <article className="stat debt-stat debt-stat-overdue debt-stat-month">
-          <span className="stat-label">
-            <Icon icon={faTriangleExclamation} aria-hidden="true" />
-            Quá hạn
-          </span>
-          <strong>{monthOverdueCount}</strong>
-          <small>Tháng đang xem</small>
-        </article>
-        <article className="stat debt-stat debt-stat-overdue debt-stat-total">
-          <span className="stat-label">
-            <Icon icon={faTriangleExclamation} aria-hidden="true" />
-            Quá hạn
-          </span>
-          <strong>{totalOverdueCount}</strong>
-          <small>Tất cả thời gian</small>
-        </article>
-        <button
-          type="button"
-          className="stat debt-create-stat button primary monexa-action monexa-create"
-          disabled={!ready}
-          onClick={onAdd}
-        >
-          <Icon icon={faPlus} />
-          <span>Ghi công nợ</span>
-        </button>
-      </div>
-      {view === 'calendar' ? (
-        <DebtCalendarLayout data={data} month={month} setMonth={setMonth} />
-      ) : (
-        <article className="card compact-debt-card">
-          <DebtHistory
-            data={data}
-            ready={ready}
-            onAdd={onAdd}
-            onEdit={onEdit}
-            onDelete={onDelete}
-            onSettle={onSettle}
-          />
-        </article>
-      )}
+    <section className="compact-debts" aria-label="Lịch sử công nợ">
+      {overview}
+      <article className="card compact-debt-card">
+        <DebtHistory
+          data={data}
+          ready={ready}
+          onAdd={onAdd}
+          onEdit={onEdit}
+          onDelete={onDelete}
+          onSettle={onSettle}
+        />
+      </article>
     </section>
   );
 }

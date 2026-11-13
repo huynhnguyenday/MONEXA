@@ -1,30 +1,42 @@
 'use client';
 
-import { useState } from 'react';
 import { ChartSkeleton, LoadingSkeleton as Skeleton } from '../components/loading-skeleton';
+import { useWorkspaceCarousel } from '../hooks/use-workspace-carousel';
+import '../layout/workspace-carousel.css';
 import './overview-panel.css';
 
 export default function OverviewSkeleton() {
-  const [mobileView, setMobileView] = useState<'charts' | 'expenses'>('charts');
+  const carousel = useWorkspaceCarousel();
+  const mobileView = carousel.active === 0 ? 'charts' : 'expenses';
   return (
     <section
-      className={`overview-panel finance-skeleton overview-skeleton mobile-view-${mobileView}`}
+      className={`overview-panel workspace-swipe finance-skeleton overview-skeleton mobile-view-${mobileView}`}
       aria-label="Đang tải tổng quan tài chính"
       aria-busy="true"
     >
       <span className="sr-only" role="status">
         Đang tải dữ liệu tổng quan…
       </span>
-      <div className="mobile-panel-tabs" aria-label="Nội dung tổng quan">
-        <button aria-pressed={mobileView === 'charts'} onClick={() => setMobileView('charts')}>
-          Chỉ số & biểu đồ
-        </button>
-        <button aria-pressed={mobileView === 'expenses'} onClick={() => setMobileView('expenses')}>
-          Chi tiêu
-        </button>
-      </div>
-      <div className="overview-grid" aria-hidden="true">
-        <section className="overview-main">
+      <div
+        className="overview-grid workspace-carousel"
+        ref={carousel.ref}
+        data-active-panel={carousel.active}
+        onTouchStart={carousel.onTouchStart}
+        onTouchMove={carousel.onTouchMove}
+        onTouchEnd={carousel.onTouchEnd}
+        onTouchCancel={carousel.onTouchCancel}
+        onClickCapture={carousel.onClickCapture}
+        onKeyDown={carousel.onKeyDown}
+        role="region"
+        aria-label="Tổng quan và chi tiêu. Vuốt ngang để chuyển màn hình."
+        tabIndex={0}
+        aria-hidden="true"
+      >
+        <section
+          className="overview-main workspace-carousel-screen"
+          style={carousel.paneStyle(0)}
+          inert={carousel.mobile && carousel.active !== 0}
+        >
           <div className="compact-stats">
             {Array.from({ length: 6 }, (_, index) => (
               <article className="stat overview-stat overview-stat-remaining" key={index}>
@@ -44,7 +56,11 @@ export default function OverviewSkeleton() {
             </article>
           ))}
         </section>
-        <aside className="overview-aside right-column">
+        <aside
+          className="overview-aside right-column workspace-carousel-screen"
+          style={carousel.paneStyle(1)}
+          inert={carousel.mobile && carousel.active !== 1}
+        >
           <article className="budget-card">
             <div className="budget-summary">
               <div className="skeleton-budget-value">

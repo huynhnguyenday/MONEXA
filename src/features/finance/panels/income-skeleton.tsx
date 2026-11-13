@@ -8,7 +8,6 @@ import '../charts/income-charts.css';
 export default function IncomeSkeleton() {
   return (
     <IncomeLayout
-      view="analytics"
       loading
       analytics={
         <section className="income-analytics">

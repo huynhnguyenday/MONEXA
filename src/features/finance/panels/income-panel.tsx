@@ -2,7 +2,7 @@
 import { useState, type ReactNode } from 'react';
 import { dateKey } from '../model';
 import { useIncomeSummary } from '../hooks/use-income-summary';
-import IncomeLayout, { type IncomeWorkspaceView } from '../layout/income-layout';
+import IncomeLayout from '../layout/income-layout';
 import IncomeAnalytics from './income-analytics';
 import IncomeManagement from './income-management';
 import IncomeDialogs, { type IncomeModal } from '../dialogs/income-dialogs';
@@ -16,15 +16,12 @@ export default function IncomePanel({
   ready,
   error,
 }: FormProps & { month: string; ready: boolean; error: ReactNode }) {
-  const [view, setView] = useState<IncomeWorkspaceView>('analytics');
   const [modal, setModal] = useState<IncomeModal>(null);
   const period = month || dateKey().slice(0, 7);
   const summary = useIncomeSummary(data, period);
   const forms = { data, save, busy, done: () => setModal(null) };
   return (
     <IncomeLayout
-      view={view}
-      onViewChange={setView}
       analytics={<IncomeAnalytics data={data} statistics={summary.statistics} />}
       management={
         <IncomeManagement
