@@ -432,3 +432,13 @@
     transition: none;
   }
 }
+
+.debt-calendar-layout .debt-calendar-day small.debt-calendar-settled,
+.debt-day-tooltip .debt-calendar-settled {
+  color: #c77979;
+}
+.debt-calendar-settled .debt-calendar-money-full,
+.debt-calendar-settled .debt-calendar-money-mobile > span,
+.debt-day-tooltip b.debt-calendar-settled {
+  text-decoration: line-through;
+}

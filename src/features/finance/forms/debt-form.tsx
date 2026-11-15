@@ -45,6 +45,8 @@ export function DebtForm({ data, save, done, busy, debt }: { debt?: Debt } & For
         if (!source) return setError('Vui lòng chọn nguồn công nợ đã được tạo.');
         const debtType = data.debtTypes.find((type) => type.id === debtTypeId);
         if (!debtType) return setError('Vui lòng chọn loại công nợ.');
+        if (!data.categories.some((category) => category.id === categoryId))
+          return setError('Vui lòng chọn danh mục cho khoản công nợ.');
         const next: Debt = {
           userId: PERSONAL_USER_ID,
           id: debt?.id || crypto.randomUUID(),
@@ -52,7 +54,7 @@ export function DebtForm({ data, save, done, busy, debt }: { debt?: Debt } & For
           amount: Number(String(f.get('amount')).replace(/\D/g, '')),
           debtTypeId: debtType.id,
           debtSourceId: source.id,
-          categoryId: lending ? null : categoryId || null,
+          categoryId,
           paymentMethod: field(f, 'paymentMethod') as Debt['paymentMethod'],
           occurredAt: debt?.occurredAt || new Date().toISOString(),
           dueDate: dateKeyFromLocal(due),
@@ -166,43 +168,41 @@ export function DebtForm({ data, save, done, busy, debt }: { debt?: Debt } & For
             Chưa có loại công nợ để chọn.
           </p>
         )}
-        {!lending && (
-          <>
-            <div className="debt-category-heading">
-              <label id="debt-category-label">
-                Danh mục <span className="optional">(không bắt buộc)</span>
-              </label>
+        <>
+          <div className="debt-category-heading">
+            <label id="debt-category-label">
+              Danh mục <span>(bắt buộc)</span>
+            </label>
+            <button
+              type="button"
+              className="monexa-action monexa-reset"
+              aria-label="Xóa chọn danh mục"
+              title="Xóa chọn danh mục"
+              disabled={!categoryId || busy}
+              onClick={() => setCategoryId('')}
+            >
+              <Icon icon={faArrowRotateLeft} fixedWidth />
+            </button>
+          </div>
+          <div
+            className="expense-category-picker"
+            role="group"
+            aria-labelledby="debt-category-label"
+          >
+            {data.categories.map((category) => (
               <button
                 type="button"
-                className="monexa-action monexa-reset"
-                aria-label="Xóa chọn danh mục"
-                title="Xóa chọn danh mục"
-                disabled={!categoryId || busy}
-                onClick={() => setCategoryId('')}
+                key={category.id}
+                className={categoryId === category.id ? 'selected' : ''}
+                aria-pressed={categoryId === category.id}
+                onClick={() => setCategoryId(category.id)}
               >
-                <Icon icon={faArrowRotateLeft} fixedWidth />
+                <Icon icon={categoryIcons[category.icon]} style={{ color: category.color }} />
+                <span>{category.name}</span>
               </button>
-            </div>
-            <div
-              className="expense-category-picker"
-              role="group"
-              aria-labelledby="debt-category-label"
-            >
-              {data.categories.map((category) => (
-                <button
-                  type="button"
-                  key={category.id}
-                  className={categoryId === category.id ? 'selected' : ''}
-                  aria-pressed={categoryId === category.id}
-                  onClick={() => setCategoryId(category.id)}
-                >
-                  <Icon icon={categoryIcons[category.icon]} style={{ color: category.color }} />
-                  <span>{category.name}</span>
-                </button>
-              ))}
-            </div>
-          </>
-        )}
+            ))}
+          </div>
+        </>
         {error && (
           <p role="alert" className="form-error">
             {error}

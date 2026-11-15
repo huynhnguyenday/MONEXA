@@ -1,4 +1,5 @@
 .income-charts {
+  flex: 1;
   display: grid;
   grid-template-rows: repeat(2, minmax(0, 1fr));
   gap: 10px;
@@ -36,61 +37,47 @@
   min-width: 0;
 }
 
-.income-charts {
-  flex: 1;
-}
 .income-chart-select {
   display: none;
+}
+.income-chart-carousel {
+  display: contents;
 }
 @media (max-width: 1023px) {
   .income-charts {
     grid-template-rows: auto minmax(0, 1fr);
   }
-  .income-chart-select {
-    position: relative;
+  .income-charts .income-chart-select {
     display: flex;
-    align-items: center;
-    gap: 10px;
-    font-size: 14px;
-    background: #fff;
-    border: 1px solid #cbd5e1;
-    border-radius: 12px;
-    color: #1d4ed8;
-    box-shadow: 0 2px 6px #142d4e08;
+    margin: 0;
   }
-  .income-chart-select > svg {
-    position: absolute;
-    left: 14px;
-    pointer-events: none;
-  }
-  .income-chart-select > .income-chart-select-chevron {
-    left: auto;
-    right: 14px;
-    width: 14px;
-    height: 14px;
-  }
-  .income-chart-select select {
+  .income-chart-select button {
     flex: 1;
+  }
+  .income-chart-carousel {
+    display: grid;
+    grid-template: minmax(0, 1fr) / minmax(0, 1fr);
     min-width: 0;
-    min-height: 44px;
-    appearance: none;
-    border: 0;
-    border-radius: inherit;
-    background: #fff;
-    color: #142d4e;
-    padding: 12px 42px;
-    font: inherit;
-    font-weight: 600;
-    cursor: pointer;
+    min-height: 0;
+    overflow: clip;
+    touch-action: pan-y pinch-zoom;
   }
-  .income-chart-select select:focus-visible {
-    outline: 2px solid #1d4ed8;
-    outline-offset: 2px;
+  .income-chart-carousel > .income-chart-slot {
+    grid-area: 1 / 1;
+    transform: translate3d(
+      calc(var(--workspace-slide-position, 0%) + var(--workspace-slide-drag, 0px)),
+      0,
+      0
+    );
+    transition: var(--workspace-slide-transition, none);
   }
-  .income-chart-slot {
-    display: none;
-  }
-  .income-chart-slot.is-selected {
-    display: flex;
+}
+.income-chart-carousel:focus-visible {
+  outline: 2px solid #1d4ed8;
+  outline-offset: 2px;
+}
+@media (prefers-reduced-motion: reduce) {
+  .income-chart-carousel > .income-chart-slot {
+    transition: none;
   }
 }

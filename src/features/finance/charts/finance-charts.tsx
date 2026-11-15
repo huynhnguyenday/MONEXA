@@ -1,4 +1,5 @@
 ﻿'use client';
+import './workspace-gesture-plugin';
 
 import { Bar, Line } from 'react-chartjs-2';
 import { useCallback, useEffect, useState } from 'react';
@@ -15,6 +16,7 @@ import {
   type ChartOptions,
 } from 'chart.js';
 import { dateKey, money, type getStatistics } from '../model';
+import './finance-charts.css';
 
 ChartJS.register(
   CategoryScale,
@@ -102,6 +104,16 @@ const weekdayOptions: ChartOptions<'bar'> = {
 };
 
 export default function Charts({ stats }: { stats: ReturnType<typeof getStatistics> }) {
+  const [mobile, setMobile] = useState(false);
+  const [half, setHalf] = useState(0);
+  useEffect(() => {
+    const media = window.matchMedia('(max-width: 1023px)');
+    const update = () => setMobile(media.matches);
+    update();
+    media.addEventListener('change', update);
+    return () => media.removeEventListener('change', update);
+  }, []);
+  useEffect(() => setHalf(0), [stats.month]);
   const [selection, setSelection] = useState<ExpenseChartSelection | null>(null);
   const close = useCallback(() => {
     setSelection(null);
@@ -109,7 +121,10 @@ export default function Charts({ stats }: { stats: ReturnType<typeof getStatisti
   useEffect(() => setSelection(null), [stats]);
   const [year, month] = stats.month.split('-');
   const labels = stats.daily.map((_, index) => `${String(index + 1).padStart(2, '0')}/${month}`);
-  const description = `Chi tiêu từng ngày tháng ${Number(month)}/${year}. Tổng ${money(stats.total)}. ${stats.daily.map((amount, index) => `${labels[index]}: ${money(amount)}`).join('; ')}.`;
+  const offset = mobile && half === 1 ? 15 : 0;
+  const daily = mobile ? stats.daily.slice(offset, half === 0 ? 15 : undefined) : stats.daily;
+  const visibleLabels = labels.slice(offset, offset + daily.length);
+  const description = `Chi tiêu từng ngày tháng ${Number(month)}/${year}. Tổng tháng ${money(stats.total)}. ${mobile ? (half === 0 ? 'Nửa tháng đầu. ' : 'Nửa tháng sau. ') : ''}${daily.map((amount, index) => `${visibleLabels[index]}: ${money(amount)}`).join('; ')}.`;
   const show = (kind: 'daily' | 'weekday', index: number, x: number, y: number) => {
     const title =
       kind === 'daily'
@@ -140,7 +155,12 @@ export default function Charts({ stats }: { stats: ReturnType<typeof getStatisti
         return;
       }
       const rect = chart.canvas.getBoundingClientRect();
-      show(kind, point.index, rect.left + point.element.x, rect.top + point.element.y);
+      show(
+        kind,
+        point.index + (kind === 'daily' ? offset : 0),
+        rect.left + point.element.x,
+        rect.top + point.element.y,
+      );
     };
     return { onClick: click };
   };
@@ -161,9 +181,20 @@ export default function Charts({ stats }: { stats: ReturnType<typeof getStatisti
       <article className="card chart-card daily-expenses-card">
         <div className="panel-heading">
           <h2>Chi tiêu từng ngày</h2>
-          <span className="badge">
+          <span className="badge daily-month-badge">
             VND · {month}/{year}
           </span>
+          <button
+            type="button"
+            className="badge daily-half-toggle"
+            aria-label={`Đang xem ${half === 0 ? 'nửa tháng đầu' : 'nửa tháng sau'}. Chuyển sang ${half === 0 ? 'nửa tháng sau' : 'nửa tháng đầu'}`}
+            onClick={() => {
+              close();
+              setHalf((current) => 1 - current);
+            }}
+          >
+            {half === 0 ? 'Nửa tháng đầu' : 'Nửa tháng sau'}
+          </button>
         </div>
         <div className="chart">
           <Line
@@ -171,11 +202,11 @@ export default function Charts({ stats }: { stats: ReturnType<typeof getStatisti
             aria-label={description}
             options={dailyOptions}
             data={{
-              labels,
+              labels: visibleLabels,
               datasets: [
                 {
                   label: 'Chi tiêu',
-                  data: stats.daily,
+                  data: daily,
                   borderColor: '#1d4ed8',
                   backgroundColor: '#1d4ed814',
                   borderWidth: 2,

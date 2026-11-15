@@ -24,9 +24,11 @@ const MonthButton = forwardRef<HTMLButtonElement, { value?: string; onClick?: ()
 export default function MonthPicker({
   value,
   onChange,
+  compact = false,
 }: {
   value: string;
   onChange: (month: string) => void;
+  compact?: boolean;
 }) {
   const [year, month] = value.split('-').map(Number);
   return (
@@ -40,7 +42,7 @@ export default function MonthPicker({
         locale={vi}
         showMonthYearPicker
         showFullMonthYearPicker
-        dateFormat="'Tháng' MM/yyyy"
+        dateFormat={compact ? 'MM/yyyy' : "'Tháng' MM/yyyy"}
         customInput={<MonthButton />}
         popperPlacement="bottom"
         previousYearAriaLabel="Năm trước"

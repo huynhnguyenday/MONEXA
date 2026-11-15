@@ -32,8 +32,16 @@ export default function CategoryPanel({
       }),
     [data.expenses, data.debts, data.debtTypes],
   );
+  // The debt ledger fallback is not a spending purpose. Keep explicitly used categories by ID.
+  const purposeIds = new Set([
+    ...records.map((record) => record.groupId),
+    ...data.debts.flatMap((debt) => (debt.categoryId ? [debt.categoryId] : [])),
+  ]);
+  const chartCategories = data.categories.filter(
+    (category) => category.icon !== 'debt' || purposeIds.has(category.id),
+  );
   return (
-    <ClassificationScreen month={month} groups={data.categories} records={records} kind="expense">
+    <ClassificationScreen month={month} groups={chartCategories} records={records} kind="expense">
       <article className="card category-list-panel">
         <div className="category-toolbar">
           <h2>

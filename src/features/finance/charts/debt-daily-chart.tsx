@@ -1,4 +1,5 @@
 'use client';
+import './workspace-gesture-plugin';
 import { useCallback, useEffect, useState } from 'react';
 import { Line } from 'react-chartjs-2';
 import {

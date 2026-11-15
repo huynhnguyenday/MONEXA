@@ -1,10 +1,13 @@
 'use client';
-import { useEffect, useId, useState, type ReactNode } from 'react';
+import { useEffect, useState, type ReactNode } from 'react';
 import MonthPicker from '@/components/month-picker';
 import YearPicker from '../components/year-picker';
 import GroupBreakdownChart from '../charts/group-breakdown-chart';
 import type { BreakdownGroup, BreakdownRecord } from '../charts/group-breakdown';
 import { dateKey } from '../model';
+import WorkspaceTabs from '../layout/workspace-tabs';
+import { useWorkspaceCarousel } from '../hooks/use-workspace-carousel';
+import '../layout/workspace-carousel.css';
 import './category-panel.css';
 
 export default function ClassificationScreen({
@@ -13,20 +16,17 @@ export default function ClassificationScreen({
   records,
   kind,
   children,
-  charts,
 }: {
   month: string;
   groups: BreakdownGroup[];
   records: BreakdownRecord[];
   kind: 'expense' | 'debt';
   children: ReactNode;
-  charts?: ReactNode;
 }) {
   const initialMonth = month || dateKey().slice(0, 7);
   const [chartMonth, setChartMonth] = useState(initialMonth);
   const [year, setYear] = useState(initialMonth.slice(0, 4));
-  const [tab, setTab] = useState<'charts' | 'list'>('charts');
-  const id = useId();
+  const carousel = useWorkspaceCarousel();
   useEffect(() => {
     const next = month || dateKey().slice(0, 7);
     setChartMonth(next);
@@ -36,57 +36,57 @@ export default function ClassificationScreen({
   const chartLabel = kind === 'expense' ? 'Chi tiêu theo danh mục' : 'Công nợ theo nguồn';
   return (
     <section
-      className={`category-screen category-view-${tab}`}
+      className="category-workspace workspace-swipe"
       aria-label={`Quản lý ${label.toLocaleLowerCase('vi')}`}
     >
+      <WorkspaceTabs
+        kind={kind === 'expense' ? 'categories' : 'debt-sources'}
+        active={carousel.active}
+        onSelect={carousel.select}
+      />
       <div
-        className="category-mobile-tabs"
-        role="group"
-        aria-label={`Nội dung ${label.toLocaleLowerCase('vi')}`}
+        className="category-screen workspace-carousel"
+        ref={carousel.ref}
+        data-active-panel={carousel.active}
+        onTouchStart={carousel.onTouchStart}
+        onTouchMove={carousel.onTouchMove}
+        onTouchEnd={carousel.onTouchEnd}
+        onTouchCancel={carousel.onTouchCancel}
+        onClickCapture={carousel.onClickCapture}
+        onKeyDown={carousel.onKeyDown}
+        role="region"
+        aria-label={label}
+        tabIndex={0}
       >
-        <button
-          type="button"
-          className={tab === 'charts' ? 'active' : ''}
-          aria-pressed={tab === 'charts'}
-          aria-controls={`${id}-charts`}
-          onClick={() => setTab('charts')}
+        <div
+          className="category-charts workspace-carousel-screen"
+          style={carousel.paneStyle(0)}
+          inert={carousel.mobile && carousel.active !== 0}
         >
-          Biểu đồ
-        </button>
-        <button
-          type="button"
-          className={tab === 'list' ? 'active' : ''}
-          aria-pressed={tab === 'list'}
-          aria-controls={`${id}-list`}
-          onClick={() => setTab('list')}
+          <GroupBreakdownChart
+            groups={groups}
+            records={records}
+            period={chartMonth}
+            kind={kind}
+            title={`${chartLabel} theo tháng`}
+            picker={<MonthPicker value={chartMonth} onChange={setChartMonth} />}
+          />
+          <GroupBreakdownChart
+            groups={groups}
+            records={records}
+            period={year}
+            kind={kind}
+            title={`Tổng ${chartLabel.toLocaleLowerCase('vi')} theo năm`}
+            picker={<YearPicker value={year} onChange={setYear} />}
+          />
+        </div>
+        <div
+          className="category-management workspace-carousel-screen"
+          style={carousel.paneStyle(1)}
+          inert={carousel.mobile && carousel.active !== 1}
         >
-          {label}
-        </button>
-      </div>
-      <div className="category-charts" id={`${id}-charts`}>
-        {charts || (
-          <>
-            <GroupBreakdownChart
-              groups={groups}
-              records={records}
-              period={chartMonth}
-              kind={kind}
-              title={`${chartLabel} theo tháng`}
-              picker={<MonthPicker value={chartMonth} onChange={setChartMonth} />}
-            />
-            <GroupBreakdownChart
-              groups={groups}
-              records={records}
-              period={year}
-              kind={kind}
-              title={`Tổng ${chartLabel.toLocaleLowerCase('vi')} theo năm`}
-              picker={<YearPicker value={year} onChange={setYear} />}
-            />
-          </>
-        )}
-      </div>
-      <div className="category-management" id={`${id}-list`}>
-        {children}
+          {children}
+        </div>
       </div>
     </section>
   );

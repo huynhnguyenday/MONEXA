@@ -1,25 +1,30 @@
+'use client';
 import {
   ChartSkeleton,
   LoadingSkeleton as Skeleton,
   MonthPickerSkeleton,
 } from '../components/loading-skeleton';
+import WorkspaceTabs from '../layout/workspace-tabs';
+import '../layout/workspace-carousel.css';
 import './category-panel.css';
 
 export default function CategorySkeleton({ sources = false }: { sources?: boolean }) {
   const label = sources ? 'nguồn công nợ' : 'danh mục';
   return (
     <section
-      className="category-screen category-view-charts finance-skeleton category-skeleton"
+      className="category-screen finance-skeleton category-skeleton"
       aria-label={`Đang tải ${label}`}
       aria-busy="true"
     >
       <span className="sr-only" role="status">
         Đang tải dữ liệu {label}…
       </span>
-      <div className="category-mobile-tabs" aria-hidden="true">
-        <Skeleton />
-        <Skeleton />
-      </div>
+      <WorkspaceTabs
+        kind={sources ? 'debt-sources' : 'categories'}
+        active={0}
+        onSelect={() => {}}
+        loading
+      />
       <div className="category-charts" aria-hidden="true">
         {['month', 'year'].map((period) => (
           <article className="card category-chart-panel" key={period}>

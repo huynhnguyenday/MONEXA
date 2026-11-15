@@ -188,7 +188,11 @@ export default function DebtHistory({ data, ready, onAdd, onEdit, onDelete, onSe
         {!data.debts.length ? (
           <div className="compact-empty">
             <p>Chưa có lịch sử công nợ.</p>
-            <button className="button primary monexa-action monexa-create" disabled={!ready} onClick={onAdd}>
+            <button
+              className="button primary monexa-action monexa-create"
+              disabled={!ready}
+              onClick={onAdd}
+            >
               + Ghi công nợ
             </button>
           </div>
@@ -276,6 +280,7 @@ export default function DebtHistory({ data, ready, onAdd, onEdit, onDelete, onSe
                     <td>
                       <div className="table-actions">
                         <button
+                          className="monexa-action monexa-edit"
                           aria-label={`Sửa ${debt.title}`}
                           title="Sửa công nợ"
                           disabled={!ready}
@@ -284,7 +289,7 @@ export default function DebtHistory({ data, ready, onAdd, onEdit, onDelete, onSe
                           <Icon icon={faPen} />
                         </button>
                         <button
-                          className="settle-action"
+                          className="settle-action monexa-action monexa-settle"
                           aria-label={
                             debt.settledAt
                               ? `Mở lại ${debt.title}`
@@ -297,6 +302,7 @@ export default function DebtHistory({ data, ready, onAdd, onEdit, onDelete, onSe
                           <Icon icon={debt.settledAt ? faRotateLeft : faCheck} />
                         </button>
                         <button
+                          className="monexa-action monexa-delete"
                           aria-label={`Xóa ${debt.title}`}
                           title="Xóa công nợ"
                           disabled={!ready}

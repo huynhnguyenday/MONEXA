@@ -14,34 +14,71 @@ export function useWorkspaceCarousel() {
     media.addEventListener('change', update);
     return () => media.removeEventListener('change', update);
   }, []);
-  const [drag, setDrag] = useState(0);
-  const [dragging, setDragging] = useState(false);
+  const frame = useRef<number | null>(null);
+  const pendingDrag = useRef(0);
+  const width = useRef(320);
+  const dragSide = useRef(1);
+  useEffect(
+    () => () => {
+      if (frame.current !== null) cancelAnimationFrame(frame.current);
+    },
+    [],
+  );
+  const cancelFrame = () => {
+    if (frame.current !== null) cancelAnimationFrame(frame.current);
+    frame.current = null;
+  };
+  const paint = (dx: number) => {
+    const root = ref.current;
+    if (!root) return;
+    // Dragging changes only the pane transforms, without rerendering the screen.
+    Array.from(root.children).forEach((child, index) => {
+      if (!(child instanceof HTMLElement)) return;
+      child.style.setProperty(
+        '--workspace-slide-position',
+        index === active ? '0%' : `${dragSide.current * 100}%`,
+      );
+      child.style.setProperty('--workspace-slide-drag', `${dx}px`);
+      child.style.setProperty('--workspace-slide-transition', 'none');
+    });
+  };
+  const settle = () => {
+    cancelFrame();
+    if (ref.current) delete ref.current.dataset.workspaceDragging;
+    Array.from(ref.current?.children ?? []).forEach((child) => {
+      if (!(child instanceof HTMLElement)) return;
+      child.style.setProperty('--workspace-slide-drag', '0px');
+      child.style.setProperty(
+        '--workspace-slide-transition',
+        'transform 220ms cubic-bezier(0.22, 1, 0.36, 1)',
+      );
+    });
+  };
   const gesture = useRef<{ x: number; y: number; dx: number; horizontal: boolean } | null>(null);
   const suppressClick = useRef(false);
   const reset = () => {
     gesture.current = null;
-    setDragging(false);
-    setDrag(0);
+    settle();
   };
   const move = () => {
     setActive((current) => 1 - current);
-    setSide((current) => -current);
-    setDragging(false);
-    setDrag(0);
+    setSide(-dragSide.current);
+    settle();
   };
   return {
     ref,
     active,
     select: (index: number) => {
-      if (index !== active && (index === 0 || index === 1)) move();
+      if (index !== active && (index === 0 || index === 1)) {
+        dragSide.current = side;
+        move();
+      }
     },
     mobile,
     paneStyle: (index: number): CSSProperties => {
       const position = index === active ? 0 : side;
       return {
         '--workspace-slide-position': `${position * 100}%`,
-        '--workspace-slide-drag': `${drag}px`,
-        '--workspace-slide-transition': dragging ? 'none' : 'transform 240ms ease-out',
       } as CSSProperties;
     },
     onTouchStart: (event: TouchEvent<HTMLDivElement>) => {
@@ -61,6 +98,9 @@ export function useWorkspaceCarousel() {
           return reset();
       }
       const point = event.touches[0];
+      cancelFrame();
+      width.current = ref.current?.clientWidth ?? 320;
+      dragSide.current = side;
       gesture.current = { x: point.clientX, y: point.clientY, dx: 0, horizontal: false };
     },
     onTouchMove: (event: TouchEvent<HTMLDivElement>) => {
@@ -73,21 +113,27 @@ export function useWorkspaceCarousel() {
         if (Math.abs(dy) > 10 && Math.abs(dy) > Math.abs(dx)) return reset();
         if (Math.abs(dx) < 8 || Math.abs(dx) < Math.abs(dy) * 1.2) return;
         start.horizontal = true;
-        setSide(dx < 0 ? 1 : -1);
+        dragSide.current = dx < 0 ? 1 : -1;
       }
       start.dx = dx;
+      if (ref.current) ref.current.dataset.workspaceDragging = 'true';
       suppressClick.current = true;
-      setDragging(true);
-      setDrag(Math.max(-ref.current!.clientWidth, Math.min(ref.current!.clientWidth, dx)));
+      // Allow reversing direction during the same slow gesture.
+      dragSide.current = dx < 0 ? 1 : -1;
+      pendingDrag.current = Math.max(-width.current, Math.min(width.current, dx));
+      if (frame.current === null)
+        frame.current = requestAnimationFrame(() => {
+          frame.current = null;
+          paint(pendingDrag.current);
+        });
     },
     onTouchEnd: () => {
       const start = gesture.current;
       gesture.current = null;
-      const threshold = Math.min(60, (ref.current?.clientWidth ?? 320) * 0.18);
+      const threshold = Math.min(60, width.current * 0.18);
       if (start?.horizontal && Math.abs(start.dx) >= threshold) move();
       else {
-        setDragging(false);
-        setDrag(0);
+        settle();
       }
     },
     onTouchCancel: reset,

@@ -20,7 +20,8 @@ export default function IncomeSkeleton() {
             ))}
           </div>
           <div className="income-charts">
-            <div className="income-chart-select">
+            <div className="income-chart-select income-mobile-tabs">
+              <LoadingSkeleton style={{ height: 44, width: '100%' }} />
               <LoadingSkeleton style={{ height: 44, width: '100%' }} />
             </div>
             {[0, 1].map((index) => (

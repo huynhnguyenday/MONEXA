@@ -1,0 +1,10 @@
+.loading-spinner {
+  width: 1em;
+  height: 1em;
+  flex: none;
+}
+@media (prefers-reduced-motion: reduce) {
+  .loading-spinner.fa-spin {
+    animation: none;
+  }
+}

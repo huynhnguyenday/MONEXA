@@ -1,7 +1,8 @@
 'use client';
 import { useState } from 'react';
 import { FontAwesomeIcon as Icon } from '@fortawesome/react-fontawesome';
-import { faCheck, faSpinner, faXmark } from '@fortawesome/free-solid-svg-icons';
+import { faCheck, faXmark } from '@fortawesome/free-solid-svg-icons';
+import LoadingSpinner from '@/components/loading-spinner';
 import { DebtSourceIcon } from '../debt-source-icon';
 import { money } from '../model';
 import { debtPaymentGroup, settleDebtPaymentGroup } from '../debt-payments';
@@ -123,7 +124,7 @@ export default function DebtPaymentConfirmation({
           aria-label={busy ? 'Đang lưu' : reopen ? 'Xác nhận mở lại' : 'Xác nhận thanh toán'}
           title={reopen ? 'Xác nhận mở lại' : 'Xác nhận thanh toán'}
         >
-          <Icon icon={busy ? faSpinner : faCheck} spin={busy} />
+          {busy ? <LoadingSpinner /> : <Icon icon={faCheck} />}
           {busy && (
             <span className="sr-only" role="status">
               Đang thanh toán

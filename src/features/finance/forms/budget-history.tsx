@@ -9,6 +9,7 @@ import { budgetMonth, dateKey, money } from '../model';
 import './budget-history.css';
 import { useHistoryWindow } from '../hooks/use-history-window';
 import HistoryEnd from '../components/history-end';
+import LoadingSpinner from '@/components/loading-spinner';
 
 export function BudgetHistory({
   data,
@@ -34,8 +35,7 @@ export function BudgetHistory({
     const day = dateKey(entry.recordedAt);
     grouped.set(day, [...(grouped.get(day) || []), entry]);
   });
-  if (!entries.length)
-    return <p className="empty-state">Tháng này chưa ghi thêm ngân sách.</p>;
+  if (!entries.length) return <p className="empty-state">Tháng này chưa ghi thêm ngân sách.</p>;
   return (
     <div className="budget-history-manager">
       <div
@@ -73,6 +73,7 @@ export function BudgetHistory({
                           type="button"
                           className="button secondary budget-confirm-delete"
                           disabled={busy}
+                          aria-busy={busy}
                           aria-label={`Có, xóa khoản thu ${money(entry.cash + entry.bank)}`}
                           title="Có, xóa khoản thu"
                           onClick={async () => {
@@ -84,7 +85,7 @@ export function BudgetHistory({
                             if (await save({ ...data, budget, budgets })) setPendingDelete(null);
                           }}
                         >
-                          <Icon icon={faCheck} />
+                          {busy ? <LoadingSpinner /> : <Icon icon={faCheck} />}
                         </button>
                         <button
                           type="button"

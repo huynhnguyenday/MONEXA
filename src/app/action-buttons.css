@@ -44,6 +44,36 @@
   --action-hover-border: #eab308;
   --action-focus: #854d0e;
 }
+:root button.monexa-settle {
+  --action-bg: #dcfce7;
+  --action-ink: #15803d;
+  --action-border: #86efac;
+  --action-shadow: #15803d14;
+  --action-hover-bg: #15803d;
+  --action-hover-ink: #fff;
+  --action-hover-border: #166534;
+  --action-focus: #15803d;
+}
+:root button.monexa-delete {
+  --action-bg: #fff1f2;
+  --action-ink: #b91c1c;
+  --action-border: #fecaca;
+  --action-shadow: #991b1b14;
+  --action-hover-bg: #991b1b;
+  --action-hover-ink: #fff;
+  --action-hover-border: #991b1b;
+  --action-focus: #991b1b;
+}
+:root button.monexa-edit {
+  --action-bg: #fef9c3;
+  --action-ink: #b45309;
+  --action-border: #fde047;
+  --action-shadow: #b4530914;
+  --action-hover-bg: #eab308;
+  --action-hover-ink: #fff;
+  --action-hover-border: #ca8a04;
+  --action-focus: #a16207;
+}
 :root button:is(.monexa-reset, .monexa-cancel) {
   --action-bg: #fff1f2;
   --action-ink: #f87171;

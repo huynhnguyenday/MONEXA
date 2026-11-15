@@ -12,6 +12,7 @@ export type FinanceModal =
   | { type: 'expense'; expense?: Expense }
   | { type: 'debt'; debt?: Debt }
   | { type: 'debt-payment'; debtIds: string[]; reopen?: boolean }
+  | { type: 'debt-delete'; debt: Debt }
   | { type: 'category'; category?: Category }
   | { type: 'debtSource'; debtSource?: DebtSource }
   | { type: 'budget' }

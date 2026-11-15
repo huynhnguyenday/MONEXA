@@ -5,7 +5,7 @@ import { FontAwesomeIcon as Icon } from '@fortawesome/react-fontawesome';
 import { faMoneyBillTransfer } from '@fortawesome/free-solid-svg-icons';
 import DateTimeField from '@/components/date-time-field';
 import PendingLabel from '@/components/pending-label';
-import { budgetMonth, calculateAccounts, dateKey, money } from '../model';
+import { calculateAccounts, dateKey, money } from '../model';
 import { calculateFunds, type IncomeRecord } from '../income-model';
 import { putIncomeRecord } from '../income-operations';
 import { formatVndInput } from './income-form';
@@ -55,9 +55,6 @@ export function AllocationForm({
       available -= record.entry.amount;
   }
   const value = Number(amount.replace(/\D/g, ''));
-  const monthly = data.budgets
-    .filter((b) => budgetMonth(b) === budgetPeriod)
-    .reduce((s, b) => ({ cash: s.cash + b.cash, bank: s.bank + b.bank }), { cash: 0, bank: 0 });
   return (
     <form
       onSubmit={async (event) => {
@@ -185,13 +182,6 @@ export function AllocationForm({
         {target === 'spending' && (
           <>
             <div className="allocation-summary">
-              <strong>Đã cấp tháng {budgetPeriod}</strong>
-              <span>
-                Tiền mặt <b>{money(monthly.cash)}</b>
-              </span>
-              <span>
-                Chuyển khoản <b>{money(monthly.bank)}</b>
-              </span>
               <strong>Ngân sách đang có · tất cả thời gian</strong>
               <span>
                 Tiền mặt <b>{money(accounts.cash)}</b>

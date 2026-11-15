@@ -129,3 +129,23 @@
   justify-content: flex-end;
   gap: 8px;
 }
+.debt-history-viewport .debt-actions-column {
+  width: 152px;
+}
+:root .debt-history-viewport .table-actions button.monexa-action {
+  width: 44px;
+  min-width: 44px;
+  height: 44px;
+  min-height: 44px;
+}
+.debt-history-viewport .table-actions button.monexa-action > svg {
+  width: 20px;
+  height: 20px;
+}
+@media (min-width: 601px) and (max-width: 1023px) {
+  .debt-history-viewport .compact-debt-table tbody tr {
+    height: 164px;
+    grid-template-columns: minmax(0, 1fr) 94px 44px;
+    grid-template-rows: 70px 32px 48px;
+  }
+}

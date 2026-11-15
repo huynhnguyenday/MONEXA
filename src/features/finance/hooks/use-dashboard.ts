@@ -124,15 +124,7 @@ export function useDashboard() {
       setNotice('Đã xóa khoản chi.');
   }
   async function deleteDebt(debt: Debt) {
-    if (
-      window.confirm(`Xóa khoản công nợ “${debt.title}” và chi tiêu tự động liên kết (nếu có)?`) &&
-      (await save({
-        ...data,
-        debts: data.debts.filter((d) => d.id !== debt.id),
-        expenses: data.expenses.filter((expense) => expense.debtId !== debt.id),
-      }))
-    )
-      setNotice('Đã xóa công nợ.');
+    if (ready) open({ type: 'debt-delete', debt });
   }
   async function deleteCategory(category: Category) {
     if (

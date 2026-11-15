@@ -534,6 +534,20 @@ export function getBudgetPeriod(data: FinanceData, month: string, now = new Date
   return { opening, closing };
 }
 
+/** Require a purpose for new debts while allowing historical uncategorized debts to be read. */
+export function assertNewDebtCategories(previous: FinanceData, next: FinanceData) {
+  const existing = new Set(previous.debts.map((debt) => debt.id));
+  const index = next.debts.findIndex((debt) => !existing.has(debt.id) && !debt.categoryId);
+  if (index >= 0)
+    throw new z.ZodError([
+      {
+        code: 'custom',
+        path: ['debts', index, 'categoryId'],
+        message: 'Vui lòng chọn danh mục cho khoản công nợ mới.',
+      },
+    ]);
+}
+
 /** Reconcile linked expenses atomically with debt changes; never backfill unrelated old loans. */
 export function reconcileDebtExpenses(previous: FinanceData, next: FinanceData): FinanceData {
   const previousDebts = new Map(previous.debts.map((debt) => [debt.id, debt]));

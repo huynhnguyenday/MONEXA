@@ -53,7 +53,7 @@ export default function DebtCalendar({
   };
   const byDueDate = new Map<string, Debt[]>();
   for (const debt of data.debts) {
-    if (!debt.dueDate || debt.settledAt) continue;
+    if (!debt.dueDate) continue;
     const key = debt.dueDate;
     byDueDate.set(key, [...(byDueDate.get(key) || []), debt]);
   }
@@ -124,10 +124,10 @@ export default function DebtCalendar({
               const items = byDueDate.get(dateKey(date)) || [];
               const totals = items.reduce(
                 (sum, debt) => {
-                  sum[direction(debt)] += debt.amount;
+                  sum[debt.settledAt ? 'settled' : direction(debt)] += debt.amount;
                   return sum;
                 },
-                { payable: 0, receivable: 0 },
+                { payable: 0, receivable: 0, settled: 0 },
               );
               return (
                 <span className="debt-calendar-day">
@@ -149,6 +149,14 @@ export default function DebtCalendar({
                       <small className="payable">
                         <Icon icon={faArrowDown} />
                         <DebtCalendarAmount amount={totals.payable} />
+                      </small>
+                    )}
+                    {totals.settled > 0 && (
+                      <small
+                        className="debt-calendar-settled"
+                        aria-label={`Đã thanh toán ${money(totals.settled)}`}
+                      >
+                        <DebtCalendarAmount amount={totals.settled} />
                       </small>
                     )}
                   </span>
@@ -183,7 +191,14 @@ export default function DebtCalendar({
                     <article className="debt-day-tooltip-entry" key={debt.id}>
                       <div className="debt-day-tooltip-row">
                         <strong title={debt.title}>{debt.title}</strong>
-                        <b>{money(debt.amount)}</b>
+                        <b
+                          className={debt.settledAt ? 'debt-calendar-settled' : undefined}
+                          aria-label={
+                            debt.settledAt ? `Đã thanh toán ${money(debt.amount)}` : undefined
+                          }
+                        >
+                          {money(debt.amount)}
+                        </b>
                       </div>
                       <div className="debt-day-tooltip-row">
                         <span>

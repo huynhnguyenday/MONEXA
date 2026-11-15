@@ -7,6 +7,7 @@ import { incomeRecords, incomeTypes, fundLabels, type IncomeRecord } from '../in
 import { removeIncomeRecord } from '../income-operations';
 import { useHistoryWindow } from '../hooks/use-history-window';
 import HistoryEnd from '../components/history-end';
+import LoadingSpinner from '@/components/loading-spinner';
 import type { FormProps } from './types';
 import './income-history.css';
 
@@ -31,6 +32,7 @@ export default function IncomeHistory({
   id: string;
 }) {
   const [error, setError] = useState('');
+  const [deleting, setDeleting] = useState<string | null>(null);
   const records = useMemo(
     () =>
       incomeRecords(data)
@@ -88,6 +90,7 @@ export default function IncomeHistory({
               type="button"
               className="button secondary income-history-delete"
               disabled={busy}
+              aria-busy={busy && deleting === r.entry.id}
               aria-label={`Xóa ${incomeRecordTitle(r)}`}
               onClick={async () => {
                 if (
@@ -102,10 +105,15 @@ export default function IncomeHistory({
                   return setError(
                     'Không thể xóa vì tiền đã được phân bổ hoặc các giao dịch sau sẽ thiếu nguồn.',
                   );
-                await save(result.data);
+                setDeleting(r.entry.id);
+                try {
+                  await save(result.data);
+                } finally {
+                  setDeleting(null);
+                }
               }}
             >
-              <Icon icon={faTrashCan} />
+              {busy && deleting === r.entry.id ? <LoadingSpinner /> : <Icon icon={faTrashCan} />}
             </button>
           </article>
         ))}

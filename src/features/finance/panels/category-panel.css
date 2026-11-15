@@ -266,43 +266,28 @@
   height: 44px;
   min-height: 44px;
 }
-.category-mobile-tabs {
-  display: none;
+.category-workspace {
+  height: 100%;
+  min-width: 0;
+  min-height: 0;
 }
 @media (max-width: 1023px) {
-  .category-screen {
-    grid-template-columns: minmax(0, 1fr);
-    grid-template-rows: 44px minmax(0, 1fr);
+  .category-workspace .category-screen {
+    grid-template-rows: minmax(0, 1fr);
+  }
+  .category-workspace .category-charts {
+    display: grid;
     gap: 8px;
   }
-  .category-mobile-tabs {
+  .category-workspace .category-management {
     display: flex;
-    gap: 4px;
-    padding: 2px;
-    border-radius: 12px;
-    background: #eff6ff;
   }
-  .category-mobile-tabs button {
-    flex: 1;
-    min-width: 0;
-    min-height: 44px;
-    border: 0;
-    border-radius: 10px;
-    background: transparent;
-    color: #405a7c;
-    font-size: 13px;
-    font-weight: 700;
+  .category-skeleton {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-rows: minmax(0, 1fr);
   }
-  .category-mobile-tabs button.active {
-    background: #1d4ed8;
-    color: white;
-  }
-  .category-view-charts .category-management,
-  .category-view-list .category-charts {
+  .category-skeleton .category-management {
     display: none;
-  }
-  .category-charts {
-    gap: 8px;
   }
 }
 @media (max-width: 600px) {

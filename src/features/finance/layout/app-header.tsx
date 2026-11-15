@@ -56,7 +56,7 @@ export default function AppHeader({
           loading ? (
             <MonthPickerSkeleton />
           ) : (
-            <MonthPicker value={month} onChange={onMonthChange} />
+            <MonthPicker value={month} onChange={onMonthChange} compact />
           )
         ) : view === 'debts' ? (
           <div className="header-debt-tabs" role="group" aria-label="Nội dung công nợ">
@@ -75,11 +75,8 @@ export default function AppHeader({
               Lịch sử
             </button>
           </div>
-        ) : view === 'categories' ? (
-          <span className="header-page-context">Danh mục</span>
-        ) : (
-          <span className="header-page-context">Nguồn công nợ</span>
-        )}
+        ) : null}
+        <div id="header-workspace-tabs" />
       </div>
       <div className="header-primary-action">
         <DebtNotifications data={data} ready={ready} onRead={onReadReminders} />

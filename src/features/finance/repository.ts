@@ -9,6 +9,7 @@ import {
   financeSchema,
   calculateAccounts,
   assertLendingFunds,
+  assertNewDebtCategories,
   reconcileDebtExpenses,
   defaultDebtTypes,
   debtSourceIconColors,
@@ -583,6 +584,7 @@ export async function writeFinance(
       });
       await assertStoredBalance(db, previous, session);
       await reconcileFundBalances(db, previous, session, false);
+      if (!replace) assertNewDebtCategories(previous, data);
       data = reconcileDebtExpenses(previous, data);
       assertLendingFunds(previous, data);
       assertBudgetChanges(previous, data, replace);

@@ -13,9 +13,14 @@
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 10px;
 }
-.allocation-route-fields > label {
+.allocation-entry-dialog .allocation-route-fields > label {
   min-width: 0;
+  margin: 0;
+  padding-top: 0;
+}
+.allocation-entry-dialog .allocation-route-fields + label {
   margin-top: 0;
+  padding-top: 0;
 }
 .allocation-route-fields select {
   min-width: 0;

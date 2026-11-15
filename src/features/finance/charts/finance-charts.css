@@ -1,0 +1,35 @@
+.daily-half-toggle {
+  display: none;
+}
+@media (max-width: 1023px) {
+  .daily-expenses-card .daily-month-badge {
+    display: none;
+  }
+  .daily-expenses-card .daily-half-toggle {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 0;
+    color: #1d4ed8;
+    background: #eff6ff;
+    border: 1px solid #c6d4e8;
+    border-radius: 6px;
+    font-weight: 700;
+  }
+  .daily-half-toggle::after {
+    content: '';
+    position: absolute;
+    height: 44px;
+    inset-inline: 0;
+    top: 50%;
+    transform: translateY(-50%);
+  }
+  .daily-half-toggle:hover {
+    background: #dbeafe;
+  }
+  .daily-half-toggle:focus-visible {
+    outline: 2px solid #1d4ed8;
+    outline-offset: 2px;
+  }
+}
