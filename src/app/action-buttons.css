@@ -74,6 +74,14 @@
   --action-hover-border: #ca8a04;
   --action-focus: #a16207;
 }
+/* History actions use only semantic icon colors until hovered. */
+:root .debt-history-viewport button.monexa-action {
+  --action-bg: transparent;
+  --action-border: transparent;
+  --action-shadow: transparent;
+  border: 0 !important;
+  box-shadow: none !important;
+}
 :root button:is(.monexa-reset, .monexa-cancel) {
   --action-bg: #fff1f2;
   --action-ink: #f87171;

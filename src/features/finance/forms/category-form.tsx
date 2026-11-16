@@ -14,12 +14,27 @@ export function CategoryForm({
   category,
 }: { category?: Category } & FormProps) {
   const suggestedColors: Record<Category['icon'], string> = {
-    utensils: '#f97316', bag: '#db2777', car: '#2563eb', receipt: '#7c3aed',
-    heart: '#e11d48', home: '#0891b2', coffee: '#92400e', plane: '#0284c7',
-    book: '#4f46e5', gift: '#c026d3', game: '#16a34a', wallet: '#ca8a04', couple: '#db2777', outing: '#ea580c', debt: '#0d9488',
+    utensils: '#f97316',
+    bag: '#db2777',
+    car: '#2563eb',
+    receipt: '#7c3aed',
+    heart: '#e11d48',
+    home: '#0891b2',
+    coffee: '#92400e',
+    plane: '#0284c7',
+    shirt: '#0F766E',
+    book: '#4f46e5',
+    gift: '#c026d3',
+    game: '#16a34a',
+    wallet: '#ca8a04',
+    couple: '#db2777',
+    outing: '#ea580c',
+    debt: '#0d9488',
   };
   const [icon, setIcon] = useState<Category['icon']>(category?.icon || 'couple');
-  const [color, setColor] = useState(category?.color || suggestedColors[category?.icon || 'couple']);
+  const [color, setColor] = useState(
+    category?.color || suggestedColors[category?.icon || 'couple'],
+  );
   const [error, setError] = useState('');
   const labelId = useId();
   return (
@@ -43,6 +58,7 @@ export function CategoryForm({
           name,
           icon,
           color: field(form, 'color'),
+          backgroundColor: category?.backgroundColor ?? (icon === 'shirt' ? '#CCFBF1' : undefined),
         };
         if (
           await save({
@@ -71,23 +87,33 @@ export function CategoryForm({
           Icon danh mục
         </div>
         <div className="icon-picker" role="group" aria-labelledby={labelId}>
-          {iconKeys.filter((key) => key !== 'wallet').map((key) => (
-            <button
-              key={key}
-              type="button"
-              title={iconLabels[key]}
-              aria-label={iconLabels[key]}
-              aria-pressed={icon === key}
-              className={icon === key ? 'selected' : ''}
-              onClick={() => { setIcon(key); if (!category) setColor(suggestedColors[key]); }}
-            >
-              <Icon icon={categoryIcons[key]} />
-            </button>
-          ))}
+          {iconKeys
+            .filter((key) => key !== 'wallet')
+            .map((key) => (
+              <button
+                key={key}
+                type="button"
+                title={iconLabels[key]}
+                aria-label={iconLabels[key]}
+                aria-pressed={icon === key}
+                className={icon === key ? 'selected' : ''}
+                onClick={() => {
+                  setIcon(key);
+                  if (!category) setColor(suggestedColors[key]);
+                }}
+              >
+                <Icon icon={categoryIcons[key]} />
+              </button>
+            ))}
         </div>
         <label>
           Màu nhận diện
-          <input type="color" name="color" value={color} onChange={(event) => setColor(event.target.value)} />
+          <input
+            type="color"
+            name="color"
+            value={color}
+            onChange={(event) => setColor(event.target.value)}
+          />
         </label>
         {error && (
           <p className="form-error" role="alert">
@@ -95,7 +121,13 @@ export function CategoryForm({
           </p>
         )}
         <button aria-busy={busy} className="button primary full monexa-action monexa-create">
-          {busy ? <PendingLabel>Đang lưu</PendingLabel> : category ? 'Lưu danh mục' : 'Thêm danh mục'}
+          {busy ? (
+            <PendingLabel>Đang lưu</PendingLabel>
+          ) : category ? (
+            'Lưu danh mục'
+          ) : (
+            'Thêm danh mục'
+          )}
         </button>
       </fieldset>
     </form>

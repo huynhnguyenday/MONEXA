@@ -37,7 +37,7 @@ export default function DebtDeleteConfirmation({
       <div className="debt-payment-context">
         <span style={{ color: source?.color }}>
           {source && <DebtSourceIcon icon={source.icon} />}
-          <strong>{source?.name || 'Nguồn công nợ'}</strong>
+          <strong>{source?.name || (!debt.debtSourceId ? 'Ngân sách' : 'Nguồn công nợ')}</strong>
         </span>
         {debt.dueDate && (
           <time dateTime={debt.dueDate}>{debt.dueDate.split('-').reverse().join('/')}</time>

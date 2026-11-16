@@ -21,6 +21,7 @@ export const iconKeys = [
   'couple',
   'outing',
   'debt',
+  'shirt',
 ] as const;
 export const debtSourceIconKeys = ['tiktok', 'shopee', 'seasy', 'momo', 'bank', 'person'] as const;
 const id = z
@@ -47,6 +48,10 @@ export const categorySchema = z.object({
   userId: ownerId,
   name: text(50),
   color: z.string().regex(/^#[0-9a-f]{6}$/i),
+  backgroundColor: z
+    .string()
+    .regex(/^#[0-9a-f]{6}$/i)
+    .optional(),
   icon: z.enum(iconKeys),
 });
 export const expenseSchema = z.object({
@@ -114,7 +119,8 @@ export const debtSchema = z
     id,
     userId: ownerId,
     title: text(100),
-    debtSourceId: id,
+    // Empty means budget-funded lending; financeSchema rejects it for payables.
+    debtSourceId: z.union([id, z.literal('')]),
     debtTypeId: id,
     categoryId: id.nullable().optional(),
     paymentMethod: z.enum(['cash', 'bank']).default('cash'),
@@ -204,7 +210,13 @@ export const financeSchema = z
         message: 'Chi tiêu tham chiếu danh mục không tồn tại.',
         path: ['expenses'],
       });
-    if (data.debts.some((d) => !debtSources.has(d.debtSourceId)))
+    if (
+      data.debts.some((d) =>
+        d.debtSourceId
+          ? !debtSources.has(d.debtSourceId)
+          : data.debtTypes.find((type) => type.id === d.debtTypeId)?.direction !== 'receivable',
+      )
+    )
       ctx.addIssue({
         code: 'custom',
         message: 'Công nợ tham chiếu nguồn không tồn tại.',
@@ -532,20 +544,6 @@ export function getBudgetPeriod(data: FinanceData, month: string, now = new Date
   const opening = at(Math.min(start, cutoff));
   const closing = at(cutoff);
   return { opening, closing };
-}
-
-/** Require a purpose for new debts while allowing historical uncategorized debts to be read. */
-export function assertNewDebtCategories(previous: FinanceData, next: FinanceData) {
-  const existing = new Set(previous.debts.map((debt) => debt.id));
-  const index = next.debts.findIndex((debt) => !existing.has(debt.id) && !debt.categoryId);
-  if (index >= 0)
-    throw new z.ZodError([
-      {
-        code: 'custom',
-        path: ['debts', index, 'categoryId'],
-        message: 'Vui lòng chọn danh mục cho khoản công nợ mới.',
-      },
-    ]);
 }
 
 /** Reconcile linked expenses atomically with debt changes; never backfill unrelated old loans. */

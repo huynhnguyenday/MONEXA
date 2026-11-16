@@ -10,7 +10,9 @@ import {
   Tooltip,
   type ChartOptions,
 } from 'chart.js';
-import { money } from '../model';
+import { money, type DebtSource } from '../model';
+import { DebtSourceIcon } from '../debt-source-icon';
+import { debtSourceAxisIcons } from './debt-source-axis-icons';
 import { moneyAxisMaximum } from './money-axis';
 import { categoryAxisIcons } from './category-axis-icons';
 import { groupBreakdown, type BreakdownGroup, type BreakdownRecord } from './group-breakdown';
@@ -68,6 +70,9 @@ export default function GroupBreakdownChart({
   const iconState = useRef({ groups: totals, enabled: compactLabels });
   iconState.current = { groups: totals, enabled: compactLabels };
   const iconPlugin = useMemo(() => categoryAxisIcons(() => iconState.current), []);
+  const sourceIcons = useRef<HTMLDivElement>(null);
+  const sourceIconPlugin = useMemo(() => debtSourceAxisIcons(() => sourceIcons.current), []);
+  const iconLabels = compactLabels || kind === 'debt';
   const noun = kind === 'expense' ? 'chi tiêu' : 'công nợ';
   const periodLabel =
     period.length === 4 ? `năm ${period}` : `tháng ${period.slice(5)}/${period.slice(0, 4)}`;
@@ -98,12 +103,12 @@ export default function GroupBreakdownChart({
     scales: {
       x: {
         afterFit: (axis) => {
-          if (compactLabels) axis.height = 32;
+          if (iconLabels) axis.height = 36;
         },
         grid: { display: false },
         border: { display: false },
         ticks: {
-          callback: compactLabels ? () => '' : undefined,
+          callback: iconLabels ? () => '' : undefined,
           autoSkip: false,
           maxRotation: 0,
           minRotation: 0,
@@ -144,14 +149,14 @@ export default function GroupBreakdownChart({
       </div>
       <div
         className="category-chart"
-        data-axis-labels={compactLabels ? 'icons' : 'text'}
+        data-axis-labels={kind === 'debt' ? 'source-logos' : compactLabels ? 'icons' : 'text'}
         ref={ref}
         role="img"
         aria-label={`${title}, ${periodLabel}. Tổng: ${money(totals.reduce((sum, group) => sum + group.amount, 0))}`}
       >
         {totals.length ? (
           <Bar
-            plugins={[iconPlugin]}
+            plugins={kind === 'debt' ? [sourceIconPlugin] : [iconPlugin]}
             options={options}
             data={{
               labels: totals.map((group) => wrapName(group.name, labelCapacity)),
@@ -175,6 +180,20 @@ export default function GroupBreakdownChart({
                 ? 'Thêm danh mục để xem biểu đồ.'
                 : 'Thêm nguồn công nợ để xem biểu đồ.'}
             </p>
+          </div>
+        )}
+        {kind === 'debt' && (
+          <div className="debt-source-axis-icons" ref={sourceIcons} aria-hidden="true">
+            {totals.map((group) => (
+              <span
+                key={group.id}
+                data-source-axis-icon
+                title={group.name}
+                style={{ color: group.color }}
+              >
+                <DebtSourceIcon icon={(group.icon as DebtSource['icon']) || 'person'} />
+              </span>
+            ))}
           </div>
         )}
       </div>

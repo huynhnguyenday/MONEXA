@@ -15,7 +15,7 @@
 }
 .overview-panel .expense-expanded-info {
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  grid-template-areas: 'category source' 'time payment';
+  grid-template-areas: 'category time' 'payment source';
 }
 .expense-detail-category {
   grid-area: category;
@@ -37,18 +37,7 @@
 }
 @media (max-width: 1023px) {
   .overview-panel .expense-expanded-info {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    grid-template-areas: 'category source' 'time payment';
     gap: 12px 16px;
-  }
-  .expense-detail-category {
-    grid-area: category;
-  }
-  .expense-detail-payment {
-    grid-area: payment;
-  }
-  .expense-detail-time {
-    grid-area: time;
   }
   .overview-panel .expense-detail-item small {
     color: #475569;
@@ -62,6 +51,16 @@
     line-height: 1.5;
     white-space: normal;
   }
+}
+.overview-panel .expense-expanded-info:not(:has(.expense-detail-category)) {
+  grid-template-areas: 'payment time' '. source';
+}
+.overview-panel .expense-expanded-info .expense-detail-payment > span,
+.overview-panel .expense-expanded-info .expense-detail-source > span,
+.overview-panel .expense-expanded-info .expense-detail-time time,
+.overview-panel .expense-expanded-info .expense-detail-time time > span {
+  font-size: 12px;
+  line-height: 1.4;
 }
 .overview-panel .overview-grid {
   height: auto;

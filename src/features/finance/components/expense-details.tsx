@@ -8,6 +8,7 @@ export default function ExpenseDetails({ data, expense }: { data: FinanceData; e
   const source = debt && data.debtSources.find((item) => item.id === debt.debtSourceId);
   const categoryId = expenseCategoryId(data, expense);
   const category = data.categories.find((item) => item.id === categoryId);
+  const sourceColor = source?.color || '#1d4ed8';
   const date = new Date(expense.occurredAt);
   const time = new Intl.DateTimeFormat('vi-VN', {
     timeZone: 'Asia/Ho_Chi_Minh',
@@ -35,9 +36,10 @@ export default function ExpenseDetails({ data, expense }: { data: FinanceData; e
       {debt && (
         <div className="expense-detail-item expense-detail-source">
           <small>Nguồn công nợ</small>
-          <span>
+          <span style={{ color: sourceColor }}>
             {source && <DebtSourceIcon icon={source.icon} />}
-            {source?.name || 'Nguồn công nợ không còn khả dụng'}
+            {source?.name ||
+              (!debt.debtSourceId ? 'Ngân sách' : 'Nguồn công nợ không còn khả dụng')}
           </span>
         </div>
       )}

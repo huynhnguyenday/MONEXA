@@ -205,7 +205,10 @@ export default function DebtCalendar({
                           {data.debtTypes.find((type) => type.id === debt.debtTypeId)?.name ||
                             'Loại công nợ'}
                         </span>
-                        <span>{source?.name || 'Không rõ nguồn công nợ'}</span>
+                        <span>
+                          {source?.name ||
+                            (!debt.debtSourceId ? 'Ngân sách' : 'Không rõ nguồn công nợ')}
+                        </span>
                       </div>
                     </article>
                   );

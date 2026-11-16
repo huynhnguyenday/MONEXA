@@ -3,7 +3,8 @@ import { useMemo, useState } from 'react';
 import { FontAwesomeIcon as Icon } from '@fortawesome/react-fontawesome';
 import { faMagnifyingGlass, faPen, faPlus, faTrashCan } from '@fortawesome/free-solid-svg-icons';
 import { createSearchMatcher } from '@/lib/search';
-import { type Category, type FinanceData, dateKey, expenseCategoryId } from '../model';
+import { type Category, type FinanceData } from '../model';
+import { categoryBreakdown } from '../charts/category-breakdown';
 import ClassificationScreen from './classification-screen';
 import { categoryIcons } from '../icons';
 export default function CategoryPanel({
@@ -24,22 +25,7 @@ export default function CategoryPanel({
   const [search, setSearch] = useState('');
   const matchesSearch = createSearchMatcher(search);
   const filteredCategories = data.categories.filter((item) => matchesSearch(item.name));
-  const records = useMemo(
-    () =>
-      data.expenses.flatMap((item) => {
-        const groupId = expenseCategoryId(data, item);
-        return groupId ? [{ groupId, amount: item.amount, date: dateKey(item.occurredAt) }] : [];
-      }),
-    [data.expenses, data.debts, data.debtTypes],
-  );
-  // The debt ledger fallback is not a spending purpose. Keep explicitly used categories by ID.
-  const purposeIds = new Set([
-    ...records.map((record) => record.groupId),
-    ...data.debts.flatMap((debt) => (debt.categoryId ? [debt.categoryId] : [])),
-  ]);
-  const chartCategories = data.categories.filter(
-    (category) => category.icon !== 'debt' || purposeIds.has(category.id),
-  );
+  const { groups: chartCategories, records } = useMemo(() => categoryBreakdown(data), [data]);
   return (
     <ClassificationScreen month={month} groups={chartCategories} records={records} kind="expense">
       <article className="card category-list-panel">
@@ -90,7 +76,10 @@ export default function CategoryPanel({
                   <article className="category-tile" key={category.id}>
                     <span
                       className="category-symbol"
-                      style={{ color: category.color, background: `${category.color}20` }}
+                      style={{
+                        color: category.color,
+                        background: category.backgroundColor || `${category.color}20`,
+                      }}
                     >
                       <Icon icon={categoryIcons[category.icon]} />
                     </span>

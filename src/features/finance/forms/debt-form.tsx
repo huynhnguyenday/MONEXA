@@ -17,7 +17,9 @@ import {
   PERSONAL_USER_ID,
 } from '../model';
 import { type FormProps, field } from './types';
+import { splitDebtInstallments } from './debt-installments';
 export function DebtForm({ data, save, done, busy, debt }: { debt?: Debt } & FormProps) {
+  const [installments, setInstallments] = useState<1 | 3 | 6>(1);
   const [amount, setAmount] = useState(
     debt ? new Intl.NumberFormat('vi-VN').format(debt.amount) : '',
   );
@@ -42,19 +44,19 @@ export function DebtForm({ data, save, done, busy, debt }: { debt?: Debt } & For
         const f = new FormData(e.currentTarget);
         if (!due) return setError('Vui lòng chọn hạn thanh toán.');
         const source = data.debtSources.find((item) => item.id === debtSourceId);
-        if (!source) return setError('Vui lòng chọn nguồn công nợ đã được tạo.');
+        if (!lending && !source) return setError('Vui lòng chọn nguồn công nợ đã được tạo.');
         const debtType = data.debtTypes.find((type) => type.id === debtTypeId);
         if (!debtType) return setError('Vui lòng chọn loại công nợ.');
-        if (!data.categories.some((category) => category.id === categoryId))
-          return setError('Vui lòng chọn danh mục cho khoản công nợ.');
+        if (categoryId && !data.categories.some((category) => category.id === categoryId))
+          return setError('Danh mục không hợp lệ.');
         const next: Debt = {
           userId: PERSONAL_USER_ID,
           id: debt?.id || crypto.randomUUID(),
           title: field(f, 'title'),
           amount: Number(String(f.get('amount')).replace(/\D/g, '')),
           debtTypeId: debtType.id,
-          debtSourceId: source.id,
-          categoryId,
+          debtSourceId: lending ? '' : source!.id,
+          categoryId: categoryId || null,
           paymentMethod: field(f, 'paymentMethod') as Debt['paymentMethod'],
           occurredAt: debt?.occurredAt || new Date().toISOString(),
           dueDate: dateKeyFromLocal(due),
@@ -62,17 +64,20 @@ export function DebtForm({ data, save, done, busy, debt }: { debt?: Debt } & For
           settledAt: debt?.settledAt || null,
           note: debt?.note || '',
         };
-        const proposed = {
-          ...data,
-          debts: debt
-            ? data.debts.map((d) => (d.id === debt.id ? next : d))
-            : [next, ...data.debts],
-        };
         try {
+          const entries = splitDebtInstallments(next, debt ? 1 : installments);
+          const proposed = {
+            ...data,
+            debts: debt
+              ? data.debts.map((d) => (d.id === debt.id ? next : d))
+              : [...entries, ...data.debts],
+          };
           assertLendingFunds(data, reconcileDebtExpenses(data, proposed));
           if (await save(proposed)) done();
         } catch {
-          setError('Không đủ số dư nguồn tiền đã chọn để cho mượn hoặc dữ liệu không hợp lệ.');
+          setError(
+            'Không đủ số dư nguồn tiền đã chọn hoặc số tiền không hợp lệ cho số kỳ trả góp.',
+          );
         }
       }}
     >
@@ -106,23 +111,42 @@ export function DebtForm({ data, save, done, busy, debt }: { debt?: Debt } & For
             </select>
           </label>
           <label>
-            Nguồn công nợ
-            <select
-              name="debtSourceId"
-              value={debtSourceId}
-              onChange={(e) => setDebtSourceId(e.target.value)}
-              required
-              disabled={!data.debtSources.length}
-            >
-              {!data.debtSources.length && <option value="">Chưa có nguồn công nợ</option>}
-              {data.debtSources.map((source) => (
-                <option key={source.id} value={source.id}>
-                  {source.name}
-                </option>
-              ))}
-            </select>
+            {lending ? 'Nguồn tiền' : 'Nguồn công nợ'}
+            {lending ? (
+              <input value="Ngân sách" readOnly />
+            ) : (
+              <select
+                name="debtSourceId"
+                value={debtSourceId}
+                onChange={(e) => setDebtSourceId(e.target.value)}
+                required
+                disabled={!data.debtSources.length}
+              >
+                {!data.debtSources.length && <option value="">Chưa có nguồn công nợ</option>}
+                {data.debtSources.map((source) => (
+                  <option key={source.id} value={source.id}>
+                    {source.name}
+                  </option>
+                ))}
+              </select>
+            )}
           </label>
         </div>
+        {!debt && (
+          <div className="debt-installment-options" role="group" aria-label="Chia kỳ trả góp">
+            {([3, 6] as const).map((months) => (
+              <label key={months}>
+                <input
+                  type="checkbox"
+                  checked={installments === months}
+                  aria-label={`Trả góp ${months} tháng`}
+                  onChange={() => setInstallments(installments === months ? 1 : months)}
+                />
+                {months} tháng
+              </label>
+            ))}
+          </div>
+        )}
         <label>
           Số tiền (VND)
           <input
@@ -158,7 +182,7 @@ export function DebtForm({ data, save, done, busy, debt }: { debt?: Debt } & For
             withTime={false}
           />
         </div>
-        {!data.debtSources.length && (
+        {!lending && !data.debtSources.length && (
           <p role="alert" className="form-error">
             Hãy tạo nguồn công nợ trong navbar trước khi ghi công nợ.
           </p>
@@ -171,7 +195,7 @@ export function DebtForm({ data, save, done, busy, debt }: { debt?: Debt } & For
         <>
           <div className="debt-category-heading">
             <label id="debt-category-label">
-              Danh mục <span>(bắt buộc)</span>
+              Danh mục <span>(tùy chọn)</span>
             </label>
             <button
               type="button"
@@ -211,7 +235,7 @@ export function DebtForm({ data, save, done, busy, debt }: { debt?: Debt } & For
         <button
           aria-busy={busy}
           className="button primary full monexa-action monexa-create"
-          disabled={!data.debtSources.length || !data.debtTypes.length || busy}
+          disabled={(!lending && !data.debtSources.length) || !data.debtTypes.length || busy}
         >
           {busy ? <PendingLabel>Đang lưu</PendingLabel> : debt ? 'Lưu thay đổi' : 'Ghi công nợ'}
         </button>

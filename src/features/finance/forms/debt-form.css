@@ -1,5 +1,5 @@
-.debt-entry-dialog .debt-type-source-row {
-  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+﻿.debt-entry-dialog .debt-type-source-row {
+  grid-template-columns: minmax(0, calc(50% - 35px)) minmax(0, calc(50% + 25px));
   gap: 10px;
 }
 .debt-entry-dialog .dialog-heading {
@@ -37,7 +37,48 @@
   min-height: 30.8px;
   padding: 0;
 }
-:root dialog:is(.debt-entry-dialog, .debt-payment-dialog) .dialog-heading > button.monexa-close > svg {
+:root
+  dialog:is(.debt-entry-dialog, .debt-payment-dialog)
+  .dialog-heading
+  > button.monexa-close
+  > svg {
   width: 14px;
   height: 14px;
+}
+.debt-installment-options {
+  display: flex;
+  justify-content: flex-end;
+  gap: 16px;
+  margin-top: 2px;
+  padding: 0;
+}
+.debt-entry-dialog form .debt-installment-options label {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 24px;
+  margin: 0;
+  padding: 0;
+  cursor: pointer;
+  font-size: 12px;
+  line-height: 18px;
+}
+.debt-entry-dialog form .debt-type-source-row:has(+ .debt-installment-options) {
+  margin-bottom: 0;
+  padding-bottom: 0;
+}
+.debt-entry-dialog form .debt-type-source-row:has(+ .debt-installment-options) > label {
+  margin-bottom: 2px;
+}
+.debt-entry-dialog form .debt-installment-options + label {
+  margin-top: 2px;
+  padding-top: 0;
+}
+.debt-entry-dialog form .debt-installment-options input[type='checkbox'] {
+  width: 16px;
+  height: 16px;
+  min-height: 0;
+  margin: 0;
+  padding: 0;
+  accent-color: #1d4ed8;
 }

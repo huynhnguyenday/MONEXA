@@ -13,6 +13,7 @@ import {
 } from '@fortawesome/free-solid-svg-icons';
 import { useHistoryWindow } from '../hooks/use-history-window';
 import HistoryEnd from '../components/history-end';
+import { DebtSourceIcon } from '../debt-source-icon';
 import DebtHistoryFilters, { type DebtHistorySort } from './debt-history-filters';
 import { type Debt, type FinanceData, dateKey, debtDirection, money } from '../model';
 import './debt-history.css';
@@ -247,15 +248,18 @@ export default function DebtHistory({ data, ready, onAdd, onEdit, onDelete, onSe
                   <tr key={debt.id}>
                     <td>
                       <h3 title={debt.title}>{title}</h3>
-                      <span className="mobile-debt-status">
-                        {data.debtTypes.find((type) => type.id === debt.debtTypeId)?.name ||
-                          'Loại công nợ'}{' '}
-                        · {status}
-                      </span>
                     </td>
                     <td>
-                      <span className="debt-source" title={source?.name}>
-                        {source?.name || 'Không rõ nguồn công nợ'}
+                      <span
+                        className="debt-source"
+                        title={source?.name}
+                        style={{ color: source?.color || '#1d4ed8' }}
+                      >
+                        {source && <DebtSourceIcon icon={source.icon} />}
+                        <span>
+                          {source?.name ||
+                            (!debt.debtSourceId ? 'Ngân sách' : 'Không rõ nguồn công nợ')}
+                        </span>
                       </span>
                     </td>
                     <td>
@@ -280,15 +284,6 @@ export default function DebtHistory({ data, ready, onAdd, onEdit, onDelete, onSe
                     <td>
                       <div className="table-actions">
                         <button
-                          className="monexa-action monexa-edit"
-                          aria-label={`Sửa ${debt.title}`}
-                          title="Sửa công nợ"
-                          disabled={!ready}
-                          onClick={() => onEdit(debt)}
-                        >
-                          <Icon icon={faPen} />
-                        </button>
-                        <button
                           className="settle-action monexa-action monexa-settle"
                           aria-label={
                             debt.settledAt
@@ -300,6 +295,15 @@ export default function DebtHistory({ data, ready, onAdd, onEdit, onDelete, onSe
                           onClick={() => onSettle(debt)}
                         >
                           <Icon icon={debt.settledAt ? faRotateLeft : faCheck} />
+                        </button>
+                        <button
+                          className="monexa-action monexa-edit"
+                          aria-label={`Sửa ${debt.title}`}
+                          title="Sửa công nợ"
+                          disabled={!ready}
+                          onClick={() => onEdit(debt)}
+                        >
+                          <Icon icon={faPen} />
                         </button>
                         <button
                           className="monexa-action monexa-delete"

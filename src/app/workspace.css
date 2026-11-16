@@ -885,7 +885,6 @@ dialog .dialog-content textarea { max-height: 150px; }
 .debt-history-heading span { display: inline-grid; min-width: 24px; height: 24px; place-items: center; padding: 0 6px; border-radius: 12px; background: #eff6ff; color: #1d4ed8; font-size: 10px; }
 .debt-history-viewport { --row-height: 92px; --table-header-height: 32px; overflow-y: auto; overscroll-behavior: contain; scrollbar-gutter: stable; }
 .debt-history-viewport thead th { position: sticky; top: 0; z-index: 1; background: #fff; }
-.debt-history-viewport .debt-actions-column { width: 120px; }
 .debt-history-viewport .debt-days-urgent { color: #b42318; font-weight: 750; }
 .debt-history-viewport .debt-days-soon { color: #a16207; font-weight: 750; }
 .debt-history-viewport .debt-days-safe { color: #15803d; font-weight: 750; }
@@ -899,17 +898,12 @@ dialog .dialog-content textarea { max-height: 150px; }
 .debt-history-viewport .compact-debt-table .debt-due,
 .debt-history-viewport .compact-debt-table .overdue-text,
 .debt-history-viewport .compact-debt-table td > small,
-.debt-history-viewport .compact-debt-table .status-badge,
-.debt-history-viewport .mobile-debt-status { font-size: 13px; line-height: 1.5; }
+.debt-history-viewport .compact-debt-table .status-badge { font-size: 13px; line-height: 1.5; }
 .debt-history-viewport .compact-debt-table .status-badge.overdue { color: #b42318; background: #fee4e2; }
 .debt-history-viewport .compact-debt-table .receivable { color: #1d4ed8; }
 .debt-history-viewport .compact-debt-table .payable { color: #b42318; }
 .debt-history-viewport .compact-debt-table h3 { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .debt-history-viewport .table-actions { gap: 4px; }
-.debt-history-viewport .table-actions button { width: 30px; min-width: 30px; height: 32px; min-height: 32px; }
-.mobile-debt-status {
-  display: none;
-}
 .workspace-messages {
   position: fixed;
   bottom: 12px;
@@ -1402,12 +1396,6 @@ dialog .dialog-content textarea { max-height: 150px; }
   }
   .debt-source {
     font-size: 9px;
-    margin-top: 2px;
-  }
-  .mobile-debt-status {
-    display: block;
-    font-size: 8px;
-    color: #64748b;
     margin-top: 2px;
   }
   .compact-debt-table time,
