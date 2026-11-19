@@ -74,6 +74,14 @@ export async function PUT(request: Request) {
       400,
     );
   try {
+    if (!parsed.data.replace && !Object.hasOwn(rawData, 'customIcons')) {
+      const current = await readFinance();
+      if (current.data.customIcons.length)
+        return json(
+          { error: 'Ứng dụng đã có thư viện icon mới. Vui lòng tải lại trước khi lưu.' },
+          409,
+        );
+    }
     const snapshot = await writeFinance(
       parsed.data.data,
       parsed.data.revision,

@@ -52,7 +52,7 @@ const transactions: TransactionOptions & { timeoutMS: number } = {
   timeoutMS: 20000,
 };
 let indexesReady: Promise<void> | undefined;
-const INDEXES_VERSION = 4;
+const INDEXES_VERSION = 5;
 
 function entities(db: Db, key: EntityKey) {
   const collection = financeCollections[key];

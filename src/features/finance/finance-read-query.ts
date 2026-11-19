@@ -1,6 +1,7 @@
 import type { Document } from 'mongodb';
 
 export const financeCollections = {
+  customIcons: 'category_icons',
   categories: 'categories',
   expenses: 'expenses',
   debtSources: 'debt_sources',

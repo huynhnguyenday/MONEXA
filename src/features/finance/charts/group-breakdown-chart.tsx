@@ -13,24 +13,14 @@ import {
 import { money, type DebtSource } from '../model';
 import { DebtSourceIcon } from '../debt-source-icon';
 import { debtSourceAxisIcons } from './debt-source-axis-icons';
+import CategoryIcon from '../components/category-icon';
+import type { CustomIcon } from '../custom-icon-schema';
+import { type Category } from '../model';
 import { moneyAxisMaximum } from './money-axis';
-import { categoryAxisIcons } from './category-axis-icons';
 import { groupBreakdown, type BreakdownGroup, type BreakdownRecord } from './group-breakdown';
+import { useGroupChartTooltip } from './group-chart-tooltip';
 
 ChartJS.register(CategoryScale, LinearScale, BarElement, Tooltip);
-
-function wrapName(name: string, capacity: number) {
-  const lines: string[] = [];
-  for (const word of name.trim().split(/\s+/u)) {
-    if (lines.length && lines[lines.length - 1].length + word.length + 1 <= capacity) {
-      lines[lines.length - 1] += ' ' + word;
-    } else {
-      for (let offset = 0; offset < word.length; offset += capacity)
-        lines.push(word.slice(offset, offset + capacity));
-    }
-  }
-  return lines.length > 3 ? [...lines.slice(0, 2), lines[2] + '\u2026'] : lines;
-}
 
 export default function GroupBreakdownChart({
   groups,
@@ -40,6 +30,7 @@ export default function GroupBreakdownChart({
   kind,
   picker,
   titleAction,
+  customIcons = [],
 }: {
   groups: BreakdownGroup[];
   records: BreakdownRecord[];
@@ -48,8 +39,10 @@ export default function GroupBreakdownChart({
   kind: 'expense' | 'debt';
   picker: ReactNode;
   titleAction?: ReactNode;
+  customIcons?: CustomIcon[];
 }) {
   const [width, setWidth] = useState(640);
+  const floatingTooltip = useGroupChartTooltip();
   const ref = useRef<HTMLDivElement>(null);
   useEffect(() => {
     const element = ref.current;
@@ -60,19 +53,28 @@ export default function GroupBreakdownChart({
     observer.observe(element);
     return () => observer.disconnect();
   }, []);
-  const totals = useMemo(() => groupBreakdown(groups, records, period), [groups, records, period]);
-  const highest = totals.reduce((maximum, group) => Math.max(maximum, group.amount), 0);
+  const allTotals = useMemo(
+    () =>
+      groupBreakdown(groups, records, period).filter(
+        (group) => kind !== 'expense' || group.count > 0,
+      ),
+    [groups, records, period, kind],
+  );
+  const [page, setPage] = useState(0);
+  useEffect(() => {
+    setPage(0);
+  }, [period]);
+  const pageSize = Math.max(1, Math.floor((width - 54) / 42));
+  const pageCount = Math.max(1, Math.ceil(allTotals.length / pageSize));
+  const currentPage = Math.min(page, pageCount - 1);
+  const totals = allTotals.slice(currentPage * pageSize, (currentPage + 1) * pageSize);
+  const highest = allTotals.reduce((maximum, group) => Math.max(maximum, group.amount), 0);
   const axisMaximum = moneyAxisMaximum(highest);
-  const slotWidth = Math.max(1, (width - 54) / Math.max(1, totals.length));
-  const labelSize = slotWidth < 24 ? 8 : slotWidth < 48 ? 9 : 11;
-  const labelCapacity = Math.max(1, Math.min(14, Math.floor(slotWidth / (labelSize * 0.65))));
-  const compactLabels = kind === 'expense' && width < 480;
-  const iconState = useRef({ groups: totals, enabled: compactLabels });
-  iconState.current = { groups: totals, enabled: compactLabels };
-  const iconPlugin = useMemo(() => categoryAxisIcons(() => iconState.current), []);
   const sourceIcons = useRef<HTMLDivElement>(null);
   const sourceIconPlugin = useMemo(() => debtSourceAxisIcons(() => sourceIcons.current), []);
-  const iconLabels = compactLabels || kind === 'debt';
+  useEffect(() => {
+    floatingTooltip.hide();
+  }, [period, currentPage, floatingTooltip.hide]);
   const noun = kind === 'expense' ? 'chi tiêu' : 'công nợ';
   const periodLabel =
     period.length === 4 ? `năm ${period}` : `tháng ${period.slice(5)}/${period.slice(0, 4)}`;
@@ -84,15 +86,8 @@ export default function GroupBreakdownChart({
     plugins: {
       legend: { display: false },
       tooltip: {
-        backgroundColor: '#fff',
-        titleColor: '#142d4e',
-        bodyColor: '#304968',
-        borderColor: '#cbd8ea',
-        borderWidth: 1,
-        cornerRadius: 10,
-        padding: 10,
-        titleFont: { family: "'Be Vietnam Pro', sans-serif", size: 12, weight: 'bold' },
-        bodyFont: { family: "'Be Vietnam Pro', sans-serif", size: 11, weight: 600 },
+        enabled: false,
+        external: floatingTooltip.external,
         callbacks: {
           title: (items) => totals[items[0]?.dataIndex]?.name ?? '',
           label: (item) => `Tổng ${noun}: ${money(item.parsed.y ?? 0)}`,
@@ -103,17 +98,16 @@ export default function GroupBreakdownChart({
     scales: {
       x: {
         afterFit: (axis) => {
-          if (iconLabels) axis.height = 36;
+          axis.height = 36;
         },
         grid: { display: false },
         border: { display: false },
         ticks: {
-          callback: iconLabels ? () => '' : undefined,
+          callback: () => '',
           autoSkip: false,
           maxRotation: 0,
           minRotation: 0,
           color: '#304968',
-          font: { size: labelSize, weight: 600, lineHeight: 1.15 },
           padding: 4,
         },
       },
@@ -149,17 +143,18 @@ export default function GroupBreakdownChart({
       </div>
       <div
         className="category-chart"
-        data-axis-labels={kind === 'debt' ? 'source-logos' : compactLabels ? 'icons' : 'text'}
+        data-axis-labels={kind === 'debt' ? 'source-logos' : 'icons'}
         ref={ref}
+        onPointerLeave={floatingTooltip.hide}
         role="img"
-        aria-label={`${title}, ${periodLabel}. Tổng: ${money(totals.reduce((sum, group) => sum + group.amount, 0))}`}
+        aria-label={`${title}, ${periodLabel}. Tổng: ${money(allTotals.reduce((sum, group) => sum + group.amount, 0))}`}
       >
         {totals.length ? (
           <Bar
-            plugins={kind === 'debt' ? [sourceIconPlugin] : [iconPlugin]}
+            plugins={[sourceIconPlugin]}
             options={options}
             data={{
-              labels: totals.map((group) => wrapName(group.name, labelCapacity)),
+              labels: totals.map((group) => group.name),
               datasets: [
                 {
                   label: `Tổng ${noun}`,
@@ -177,12 +172,12 @@ export default function GroupBreakdownChart({
           <div className="compact-empty">
             <p>
               {kind === 'expense'
-                ? 'Thêm danh mục để xem biểu đồ.'
+                ? 'Chưa có chi tiêu trong kỳ này.'
                 : 'Thêm nguồn công nợ để xem biểu đồ.'}
             </p>
           </div>
         )}
-        {kind === 'debt' && (
+        {totals.length > 0 && (
           <div className="debt-source-axis-icons" ref={sourceIcons} aria-hidden="true">
             {totals.map((group) => (
               <span
@@ -191,17 +186,51 @@ export default function GroupBreakdownChart({
                 title={group.name}
                 style={{ color: group.color }}
               >
-                <DebtSourceIcon icon={(group.icon as DebtSource['icon']) || 'person'} />
+                {kind === 'debt' ? (
+                  <DebtSourceIcon icon={(group.icon as DebtSource['icon']) || 'person'} />
+                ) : (
+                  <CategoryIcon
+                    category={{
+                      icon: (group.icon as Category['icon']) || 'receipt',
+                      customIconId: group.customIconId,
+                    }}
+                    assets={customIcons}
+                  />
+                )}
               </span>
             ))}
           </div>
         )}
       </div>
+      {pageCount > 1 && (
+        <div className="pagination chart-icon-pages" aria-label="Phân trang biểu đồ">
+          <button
+            type="button"
+            aria-label="Trang danh mục trước"
+            disabled={currentPage === 0}
+            onClick={() => setPage(currentPage - 1)}
+          >
+            ‹
+          </button>
+          <span>
+            {currentPage + 1}/{pageCount}
+          </span>
+          <button
+            type="button"
+            aria-label="Trang danh mục sau"
+            disabled={currentPage + 1 === pageCount}
+            onClick={() => setPage(currentPage + 1)}
+          >
+            ›
+          </button>
+        </div>
+      )}
       <span className="sr-only">
-        {totals
+        {allTotals
           .map((group) => `${group.name}: ${money(group.amount)}, ${group.count} khoản ${noun}`)
           .join('; ')}
       </span>
+      {floatingTooltip.tooltip}
     </article>
   );
 }

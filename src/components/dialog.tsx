@@ -1,5 +1,5 @@
 'use client';
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useId } from 'react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faXmark } from '@fortawesome/free-solid-svg-icons';
 export default function Dialog({
@@ -18,6 +18,7 @@ export default function Dialog({
   className?: string;
 }) {
   const ref = useRef<HTMLDialogElement>(null);
+  const titleId = useId();
   useEffect(() => {
     const dialog = ref.current;
     dialog?.showModal();
@@ -29,7 +30,7 @@ export default function Dialog({
         [compact ? 'compact-dialog' : '', className || ''].filter(Boolean).join(' ') || undefined
       }
       ref={ref}
-      aria-labelledby="dialog-title"
+      aria-labelledby={titleId}
       onCancel={(e) => {
         e.preventDefault();
         if (!busy) onClose();
@@ -40,7 +41,7 @@ export default function Dialog({
     >
       <div className="dialog-content">
         <div className="dialog-heading">
-          <h2 id="dialog-title">{title}</h2>
+          <h2 id={titleId}>{title}</h2>
           <button
             type="button"
             className="monexa-action monexa-close"

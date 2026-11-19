@@ -6,7 +6,7 @@ import { createSearchMatcher } from '@/lib/search';
 import { type Category, type FinanceData } from '../model';
 import { categoryBreakdown } from '../charts/category-breakdown';
 import ClassificationScreen from './classification-screen';
-import { categoryIcons } from '../icons';
+import CategoryIcon from '../components/category-icon';
 export default function CategoryPanel({
   data,
   ready,
@@ -27,7 +27,7 @@ export default function CategoryPanel({
   const filteredCategories = data.categories.filter((item) => matchesSearch(item.name));
   const { groups: chartCategories, records } = useMemo(() => categoryBreakdown(data), [data]);
   return (
-    <ClassificationScreen month={month} groups={chartCategories} records={records} kind="expense">
+    <ClassificationScreen month={month} groups={chartCategories} records={records} kind="expense" customIcons={data.customIcons}>
       <article className="card category-list-panel">
         <div className="category-toolbar">
           <h2>
@@ -81,7 +81,7 @@ export default function CategoryPanel({
                         background: category.backgroundColor || `${category.color}20`,
                       }}
                     >
-                      <Icon icon={categoryIcons[category.icon]} />
+                      <CategoryIcon category={category} assets={data.customIcons} />
                     </span>
                     <div className="category-tile-info">
                       <button

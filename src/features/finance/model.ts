@@ -1,5 +1,6 @@
 import { z } from 'zod';
 import { incomeFields, validateIncomeLinks } from './income-model';
+import { customIconSchema } from './custom-icon-schema';
 
 // One reserved owner for this personal application. No registration or multi-user UI.
 export const PERSONAL_USER_ID = 'personal';
@@ -53,6 +54,7 @@ export const categorySchema = z.object({
     .regex(/^#[0-9a-f]{6}$/i)
     .optional(),
   icon: z.enum(iconKeys),
+  customIconId: id.nullable().optional(),
 });
 export const expenseSchema = z.object({
   id,
@@ -155,12 +157,16 @@ export const financeSchema = z
     budget: z.number().int().min(0).max(1_000_000_000_000),
     budgets: z.array(budgetEntrySchema).max(5000).default([]),
     categories: z.array(categorySchema).min(1).max(100),
+    customIcons: z.array(customIconSchema).max(30).default([]),
     expenses: z.array(expenseSchema).max(5000),
     debtSources: z.array(debtSourceSchema).max(2000),
     debtTypes: z.array(debtTypeSchema).min(1).max(20),
     debts: z.array(debtSchema).max(2000),
   })
   .superRefine((data, ctx) => {
+    const iconIds = new Set(data.customIcons.map(icon => icon.id));
+    if (iconIds.size !== data.customIcons.length || data.categories.some(category => category.customIconId && !iconIds.has(category.customIconId)))
+      ctx.addIssue({ code: 'custom', message: 'Icon tùy chỉnh bị trùng ID hoặc không tồn tại.', path: ['customIcons'] });
     const incomeError = validateIncomeLinks(data);
     if (incomeError) ctx.addIssue({ code: 'custom', message: incomeError, path: ['incomes'] });
     if (!validSpendingAllocations(data))
@@ -251,6 +257,7 @@ export function debtDirection(
 export type Snapshot = { data: FinanceData; revision: number };
 export const LEGACY_STORAGE_KEY = 'vi-cua-toi:v1';
 export const initialData: FinanceData = {
+  customIcons: [],
   funds: incomeFields.funds.parse(undefined),
   incomes: [],
   fundTransfers: [],

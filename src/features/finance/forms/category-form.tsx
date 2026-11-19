@@ -4,6 +4,10 @@ import { useId, useState } from 'react';
 import { FontAwesomeIcon as Icon } from '@fortawesome/react-fontawesome';
 import { type Category, iconKeys, PERSONAL_USER_ID } from '../model';
 import { categoryIcons, iconLabels } from '../icons';
+import { faPlus } from '@fortawesome/free-solid-svg-icons';
+import CategoryIcon from '../components/category-icon';
+import IconUploadDialog from './icon-upload-dialog';
+import './custom-icons.css';
 import { type FormProps, field } from './types';
 
 export function CategoryForm({
@@ -36,6 +40,8 @@ export function CategoryForm({
     category?.color || suggestedColors[category?.icon || 'couple'],
   );
   const [error, setError] = useState('');
+  const [customIconId, setCustomIconId] = useState(category?.customIconId || '');
+  const [uploadOpen, setUploadOpen] = useState(false);
   const labelId = useId();
   return (
     <form
@@ -57,6 +63,7 @@ export function CategoryForm({
           userId: PERSONAL_USER_ID,
           name,
           icon,
+          customIconId: customIconId || null,
           color: field(form, 'color'),
           backgroundColor: category?.backgroundColor ?? (icon === 'shirt' ? '#CCFBF1' : undefined),
         };
@@ -95,16 +102,40 @@ export function CategoryForm({
                 type="button"
                 title={iconLabels[key]}
                 aria-label={iconLabels[key]}
-                aria-pressed={icon === key}
-                className={icon === key ? 'selected' : ''}
+                aria-pressed={!customIconId && icon === key}
+                className={!customIconId && icon === key ? 'selected' : ''}
                 onClick={() => {
                   setIcon(key);
+                  setCustomIconId('');
                   if (!category) setColor(suggestedColors[key]);
                 }}
               >
                 <Icon icon={categoryIcons[key]} />
               </button>
             ))}
+          {data.customIcons.map((asset) => (
+            <button
+              type="button"
+              key={asset.id}
+              title={asset.name}
+              aria-label={asset.name}
+              aria-pressed={customIconId === asset.id}
+              className={customIconId === asset.id ? 'selected' : ''}
+              onClick={() => setCustomIconId(asset.id)}
+            >
+              <CategoryIcon category={{ icon, customIconId: asset.id }} assets={data.customIcons} />
+            </button>
+          ))}
+          <button
+            type="button"
+            className="monexa-action monexa-create"
+            aria-label="Thêm icon tùy chỉnh"
+            title="Thêm icon tùy chỉnh"
+            disabled={data.customIcons.length >= 30}
+            onClick={() => setUploadOpen(true)}
+          >
+            <Icon icon={faPlus} />
+          </button>
         </div>
         <label>
           Màu nhận diện
@@ -130,6 +161,19 @@ export function CategoryForm({
           )}
         </button>
       </fieldset>
+      {uploadOpen && (
+        <IconUploadDialog
+          busy={busy}
+          onClose={() => setUploadOpen(false)}
+          onSave={async (asset) => {
+            if (await save({ ...data, customIcons: [...data.customIcons, asset] })) {
+              setCustomIconId(asset.id);
+              return true;
+            }
+            return false;
+          }}
+        />
+      )}
     </form>
   );
 }

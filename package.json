@@ -1,6 +1,6 @@
 {
   "name": "monexa",
-  "version": "1.6.8",
+  "version": "1.6.9",
   "private": true,
   "scripts": {
     "dev": "next dev",
@@ -19,7 +19,7 @@
     "chart.js": "^4.4.9",
     "date-fns": "^4.4.0",
     "mongodb": "^7.8.0",
-    "next": "^16.4.3",
+    "next": "^16.4.6",
     "react": "^19.0.0",
     "react-chartjs-2": "^5.3.0",
     "react-datepicker": "^9.1.0",

@@ -1,5 +1,4 @@
-import { FontAwesomeIcon as Icon } from '@fortawesome/react-fontawesome';
-import { categoryIcons } from '../icons';
+import CategoryIcon from './category-icon';
 import { DebtSourceIcon } from '../debt-source-icon';
 import { expenseCategoryId, type Expense, type FinanceData } from '../model';
 
@@ -28,7 +27,7 @@ export default function ExpenseDetails({ data, expense }: { data: FinanceData; e
         <div className="expense-detail-item expense-detail-category">
           <small>Danh mục</small>
           <span>
-            <Icon icon={categoryIcons[category.icon]} style={{ color: category.color }} />
+            <CategoryIcon category={category} assets={data.customIcons} style={{ color: category.color }} />
             {category.name}
           </span>
         </div>

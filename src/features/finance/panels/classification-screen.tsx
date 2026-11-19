@@ -9,6 +9,7 @@ import WorkspaceTabs from '../layout/workspace-tabs';
 import { useWorkspaceCarousel } from '../hooks/use-workspace-carousel';
 import '../layout/workspace-carousel.css';
 import './category-panel.css';
+import type { CustomIcon } from '../custom-icon-schema';
 
 export default function ClassificationScreen({
   month,
@@ -16,12 +17,14 @@ export default function ClassificationScreen({
   records,
   kind,
   children,
+  customIcons = [],
 }: {
   month: string;
   groups: BreakdownGroup[];
   records: BreakdownRecord[];
   kind: 'expense' | 'debt';
   children: ReactNode;
+  customIcons?: CustomIcon[];
 }) {
   const initialMonth = month || dateKey().slice(0, 7);
   const [chartMonth, setChartMonth] = useState(initialMonth);
@@ -68,6 +71,7 @@ export default function ClassificationScreen({
             records={records}
             period={chartMonth}
             kind={kind}
+            customIcons={customIcons}
             title={`${chartLabel} theo tháng`}
             picker={<MonthPicker value={chartMonth} onChange={setChartMonth} />}
           />
@@ -76,6 +80,7 @@ export default function ClassificationScreen({
             records={records}
             period={year}
             kind={kind}
+            customIcons={customIcons}
             title={`Tổng ${chartLabel.toLocaleLowerCase('vi')} theo năm`}
             picker={<YearPicker value={year} onChange={setYear} />}
           />

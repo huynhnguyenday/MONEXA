@@ -1,10 +1,9 @@
 'use client';
 import PendingLabel from '@/components/pending-label';
 import { useState } from 'react';
-import { FontAwesomeIcon as Icon } from '@fortawesome/react-fontawesome';
 import DateTimeField from '@/components/date-time-field';
 import { type Expense, PERSONAL_USER_ID } from '../model';
-import { categoryIcons } from '../icons';
+import CategoryIcon from '../components/category-icon';
 import { type FormProps, field } from './types';
 export function ExpenseForm({
   data,
@@ -88,7 +87,7 @@ export function ExpenseForm({
         <div className="expense-category-picker" role="group" aria-label="Chọn danh mục chi tiêu">
           {data.categories.map((c) => (
             <button type="button" key={c.id} className={categoryId === c.id ? 'selected' : ''} aria-pressed={categoryId === c.id} onClick={() => setCategoryId(c.id)}>
-              <Icon icon={categoryIcons[c.icon]} style={{ color: c.color }} /> <span>{c.name}</span>
+              <CategoryIcon category={c} assets={data.customIcons} style={{ color: c.color }} /> <span>{c.name}</span>
             </button>
           ))}
         </div>

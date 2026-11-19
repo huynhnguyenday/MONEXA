@@ -3,7 +3,7 @@ import PendingLabel from '@/components/pending-label';
 import { useState } from 'react';
 import { FontAwesomeIcon as Icon } from '@fortawesome/react-fontawesome';
 import { faArrowRotateLeft } from '@fortawesome/free-solid-svg-icons';
-import { categoryIcons } from '../icons';
+import CategoryIcon from '../components/category-icon';
 import './debt-form.css';
 import DateTimeField from '@/components/date-time-field';
 import {
@@ -221,7 +221,7 @@ export function DebtForm({ data, save, done, busy, debt }: { debt?: Debt } & For
                 aria-pressed={categoryId === category.id}
                 onClick={() => setCategoryId(category.id)}
               >
-                <Icon icon={categoryIcons[category.icon]} style={{ color: category.color }} />
+                <CategoryIcon category={category} assets={data.customIcons} style={{ color: category.color }} />
                 <span>{category.name}</span>
               </button>
             ))}
