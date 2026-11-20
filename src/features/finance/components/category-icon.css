@@ -6,3 +6,9 @@
   vertical-align: middle;
   flex: none;
 }
+.category-monochrome-icon {
+  background-color: currentColor;
+  mask-size: contain;
+  mask-position: center;
+  mask-repeat: no-repeat;
+}

@@ -2,11 +2,12 @@
 import PendingLabel from '@/components/pending-label';
 import { useId, useState } from 'react';
 import { FontAwesomeIcon as Icon } from '@fortawesome/react-fontawesome';
-import { type Category, iconKeys, PERSONAL_USER_ID } from '../model';
-import { categoryIcons, iconLabels } from '../icons';
-import { faPlus } from '@fortawesome/free-solid-svg-icons';
+import { type Category, PERSONAL_USER_ID } from '../model';
+import { faPlus, faXmark } from '@fortawesome/free-solid-svg-icons';
 import CategoryIcon from '../components/category-icon';
 import IconUploadDialog from './icon-upload-dialog';
+import IconDeleteDialog from './icon-delete-dialog';
+import type { CustomIcon } from '../custom-icon-schema';
 import './custom-icons.css';
 import { type FormProps, field } from './types';
 
@@ -17,37 +18,22 @@ export function CategoryForm({
   done,
   category,
 }: { category?: Category } & FormProps) {
-  const suggestedColors: Record<Category['icon'], string> = {
-    utensils: '#f97316',
-    bag: '#db2777',
-    car: '#2563eb',
-    receipt: '#7c3aed',
-    heart: '#e11d48',
-    home: '#0891b2',
-    coffee: '#92400e',
-    plane: '#0284c7',
-    shirt: '#0F766E',
-    book: '#4f46e5',
-    gift: '#c026d3',
-    game: '#16a34a',
-    wallet: '#ca8a04',
-    couple: '#db2777',
-    outing: '#ea580c',
-    debt: '#0d9488',
-  };
-  const [icon, setIcon] = useState<Category['icon']>(category?.icon || 'couple');
-  const [color, setColor] = useState(
-    category?.color || suggestedColors[category?.icon || 'couple'],
-  );
+  // Keep the legacy field for old backups; the picker and new links use asset IDs only.
+  const icon = category?.icon || 'receipt';
+  const [color, setColor] = useState(category?.color || '#db2777');
   const [error, setError] = useState('');
   const [customIconId, setCustomIconId] = useState(category?.customIconId || '');
   const [uploadOpen, setUploadOpen] = useState(false);
+  const [deletingIcon, setDeletingIcon] = useState<CustomIcon | null>(null);
   const labelId = useId();
   return (
     <form
       onSubmit={async (event) => {
         event.preventDefault();
+        if (busy || deletingIcon || uploadOpen) return;
         setError('');
+        if (!data.customIcons.some((asset) => asset.id === customIconId))
+          return setError('Chọn một icon trong thư viện hoặc thêm icon mới.');
         const form = new FormData(event.currentTarget);
         const name = field(form, 'name');
         if (
@@ -94,37 +80,31 @@ export function CategoryForm({
           Icon danh mục
         </div>
         <div className="icon-picker" role="group" aria-labelledby={labelId}>
-          {iconKeys
-            .filter((key) => key !== 'wallet')
-            .map((key) => (
-              <button
-                key={key}
-                type="button"
-                title={iconLabels[key]}
-                aria-label={iconLabels[key]}
-                aria-pressed={!customIconId && icon === key}
-                className={!customIconId && icon === key ? 'selected' : ''}
-                onClick={() => {
-                  setIcon(key);
-                  setCustomIconId('');
-                  if (!category) setColor(suggestedColors[key]);
-                }}
-              >
-                <Icon icon={categoryIcons[key]} />
-              </button>
-            ))}
           {data.customIcons.map((asset) => (
-            <button
-              type="button"
-              key={asset.id}
-              title={asset.name}
-              aria-label={asset.name}
-              aria-pressed={customIconId === asset.id}
-              className={customIconId === asset.id ? 'selected' : ''}
-              onClick={() => setCustomIconId(asset.id)}
-            >
-              <CategoryIcon category={{ icon, customIconId: asset.id }} assets={data.customIcons} />
-            </button>
+            <div className="custom-icon-option" key={asset.id}>
+              <button
+                type="button"
+                title={asset.name}
+                aria-label={asset.name}
+                aria-pressed={customIconId === asset.id}
+                className={customIconId === asset.id ? 'selected' : ''}
+                onClick={() => setCustomIconId(asset.id)}
+              >
+                <CategoryIcon
+                  category={{ icon, customIconId: asset.id }}
+                  assets={data.customIcons}
+                />
+              </button>
+              <button
+                type="button"
+                className="custom-icon-remove"
+                aria-label={`Xóa icon ${asset.name}`}
+                title={`Xóa icon ${asset.name}`}
+                onClick={() => setDeletingIcon(asset)}
+              >
+                <Icon icon={faXmark} />
+              </button>
+            </div>
           ))}
           <button
             type="button"
@@ -171,6 +151,26 @@ export function CategoryForm({
               return true;
             }
             return false;
+          }}
+        />
+      )}
+      {deletingIcon && (
+        <IconDeleteDialog
+          asset={deletingIcon}
+          affectedCount={
+            data.categories.filter((item) => item.customIconId === deletingIcon.id).length
+          }
+          busy={busy}
+          onClose={() => setDeletingIcon(null)}
+          onDelete={async () => {
+            // A used icon must be replaced explicitly before deleting its library record.
+            if (data.categories.some((item) => item.customIconId === deletingIcon.id)) return false;
+            const removed = await save({
+              ...data,
+              customIcons: data.customIcons.filter((item) => item.id !== deletingIcon.id),
+            });
+            if (removed && customIconId === deletingIcon.id) setCustomIconId('');
+            return removed;
           }}
         />
       )}

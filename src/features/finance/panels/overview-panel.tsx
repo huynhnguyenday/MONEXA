@@ -231,7 +231,6 @@ export default function OverviewPanel({
         >
           <BudgetCard
             data={data}
-            expenses={stats.expenses}
             month={selectedMonth}
             ready={ready}
             onHistory={onBudgetHistory}

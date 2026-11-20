@@ -164,9 +164,18 @@ export const financeSchema = z
     debts: z.array(debtSchema).max(2000),
   })
   .superRefine((data, ctx) => {
-    const iconIds = new Set(data.customIcons.map(icon => icon.id));
-    if (iconIds.size !== data.customIcons.length || data.categories.some(category => category.customIconId && !iconIds.has(category.customIconId)))
-      ctx.addIssue({ code: 'custom', message: 'Icon tùy chỉnh bị trùng ID hoặc không tồn tại.', path: ['customIcons'] });
+    const iconIds = new Set(data.customIcons.map((icon) => icon.id));
+    if (
+      iconIds.size !== data.customIcons.length ||
+      data.categories.some(
+        (category) => category.customIconId && !iconIds.has(category.customIconId),
+      )
+    )
+      ctx.addIssue({
+        code: 'custom',
+        message: 'Icon tùy chỉnh bị trùng ID hoặc không tồn tại.',
+        path: ['customIcons'],
+      });
     const incomeError = validateIncomeLinks(data);
     if (incomeError) ctx.addIssue({ code: 'custom', message: incomeError, path: ['incomes'] });
     if (!validSpendingAllocations(data))
@@ -551,6 +560,20 @@ export function getBudgetPeriod(data: FinanceData, month: string, now = new Date
   const opening = at(Math.min(start, cutoff));
   const closing = at(cutoff);
   return { opening, closing };
+}
+
+/** Monthly spending capacity includes existing cash/bank carried in, without adding ledger entries. */
+export function getMonthlyBudget(data: FinanceData, month: string, now = new Date()) {
+  const period = getBudgetPeriod(data, month, now);
+  const allocated = data.budgets
+    .filter((entry) => dateKey(entry.recordedAt).startsWith(month))
+    .reduce((sum, entry) => ({ cash: sum.cash + entry.cash, bank: sum.bank + entry.bank }), {
+      cash: 0,
+      bank: 0,
+    });
+  const cash = period.opening.cash + allocated.cash;
+  const bank = period.opening.bank + allocated.bank;
+  return { ...period, allocated, available: { cash, bank, total: cash + bank } };
 }
 
 /** Reconcile linked expenses atomically with debt changes; never backfill unrelated old loans. */

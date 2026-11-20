@@ -22,11 +22,15 @@ export default function ExpenseDetails({ data, expense }: { data: FinanceData; e
     year: 'numeric',
   }).format(date);
   return (
-    <div className="expense-expanded-info" id={`expense-details-${expense.id}`}>
+    <div
+      className="expense-expanded-info"
+      id={`expense-details-${expense.id}`}
+      style={{ borderLeftColor: category?.color }}
+    >
       {category && (
         <div className="expense-detail-item expense-detail-category">
           <small>Danh mục</small>
-          <span>
+          <span style={{ color: category.color }}>
             <CategoryIcon category={category} assets={data.customIcons} style={{ color: category.color }} />
             {category.name}
           </span>

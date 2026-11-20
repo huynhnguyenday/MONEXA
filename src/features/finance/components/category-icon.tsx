@@ -14,6 +14,14 @@ export default function CategoryIcon({
   style?: { color?: string };
 }) {
   const asset = category.customIconId && assets.find((icon) => icon.id === category.customIconId);
+  if (asset && asset.monochrome)
+    return (
+      <span
+        className="category-custom-icon category-monochrome-icon"
+        aria-hidden="true"
+        style={{ ...style, maskImage: `url("${asset.image}")` }}
+      />
+    );
   return asset ? (
     <img
       className="category-custom-icon"

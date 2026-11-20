@@ -67,54 +67,61 @@ export default function IncomeHistory({
         )}
         {records.slice(0, visibleCount).map((r) => (
           <article className="income-history-row" key={`${r.kind}-${r.entry.id}`}>
-            <button
-              type="button"
-              className="income-history-summary"
-              disabled={busy}
-              aria-label={`Sửa ${incomeRecordTitle(r)}`}
-              onClick={() => onEdit(r)}
-            >
+            <div className="income-history-summary">
               <span className="income-history-title">
                 <strong title={incomeRecordTitle(r)}>{incomeRecordTitle(r)}</strong>
-                <Icon icon={faPen} />
               </span>
               <b>{money(r.entry.amount)}</b>
-              <time dateTime={r.entry.occurredAt}>{displayTime(r.entry.occurredAt)}</time>
               <small>
                 {r.entry.paymentMethod === 'cash' ? 'Tiền mặt' : 'Chuyển khoản'}
                 {r.kind === 'income' ? ` · ${incomeTypes[r.entry.type]}` : ''}
               </small>
+              <time dateTime={r.entry.occurredAt}>{displayTime(r.entry.occurredAt)}</time>
               {r.entry.note && <small title={r.entry.note}>{r.entry.note}</small>}
-            </button>
-            <button
-              type="button"
-              className="button secondary income-history-delete"
-              disabled={busy}
-              aria-busy={busy && deleting === r.entry.id}
-              aria-label={`Xóa ${incomeRecordTitle(r)}`}
-              onClick={async () => {
-                if (
-                  !window.confirm(
-                    `Xóa “${incomeRecordTitle(r)}”? Giao dịch liên kết sẽ được hoàn tác; chỉ lưu khi các sổ vẫn đủ tiền.`,
+            </div>
+            <div className="income-history-actions">
+              <button
+                type="button"
+                className="monexa-action monexa-edit"
+                disabled={busy}
+                aria-label={`Sửa ${incomeRecordTitle(r)}`}
+                title="Sửa giao dịch"
+                onClick={() => onEdit(r)}
+              >
+                <Icon icon={faPen} />
+              </button>
+              <button
+                type="button"
+                className="monexa-action monexa-delete income-history-delete"
+                disabled={busy}
+                aria-busy={busy && deleting === r.entry.id}
+                aria-label={`Xóa ${incomeRecordTitle(r)}`}
+                title="Xóa giao dịch"
+                onClick={async () => {
+                  if (busy || deleting) return;
+                  if (
+                    !window.confirm(
+                      `Xóa “${incomeRecordTitle(r)}”? Giao dịch liên kết sẽ được hoàn tác; chỉ lưu khi các sổ vẫn đủ tiền.`,
+                    )
                   )
-                )
-                  return;
-                setError('');
-                const result = financeSchema.safeParse(removeIncomeRecord(data, r));
-                if (!result.success)
-                  return setError(
-                    'Không thể xóa vì tiền đã được phân bổ hoặc các giao dịch sau sẽ thiếu nguồn.',
-                  );
-                setDeleting(r.entry.id);
-                try {
-                  await save(result.data);
-                } finally {
-                  setDeleting(null);
-                }
-              }}
-            >
-              {busy && deleting === r.entry.id ? <LoadingSpinner /> : <Icon icon={faTrashCan} />}
-            </button>
+                    return;
+                  setError('');
+                  const result = financeSchema.safeParse(removeIncomeRecord(data, r));
+                  if (!result.success)
+                    return setError(
+                      'Không thể xóa vì tiền đã được phân bổ hoặc các giao dịch sau sẽ thiếu nguồn.',
+                    );
+                  setDeleting(r.entry.id);
+                  try {
+                    await save(result.data);
+                  } finally {
+                    setDeleting(null);
+                  }
+                }}
+              >
+                {busy && deleting === r.entry.id ? <LoadingSpinner /> : <Icon icon={faTrashCan} />}
+              </button>
+            </div>
           </article>
         ))}
         <HistoryEnd endRef={endRef} hasMore={hasMore} />

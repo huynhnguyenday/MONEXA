@@ -37,5 +37,6 @@ export const customIconSchema = z.object({
   userId: z.literal('personal').default('personal'),
   name: z.string().trim().min(1).max(50),
   image: iconImageSchema,
+  monochrome: z.boolean().optional(),
 });
 export type CustomIcon = z.infer<typeof customIconSchema>;

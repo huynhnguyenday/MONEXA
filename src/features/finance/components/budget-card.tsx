@@ -3,11 +3,9 @@
 import { FontAwesomeIcon as Icon } from '@fortawesome/react-fontawesome';
 import { faClock, faRightLeft } from '@fortawesome/free-solid-svg-icons';
 import {
-  budgetMonth,
-  calculateAccounts,
+  getMonthlyBudget,
   getCashStatistics,
   money,
-  type Expense,
   type FinanceData,
 } from '../model';
 import FinanceTooltip from './finance-tooltip';
@@ -15,7 +13,6 @@ import './budget-card.css';
 
 type Props = {
   data: FinanceData;
-  expenses: Expense[];
   month: string;
   ready: boolean;
   onHistory: () => void;
@@ -23,14 +20,14 @@ type Props = {
 };
 
 export default function BudgetCard({ data, month, ready, onHistory, onExchange }: Props) {
-  const { income, reserve } = getCashStatistics(data, month);
-  const accounts = calculateAccounts(data);
-  const monthlySources = data.budgets
-    .filter((entry) => budgetMonth(entry) === month)
-    .reduce((total, entry) => ({ cash: total.cash + entry.cash, bank: total.bank + entry.bank }), {
-      cash: 0,
-      bank: 0,
-    });
+  const { reserve } = getCashStatistics(data, month);
+  const {
+    opening,
+    closing: accounts,
+    allocated,
+    available: monthlySources,
+  } = getMonthlyBudget(data, month);
+  const income = monthlySources.total;
   const remaining = accounts.total;
   const percent = (value: number) =>
     income > 0 ? Math.max(0, Math.min((value / income) * 100, 100)) : value > 0 ? 100 : 0;
@@ -48,7 +45,7 @@ export default function BudgetCard({ data, month, ready, onHistory, onExchange }
       <div className="budget-summary">
         <div>
           <h2>Ngân sách tháng</h2>
-          <strong title="Tổng tiền được cấp vào ngân sách tháng">{money(income)}</strong>
+          <strong title="Dư đầu kỳ cộng tiền được phân bổ thêm trong tháng">{money(income)}</strong>
         </div>
         <div className="budget-actions">
           <button
@@ -75,9 +72,11 @@ export default function BudgetCard({ data, month, ready, onHistory, onExchange }
       <div
         className="budget-progress"
         role="img"
-        aria-label={`Tiền cấp tháng: ${money(income)}. Ngân sách hiện có, tất cả thời gian: ${money(remaining)}. Nợ phải trả chưa thanh toán trong tháng: ${money(reserve)}.`}
+        aria-label={`Ngân sách tháng: ${money(income)}. Dư chuyển kỳ: ${money(opening.total)}. Phân bổ thêm: ${money(allocated.cash + allocated.bank)}. Còn lại trong kỳ: ${money(remaining)}. Nợ phải trả chưa thanh toán trong tháng: ${money(reserve)}.`}
         title={
-          income > 0 ? `100% = tiền cấp tháng ${money(income)}` : 'Chưa cấp ngân sách trong tháng'
+          income > 0
+            ? `100% = dư đầu kỳ + phân bổ thêm: ${money(income)}`
+            : 'Chưa có ngân sách trong tháng'
         }
       >
         <span
@@ -126,6 +125,12 @@ export default function BudgetCard({ data, month, ready, onHistory, onExchange }
           label={'T\u1ed5ng ng\u00e2n s\u00e1ch'}
           content={
             <>
+              <span>
+                Dư chuyển kỳ: <b>{money(opening.total)}</b>
+              </span>
+              <span>
+                Phân bổ thêm: <b>{money(allocated.cash + allocated.bank)}</b>
+              </span>
               <span>
                 Tiền mặt: <b>{money(monthlySources.cash)}</b>
               </span>

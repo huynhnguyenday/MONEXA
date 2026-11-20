@@ -5,9 +5,9 @@ import { getDatabase } from './mongodb';
 const loginIndexes = new Map<string, Promise<string>>();
 export const SESSION_COOKIE = 'monexa_session';
 export const SESSION_AGE = 60 * 60 * 24 * 400;
-// Local personal mode is opt-in for login; Vercel deployments always require authentication.
+// Personal mode opens the app directly; password login is explicitly opt-in on every host.
 export function passwordLoginEnabled() {
-  return process.env.VERCEL === '1' || process.env.APP_LOGIN_ENABLED === 'true';
+  return process.env.APP_LOGIN_ENABLED === 'true';
 }
 export function missingConfig() {
   return ['MONGODB_URI', 'APP_PASSWORD', 'SESSION_SECRET'].filter(

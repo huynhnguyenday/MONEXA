@@ -9,7 +9,6 @@
   min-height: 0;
   min-width: 0;
   overflow-y: auto;
-  overflow-x: auto;
   overscroll-behavior: contain;
   scrollbar-width: thin;
   scrollbar-color: var(--scrollbar-thumb) transparent;
@@ -22,9 +21,9 @@
 }
 .income-history-row {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) 44px;
+  grid-template-columns: minmax(0, 1fr) auto;
   align-items: center;
-  gap: 6px;
+  gap: 10px;
   border-bottom: 1px solid #e2e8f0;
   padding: 8px 0;
   min-width: 0;
@@ -35,17 +34,12 @@
   align-items: stretch;
   gap: 4px;
   min-width: 0;
-  min-height: 44px;
   width: 100%;
   padding: 2px;
   background: transparent;
   border: 0;
   color: #142d4e;
   text-align: left;
-  border-radius: 6px;
-}
-.income-history-summary:hover:not(:disabled) {
-  background: #eff6ff;
 }
 .income-history-title {
   display: flex;
@@ -56,15 +50,8 @@
 .income-history-title strong {
   min-width: 0;
   display: block;
-  overflow: clip;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+  overflow-wrap: anywhere;
   font-size: 12px;
-}
-.income-history-title > svg {
-  width: 18px;
-  height: 18px;
-  color: #64748b;
 }
 .income-history-summary > b {
   font-size: 14px;
@@ -82,12 +69,39 @@
 .income-history-summary > small:last-child {
   white-space: normal;
 }
-.income-history-row .income-history-delete {
+.income-history-actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 4px;
+}
+:root .income-history-actions button.monexa-action {
   display: grid;
   place-items: center;
-  width: 44px;
-  min-width: 44px;
-  height: 44px;
-  min-height: 44px;
-  padding: 8px;
+  width: 32px;
+  min-width: 32px;
+  height: 32px;
+  min-height: 32px;
+  padding: 0;
+  border-radius: 8px;
+}
+.income-panel .income-history-actions button > svg {
+  width: 14px;
+  height: 14px;
+}
+@media (max-width: 1023px) {
+  .income-history-actions {
+    flex-direction: column;
+    gap: 6px;
+  }
+  :root .income-history-actions button.monexa-action {
+    width: 28px;
+    min-width: 28px;
+    height: 28px;
+    min-height: 28px;
+  }
+  .income-panel .income-history-actions button > svg {
+    width: 12px;
+    height: 12px;
+  }
 }
