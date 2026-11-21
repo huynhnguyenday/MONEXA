@@ -1,4 +1,7 @@
+'use client';
+import { useEffect, useState } from 'react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { isMonochromeIcon } from './icon-monochrome';
 import type { Category } from '../model';
 import type { CustomIcon } from '../custom-icon-schema';
 import { categoryIcons } from '../icons';
@@ -14,7 +17,18 @@ export default function CategoryIcon({
   style?: { color?: string };
 }) {
   const asset = category.customIconId && assets.find((icon) => icon.id === category.customIconId);
-  if (asset && asset.monochrome)
+  const image = asset ? asset.image : undefined;
+  const explicitMonochrome = asset ? asset.monochrome : undefined;
+  const [detected, setDetected] = useState<{ image: string; monochrome: boolean }>();
+  useEffect(() => {
+    if (!image || explicitMonochrome !== undefined) return;
+    let active = true;
+    void isMonochromeIcon(image).then((monochrome) => {
+      if (active) setDetected({ image, monochrome });
+    });
+    return () => { active = false; };
+  }, [image, explicitMonochrome]);
+  if (asset && (asset.monochrome ?? (detected?.image === image && detected?.monochrome)))
     return (
       <span
         className="category-custom-icon category-monochrome-icon"
