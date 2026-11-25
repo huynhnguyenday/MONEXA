@@ -99,6 +99,22 @@
   width: 20px;
   height: 20px;
 }
+/* All dialog headers use the compact close control from the debt entry form. */
+:root dialog .dialog-heading > button.monexa-close {
+  width: 30.8px;
+  height: 30.8px;
+  min-width: 30.8px;
+  min-height: 30.8px;
+  padding: 0;
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+:root dialog .dialog-heading > button.monexa-close > svg {
+  width: 14px;
+  height: 14px;
+}
 :root button.monexa-action:hover:not(:disabled) {
   background: var(--action-hover-bg) !important;
   color: var(--action-hover-ink) !important;

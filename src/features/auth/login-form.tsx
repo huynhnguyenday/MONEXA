@@ -1,4 +1,5 @@
 'use client';
+import Toast from '@/components/toast';
 import { useState } from 'react';
 import PendingLabel from '@/components/pending-label';
 import Image from 'next/image';
@@ -78,9 +79,9 @@ export default function LoginForm({ missing }: { missing: string[] }) {
               </button>
             </div>
             {error && (
-              <p role="alert" className="form-error">
+              <Toast>
                 {error}
-              </p>
+              </Toast>
             )}
             <button className="button primary full" disabled={busy} aria-busy={busy}>
               {busy ? <PendingLabel>Đang đăng nhập</PendingLabel> : 'Mở MONEXA'}

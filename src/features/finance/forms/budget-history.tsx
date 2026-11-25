@@ -11,12 +11,7 @@ import { useHistoryWindow } from '../hooks/use-history-window';
 import HistoryEnd from '../components/history-end';
 import LoadingSpinner from '@/components/loading-spinner';
 
-export function BudgetHistory({
-  data,
-  save,
-  busy,
-  month,
-}: Omit<FormProps, 'done'> & { month: string }) {
+export function BudgetHistory({ data, save, busy, done, month }: FormProps & { month: string }) {
   const [pendingDelete, setPendingDelete] = useState<string | null>(null);
   const entries = useMemo(
     () =>
@@ -82,7 +77,10 @@ export function BudgetHistory({
                             const budget = budgets
                               .filter((item) => budgetMonth(item) === month)
                               .reduce((sum, item) => sum + item.cash + item.bank, 0);
-                            if (await save({ ...data, budget, budgets })) setPendingDelete(null);
+                            if (await save({ ...data, budget, budgets })) {
+                              setPendingDelete(null);
+                              done();
+                            }
                           }}
                         >
                           {busy ? <LoadingSpinner /> : <Icon icon={faCheck} />}

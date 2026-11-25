@@ -5,6 +5,7 @@
   margin: 16px auto;
   object-fit: contain;
 }
+.icon-import-help { margin: 8px 0 12px; font-size: 11px; line-height: 1.5; color: #64748b; }
 .icon-picker .category-custom-icon {
   width: 22px;
   height: 22px;

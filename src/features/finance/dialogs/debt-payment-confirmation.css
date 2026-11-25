@@ -5,7 +5,7 @@ dialog.debt-payment-dialog {
   padding: 20px;
 }
 .debt-payment-dialog .dialog-heading {
-  padding-bottom: 5px;
+  padding-bottom: 0;
 }
 .debt-payment-dialog .dialog-body {
   display: flex;

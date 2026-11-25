@@ -1,4 +1,5 @@
 ﻿'use client';
+import Toast from '@/components/toast';
 import { useState } from 'react';
 import { usePushDevice } from '../hooks/use-push-device';
 import { FontAwesomeIcon as Icon } from '@fortawesome/react-fontawesome';
@@ -95,9 +96,9 @@ export default function PushNotificationSettings({
         <p role="status">Thông báo bị chặn. Hãy cấp quyền trong cài đặt trình duyệt.</p>
       )}
       {push.error && (
-        <div className="notification-error" role="alert">
+        <Toast>
           {push.error}
-        </div>
+        </Toast>
       )}
     </div>
   );

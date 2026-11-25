@@ -1,4 +1,5 @@
 'use client';
+import Toast from '@/components/toast';
 import { useState } from 'react';
 import { FontAwesomeIcon as Icon } from '@fortawesome/react-fontawesome';
 import { faCheck, faXmark } from '@fortawesome/free-solid-svg-icons';
@@ -96,14 +97,14 @@ export default function DebtPaymentConfirmation({
         <strong>{money(total)}</strong>
       </div>
       {!unchanged && (
-        <p className="form-error" role="alert">
+        <Toast>
           Danh sách công nợ đã thay đổi. Hãy đóng và mở lại xác nhận thanh toán.
-        </p>
+        </Toast>
       )}
       {error && (
-        <p className="form-error" role="alert">
+        <Toast>
           {error}
-        </p>
+        </Toast>
       )}
       <div className="debt-payment-actions">
         <button

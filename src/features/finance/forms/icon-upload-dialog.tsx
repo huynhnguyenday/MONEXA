@@ -1,9 +1,12 @@
 'use client';
+import Toast from '@/components/toast';
 import { useState } from 'react';
 import { createPortal } from 'react-dom';
 import Dialog from '@/components/dialog';
 import PendingLabel from '@/components/pending-label';
+import TwoOptionField from '@/components/two-option-field';
 import { importIconImage } from './import-icon-image';
+import { importFontAwesomeIcon } from './import-fontawesome-icon';
 import { customIconSchema, type CustomIcon } from '../custom-icon-schema';
 
 export default function IconUploadDialog({
@@ -19,8 +22,10 @@ export default function IconUploadDialog({
   const [name, setName] = useState('');
   const [reading, setReading] = useState(false);
   const [error, setError] = useState('');
+  const [source, setSource] = useState<'file' | 'html'>('file');
+  const [html, setHtml] = useState('');
   return createPortal(
-    <Dialog title="Thêm icon" onClose={onClose} busy={busy || reading}>
+    <Dialog title="Thêm icon" onClose={onClose} busy={busy || reading} backgroundSaving={busy}>
       <form
         onSubmit={async (event) => {
           event.preventDefault();
@@ -52,35 +57,89 @@ export default function IconUploadDialog({
               onChange={(event) => setName(event.target.value)}
             />
           </label>
-          <label>
-            Tệp SVG hoặc PNG
-            <input
-              type="file"
-              accept=".svg,.png,image/svg+xml,image/png"
-              required
-              onChange={async (event) => {
-                const file = event.target.files?.[0];
-                setImage('');
-                setError('');
-                if (!file) return;
-                setReading(true);
-                try {
-                  setImage(await importIconImage(file));
-                  if (!name) setName(file.name.replace(/\.(svg|png)$/i, '').slice(0, 50));
-                } catch (err) {
-                  setError(err instanceof Error ? err.message : 'Không đọc được icon.');
-                } finally {
-                  setReading(false);
-                }
-              }}
-            />
-          </label>
-          {image && <img className="custom-icon-preview" src={image} alt="Xem trước icon" />}
-          {error && (
-            <p role="alert" className="form-error">
-              {error}
-            </p>
+          <TwoOptionField
+            name="iconSource"
+            legend="Cách thêm icon"
+            value={source}
+            onChange={(value) => {
+              setSource(value);
+              setImage('');
+              setError('');
+            }}
+            options={[
+              { value: 'file', label: 'Tệp SVG/PNG' },
+              { value: 'html', label: 'HTML Font Awesome' },
+            ]}
+          />
+          {source === 'file' ? (
+            <label>
+              Tệp SVG hoặc PNG
+              <input
+                type="file"
+                accept=".svg,.png,image/svg+xml,image/png"
+                required
+                onChange={async (event) => {
+                  const file = event.target.files?.[0];
+                  setImage('');
+                  setError('');
+                  if (!file) return;
+                  setReading(true);
+                  try {
+                    setImage(await importIconImage(file));
+                    if (!name) setName(file.name.replace(/\.(svg|png)$/i, '').slice(0, 50));
+                  } catch (err) {
+                    setError(err instanceof Error ? err.message : 'Không đọc được icon.');
+                  } finally {
+                    setReading(false);
+                  }
+                }}
+              />
+            </label>
+          ) : (
+            <>
+              <label>
+                Mã HTML Font Awesome
+                <textarea
+                  value={html}
+                  maxLength={500}
+                  rows={2}
+                  required
+                  placeholder={'<i class="fa-solid fa-gas-pump"></i>'}
+                  onChange={(event) => {
+                    setHtml(event.target.value);
+                    setImage('');
+                    setError('');
+                  }}
+                />
+              </label>
+              <p className="icon-import-help">
+                Hỗ trợ Free Solid/Brands có sẵn. Với icon khác, hãy tải tệp SVG.
+              </p>
+              <button
+                type="button"
+                className="button secondary full"
+                disabled={!html.trim() || reading || busy}
+                onClick={async () => {
+                  setReading(true);
+                  setImage('');
+                  setError('');
+                  try {
+                    const imported = await importFontAwesomeIcon(html);
+                    setImage(imported.image);
+                    if (!name) setName(imported.name);
+                  } catch (err) {
+                    setError(err instanceof Error ? err.message : 'Không đọc được mã icon.');
+                  } finally {
+                    setReading(false);
+                  }
+                }}
+              >
+                {reading ? <PendingLabel>Đang xử lý</PendingLabel> : 'Xem trước icon'}
+              </button>
+            </>
           )}
+          {image && <img className="custom-icon-preview" src={image} alt="Xem trước icon" />}
+          {error && <Toast>{error}</Toast>}
           <button
             className="button primary full monexa-action monexa-create"
             disabled={!image || busy || reading}

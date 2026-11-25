@@ -1,5 +1,6 @@
 'use client';
 import dynamic from 'next/dynamic';
+import Toast from '@/components/toast';
 import AppHeader from './layout/app-header';
 import { useSidebarPresence } from './hooks/use-sidebar-presence';
 import AppSidebar from './layout/app-sidebar';
@@ -16,9 +17,9 @@ import { useWorkspaceViewport } from './hooks/use-workspace-viewport';
 
 const FinanceDialogs = dynamic(() => import('./dialogs/finance-dialogs'), {
   loading: () => (
-    <div className="notice" role="status">
+    <Toast tone="pending">
       Đang mở biểu mẫu…
-    </div>
+    </Toast>
   ),
 });
 
@@ -146,12 +147,12 @@ export default function Dashboard({ passwordLoginEnabled }: { passwordLoginEnabl
       <FinanceFeedback
         error={!dashboard.modal && error}
         notice={dashboard.notice}
-        onDismissNotice={() => dashboard.setNotice('')}
         hasLegacy={dashboard.hasLegacy && !!dashboard.snapshot}
         ready={dashboard.ready}
         onMigrate={() => void dashboard.migrateLegacy()}
         onDismissLegacy={() => dashboard.setHasLegacy(false)}
       />
+      {dashboard.busy && <Toast tone="pending">Đang lưu…</Toast>}
       {dashboard.modal && (
         <FinanceDialogs
           modal={dashboard.modal}

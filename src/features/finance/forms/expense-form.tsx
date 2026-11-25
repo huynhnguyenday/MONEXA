@@ -1,7 +1,9 @@
 'use client';
+import Toast from '@/components/toast';
 import PendingLabel from '@/components/pending-label';
 import { useState } from 'react';
 import DateTimeField from '@/components/date-time-field';
+import PaymentMethodField from '@/components/payment-method-field';
 import { type Expense, PERSONAL_USER_ID } from '../model';
 import CategoryIcon from '../components/category-icon';
 import { type FormProps, field } from './types';
@@ -12,16 +14,28 @@ export function ExpenseForm({
   busy,
   expense,
 }: { expense?: Expense } & FormProps) {
-  const [date, setDate] = useState<Date | null>(
-    expense ? new Date(expense.occurredAt) : new Date(),
+  const [date, setDate] = useState<Date | null>(() => {
+    if (expense) return new Date(expense.occurredAt);
+    const now = new Date();
+    now.setMinutes(0, 0, 0);
+    return now;
+  });
+  const [amount, setAmount] = useState(
+    expense ? new Intl.NumberFormat('vi-VN').format(expense.amount) : '',
   );
-  const [amount, setAmount] = useState(expense ? new Intl.NumberFormat('vi-VN').format(expense.amount) : '');
   const [categoryId, setCategoryId] = useState(expense?.categoryId || data.categories[0]?.id || '');
+  const [method, setMethod] = useState<Expense['paymentMethod']>(expense?.paymentMethod || 'cash');
   const [error, setError] = useState('');
+  const categories = expense?.categoryId
+    ? [...data.categories].sort(
+        (a, b) => Number(b.id === expense.categoryId) - Number(a.id === expense.categoryId),
+      )
+    : data.categories;
   return (
     <form
       onSubmit={async (e) => {
         e.preventDefault();
+        if (busy) return;
         setError('');
         const f = new FormData(e.currentTarget);
         if (!date || date.getTime() > Date.now())
@@ -31,7 +45,7 @@ export function ExpenseForm({
           userId: PERSONAL_USER_ID,
           title: field(f, 'title'),
           amount: Number(amount.replace(/\D/g, '')),
-          paymentMethod: field(f, 'paymentMethod') as Expense['paymentMethod'],
+          paymentMethod: method,
           categoryId: field(f, 'categoryId'),
           occurredAt: date.toISOString(),
           note: '',
@@ -60,50 +74,58 @@ export function ExpenseForm({
             rows={2}
           />
         </label>
-        <DateTimeField
-          id="expense-time"
-          label="Thời gian chi tiêu"
-          value={date}
-          onChange={setDate}
-          past
-        />
-        <label>
-          Số tiền (VND)
-          <input
-            name="amount"
-            type="text"
-            inputMode="numeric"
-            value={amount}
-            onChange={(e) => {
-              const digits = e.target.value.replace(/\D/g, '').slice(0, 13);
-              setAmount(digits ? new Intl.NumberFormat('vi-VN').format(Number(digits)) : '');
-            }}
-            required
-            placeholder="Ví dụ: 50000"
+        <div className="expense-amount-time-row">
+          <DateTimeField
+            id="expense-time"
+            label="Thời gian chi tiêu"
+            value={date}
+            onChange={setDate}
+            past
+            wholeHours
           />
-        </label>
+          <label>
+            Số tiền (VND)
+            <input
+              name="amount"
+              type="text"
+              inputMode="numeric"
+              value={amount}
+              onChange={(e) => {
+                const digits = e.target.value.replace(/\D/g, '').slice(0, 13);
+                setAmount(digits ? new Intl.NumberFormat('vi-VN').format(Number(digits)) : '');
+              }}
+              required
+              placeholder="Ví dụ: 50000"
+            />
+          </label>
+        </div>
         <label>Danh mục</label>
         <input type="hidden" name="categoryId" value={categoryId} />
         <div className="expense-category-picker" role="group" aria-label="Chọn danh mục chi tiêu">
-          {data.categories.map((c) => (
-            <button type="button" key={c.id} className={categoryId === c.id ? 'selected' : ''} aria-pressed={categoryId === c.id} onClick={() => setCategoryId(c.id)}>
-              <CategoryIcon category={c} assets={data.customIcons} style={{ color: c.color }} /> <span>{c.name}</span>
+          {categories.map((c) => (
+            <button
+              type="button"
+              key={c.id}
+              className={categoryId === c.id ? 'selected' : ''}
+              aria-pressed={categoryId === c.id}
+              onClick={() => setCategoryId(c.id)}
+            >
+              <CategoryIcon category={c} assets={data.customIcons} style={{ color: c.color }} />{' '}
+              <span>{c.name}</span>
             </button>
           ))}
         </div>
-        <label>
-          Hình thức thanh toán
-          <select name="paymentMethod" defaultValue={expense?.paymentMethod || 'cash'}>
-            <option value="cash">Tiền mặt</option>
-            <option value="bank">Chuyển khoản</option>
-          </select>
-        </label>
-        {error && (
-          <p role="alert" className="form-error">
-            {error}
-          </p>
-        )}
-        <button aria-busy={busy} className="button primary full monexa-action monexa-create" disabled={busy}>
+        <PaymentMethodField
+          value={method}
+          onChange={setMethod}
+          className="expense-payment-method"
+        />
+        {error && <Toast>{error}</Toast>}
+        <button
+          aria-busy={busy}
+          className="button primary full monexa-action monexa-create"
+          disabled={busy}
+        >
           {busy ? <PendingLabel>Đang lưu</PendingLabel> : expense ? 'Lưu thay đổi' : 'Lưu chi tiêu'}
         </button>
       </fieldset>

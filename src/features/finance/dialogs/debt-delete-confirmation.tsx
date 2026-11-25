@@ -1,4 +1,5 @@
 'use client';
+import Toast from '@/components/toast';
 import { FontAwesomeIcon as Icon } from '@fortawesome/react-fontawesome';
 import { faTrashCan, faXmark } from '@fortawesome/free-solid-svg-icons';
 import LoadingSpinner from '@/components/loading-spinner';
@@ -69,9 +70,9 @@ export default function DebtDeleteConfirmation({
         giao dịch còn lại.
       </p>
       {!unchanged && (
-        <p className="form-error" role="alert">
+        <Toast>
           Công nợ đã thay đổi. Hãy đóng và mở lại xác nhận xóa.
-        </p>
+        </Toast>
       )}
       <div className="debt-payment-actions">
         <button

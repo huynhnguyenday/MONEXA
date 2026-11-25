@@ -7,6 +7,7 @@ export default function Dialog({
   children,
   onClose,
   busy = false,
+  backgroundSaving = busy,
   compact = false,
   className,
 }: {
@@ -14,6 +15,7 @@ export default function Dialog({
   children: React.ReactNode;
   onClose: () => void;
   busy?: boolean;
+  backgroundSaving?: boolean;
   compact?: boolean;
   className?: string;
 }) {
@@ -24,6 +26,21 @@ export default function Dialog({
     dialog?.showModal();
     return () => dialog?.close();
   }, []);
+  useEffect(() => {
+    const dialog = ref.current;
+    if (!busy) {
+      // Keep the form mounted while saving so a failed request restores its draft.
+      if (dialog?.isConnected && !dialog.open) dialog.showModal();
+      return;
+    }
+    if (!backgroundSaving) return;
+    const openDialogs = document.querySelectorAll('dialog[open]');
+    // A nested icon dialog owns its save; keep its parent form and draft in place.
+    if (dialog !== openDialogs.item(openDialogs.length - 1)) return;
+    // Closing the native dialog releases the viewport without cancelling the request.
+    const timer = setTimeout(() => dialog?.close(), 1500);
+    return () => clearTimeout(timer);
+  }, [busy, backgroundSaving]);
   return (
     <dialog
       className={

@@ -1,4 +1,5 @@
 'use client';
+import Toast from '@/components/toast';
 import PendingLabel from '@/components/pending-label';
 import { useId, useState } from 'react';
 import { debtSourceIconColors, debtSourceIconKeys, type DebtSource, PERSONAL_USER_ID } from '../model';
@@ -33,7 +34,7 @@ export function DebtSourceForm({ data, save, busy, done, debtSource }: { debtSou
         <div className="icon-picker" role="group" aria-labelledby={labelId}>
           {debtSourceIconKeys.map((key) => <button key={key} type="button" title={sourceLabels[key]} aria-label={sourceLabels[key]} aria-pressed={icon === key} className={icon === key ? 'selected' : ''} style={{ color: debtSourceIconColors[key] }} onClick={() => setIcon(key)}><DebtSourceIcon icon={key} /></button>)}
         </div>
-        {error && <p className="form-error" role="alert">{error}</p>}
+        {error && <Toast>{error}</Toast>}
         <button aria-busy={busy} className="button primary full monexa-action monexa-create">{busy ? <PendingLabel>Đang lưu</PendingLabel> : debtSource ? 'Lưu nguồn công nợ' : 'Thêm nguồn công nợ'}</button>
       </fieldset>
     </form>

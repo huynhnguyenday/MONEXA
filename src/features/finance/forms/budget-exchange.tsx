@@ -1,4 +1,5 @@
 'use client';
+import Toast from '@/components/toast';
 import { useState } from 'react';
 import { FontAwesomeIcon as Icon } from '@fortawesome/react-fontawesome';
 import {
@@ -12,12 +13,11 @@ import { calculateAccounts, displayTime, money, PERSONAL_USER_ID } from '../mode
 import type { FormProps } from './types';
 import './budget-exchange.css';
 const labels = { cash: 'Tiền mặt', bank: 'Chuyển khoản' };
-export function BudgetExchange({ data, save, busy }: FormProps) {
+export function BudgetExchange({ data, save, busy, done }: FormProps) {
   const [tab, setTab] = useState<'convert' | 'history'>('convert');
   const [from, setFrom] = useState<'cash' | 'bank'>('cash');
   const [amount, setAmount] = useState('');
   const [error, setError] = useState('');
-  const [success, setSuccess] = useState('');
   const accounts = calculateAccounts(data);
   const to = from === 'cash' ? 'bank' : 'cash';
   const entries = [...data.budgetExchanges].sort(
@@ -57,7 +57,6 @@ export function BudgetExchange({ data, save, busy }: FormProps) {
           onSubmit={async (event) => {
             event.preventDefault();
             setError('');
-            setSuccess('');
             const value = Number(amount.replace(/\D/g, ''));
             if (!Number.isSafeInteger(value) || value <= 0 || value > 1_000_000_000_000)
               return setError('Nhập số tiền nguyên từ 1 đến 1.000.000.000.000 VND.');
@@ -79,7 +78,7 @@ export function BudgetExchange({ data, save, busy }: FormProps) {
               })
             ) {
               setAmount('');
-              setSuccess('Đã chuyển đổi thành công.');
+              done();
             }
           }}
         >
@@ -103,7 +102,6 @@ export function BudgetExchange({ data, save, busy }: FormProps) {
                 onClick={() => {
                   setFrom(to);
                   setError('');
-                  setSuccess('');
                 }}
               >
                 <Icon icon={faRightLeft} />
@@ -136,16 +134,10 @@ export function BudgetExchange({ data, save, busy }: FormProps) {
                 onChange={(event) => {
                   const digits = event.target.value.replace(/\D/g, '').slice(0, 13);
                   setAmount(digits ? new Intl.NumberFormat('vi-VN').format(Number(digits)) : '');
-                  setSuccess('');
                 }}
               />
             </label>
-            {error && (
-              <p role="alert" className="form-error">
-                {error}
-              </p>
-            )}
-            {success && <p role="status">{success}</p>}
+            {error && <Toast>{error}</Toast>}
             <button
               className="button primary monexa-action monexa-create exchange-submit"
               type="submit"

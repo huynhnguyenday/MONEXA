@@ -7,7 +7,7 @@
   padding: 20px;
 }
 .budget-exchange-dialog .dialog-heading {
-  padding-bottom: 12px;
+  padding-bottom: 0;
 }
 .budget-exchange-dialog .dialog-body {
   display: flex;

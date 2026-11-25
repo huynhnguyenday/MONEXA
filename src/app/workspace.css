@@ -1661,3 +1661,15 @@ dialog .dialog-content textarea { max-height: 150px; }
   .compact-debts > .compact-stats.debt-overview-stats .stat > small { font-size: 10px; }
   .compact-debts > .compact-stats.debt-overview-stats .debt-stat > strong { font-size: clamp(14px, 4vw, 18px); overflow-wrap: anywhere; }
 }
+
+/* Forms must shrink within the dialog instead of creating horizontal scrolling. */
+.dialog-content, .dialog-body, .dialog-body form { min-width: 0; }
+.dialog-body input, .dialog-body textarea, .dialog-body select { min-width: 0; max-width: 100%; }
+.icon-picker { grid-template-columns: repeat(auto-fit, minmax(36px, 1fr)); padding: 5px; }
+.icon-picker button { min-width: 0; }
+.expense-amount-time-row { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; align-items: start; }
+.expense-amount-time-row > * { min-width: 0; }
+.expense-amount-time-row .date-time-field > label { margin-top: 0; }
+.expense-amount-time-row .react-datepicker-wrapper { width: 100%; min-width: 0; }
+.expense-amount-time-row input { padding-inline: 8px; font-size: 12px; min-height: 46px; }
+.expense-amount-time-row .date-time-field input { padding-inline: 6px; font-size: 11px; }

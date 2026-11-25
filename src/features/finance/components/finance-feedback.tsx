@@ -1,4 +1,5 @@
 'use client';
+import Toast from '@/components/toast';
 import type { ReactNode } from 'react';
 import { FontAwesomeIcon as Icon } from '@fortawesome/react-fontawesome';
 import { faXmark } from '@fortawesome/free-solid-svg-icons';
@@ -18,20 +19,17 @@ export function FinanceError({
 }) {
   if (!error) return null;
   return (
-    <div role="alert" className="alert">
-      <div>
-        {error}
-        <button className="inline-button" disabled={busy || loading} onClick={onRetry}>
-          {loading ? 'Đang tải…' : conflict ? 'Tải dữ liệu mới nhất rồi thử lại' : 'Thử tải lại'}
-        </button>
-      </div>
-    </div>
+    <>
+      <Toast tone="error">{error}</Toast>
+      <button className="inline-button" disabled={busy || loading} onClick={onRetry}>
+        {loading ? 'Đang tải…' : conflict ? 'Tải dữ liệu mới nhất rồi thử lại' : 'Thử tải lại'}
+      </button>
+    </>
   );
 }
 export function FinanceFeedback({
   error,
   notice,
-  onDismissNotice,
   hasLegacy,
   ready,
   onMigrate,
@@ -39,7 +37,6 @@ export function FinanceFeedback({
 }: {
   error: ReactNode;
   notice: string;
-  onDismissNotice: () => void;
   hasLegacy: boolean;
   ready: boolean;
   onMigrate: () => void;
@@ -49,16 +46,9 @@ export function FinanceFeedback({
     <div className="workspace-messages">
       {error}
       {notice && (
-        <div className="notice" role="status">
+        <Toast tone={/^(Không|Chưa|Cần|Tệp|Khoản)/.test(notice) ? 'error' : 'success'}>
           {notice}
-          <button
-            className="monexa-action monexa-close"
-            aria-label="Đóng thông báo"
-            onClick={onDismissNotice}
-          >
-            <Icon icon={faXmark} />
-          </button>
-        </div>
+        </Toast>
       )}
       {hasLegacy && (
         <div className="notice">

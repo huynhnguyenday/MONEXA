@@ -1,4 +1,5 @@
 'use client';
+import Toast from '@/components/toast';
 import { useMemo, useState } from 'react';
 import { FontAwesomeIcon as Icon } from '@fortawesome/react-fontawesome';
 import { faPen, faTrashCan } from '@fortawesome/free-solid-svg-icons';
@@ -56,9 +57,9 @@ export default function IncomeHistory({
         aria-label={scope === 'income' ? 'Lịch sử thu nhập' : 'Lịch sử phân bổ'}
       >
         {error && (
-          <p role="alert" className="form-error">
+          <Toast>
             {error}
-          </p>
+          </Toast>
         )}
         {!records.length && (
           <p className="income-history-empty">

@@ -1,4 +1,5 @@
 'use client';
+import Toast from '@/components/toast';
 import PendingLabel from '@/components/pending-label';
 import { useId, useState } from 'react';
 import { FontAwesomeIcon as Icon } from '@fortawesome/react-fontawesome';
@@ -127,9 +128,9 @@ export function CategoryForm({
           />
         </label>
         {error && (
-          <p className="form-error" role="alert">
+          <Toast>
             {error}
-          </p>
+          </Toast>
         )}
         <button aria-busy={busy} className="button primary full monexa-action monexa-create">
           {busy ? (

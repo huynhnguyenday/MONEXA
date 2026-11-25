@@ -1,4 +1,5 @@
 'use client';
+import Toast from '@/components/toast';
 import PendingLabel from '@/components/pending-label';
 import { useState } from 'react';
 import { FontAwesomeIcon as Icon } from '@fortawesome/react-fontawesome';
@@ -6,6 +7,7 @@ import { faArrowRotateLeft } from '@fortawesome/free-solid-svg-icons';
 import CategoryIcon from '../components/category-icon';
 import './debt-form.css';
 import DateTimeField from '@/components/date-time-field';
+import PaymentMethodField from '@/components/payment-method-field';
 import {
   assertLendingFunds,
   reconcileDebtExpenses,
@@ -30,6 +32,7 @@ export function DebtForm({ data, save, done, busy, debt }: { debt?: Debt } & For
   const [debtTypeId, setDebtTypeId] = useState(debt?.debtTypeId || data.debtTypes[0]?.id || '');
   const lending = data.debtTypes.find((type) => type.id === debtTypeId)?.direction === 'receivable';
   const accounts = calculateAccounts(data);
+  const [method, setMethod] = useState<'cash' | 'bank'>(debt?.paymentMethod || 'cash');
   const [error, setError] = useState('');
   const [categoryId, setCategoryId] = useState(
     debt?.categoryId === undefined
@@ -40,6 +43,7 @@ export function DebtForm({ data, save, done, busy, debt }: { debt?: Debt } & For
     <form
       onSubmit={async (e) => {
         e.preventDefault();
+        if (busy) return;
         setError('');
         const f = new FormData(e.currentTarget);
         if (!due) return setError('Vui lòng chọn hạn thanh toán.');
@@ -57,7 +61,7 @@ export function DebtForm({ data, save, done, busy, debt }: { debt?: Debt } & For
           debtTypeId: debtType.id,
           debtSourceId: lending ? '' : source!.id,
           categoryId: categoryId || null,
-          paymentMethod: field(f, 'paymentMethod') as Debt['paymentMethod'],
+          paymentMethod: method,
           occurredAt: debt?.occurredAt || new Date().toISOString(),
           dueDate: dateKeyFromLocal(due),
           reminderReadFor: debt?.reminderReadFor,
@@ -147,32 +151,21 @@ export function DebtForm({ data, save, done, busy, debt }: { debt?: Debt } & For
             ))}
           </div>
         )}
-        <label>
-          Số tiền (VND)
-          <input
-            name="amount"
-            type="text"
-            inputMode="numeric"
-            value={amount}
-            onChange={(e) => {
-              const digits = e.target.value.replace(/\D/g, '').slice(0, 13);
-              setAmount(digits ? new Intl.NumberFormat('vi-VN').format(Number(digits)) : '');
-            }}
-            required
-            aria-label="Số tiền (VND)"
-          />
-        </label>
-        <div className="form-row debt-payment-due-row">
+        <div className="form-row debt-amount-due-row">
           <label>
-            Hình thức chi tiền
-            <select name="paymentMethod" defaultValue={debt?.paymentMethod || 'cash'}>
-              <option value="cash">
-                Tiền mặt{lending ? ` — hiện có ${money(accounts.cash)}` : ''}
-              </option>
-              <option value="bank">
-                Chuyển khoản{lending ? ` — hiện có ${money(accounts.bank)}` : ''}
-              </option>
-            </select>
+            Số tiền (VND)
+            <input
+              name="amount"
+              type="text"
+              inputMode="numeric"
+              value={amount}
+              onChange={(e) => {
+                const digits = e.target.value.replace(/\D/g, '').slice(0, 13);
+                setAmount(digits ? new Intl.NumberFormat('vi-VN').format(Number(digits)) : '');
+              }}
+              required
+              aria-label="Số tiền (VND)"
+            />
           </label>
           <DateTimeField
             id="debt-due"
@@ -182,16 +175,17 @@ export function DebtForm({ data, save, done, busy, debt }: { debt?: Debt } & For
             withTime={false}
           />
         </div>
+        <PaymentMethodField
+          value={method}
+          onChange={setMethod}
+          legend="Hình thức chi tiền"
+          cashDescription={lending ? `Hiện có ${money(accounts.cash)}` : undefined}
+          bankDescription={lending ? `Hiện có ${money(accounts.bank)}` : undefined}
+        />
         {!lending && !data.debtSources.length && (
-          <p role="alert" className="form-error">
-            Hãy tạo nguồn công nợ trong navbar trước khi ghi công nợ.
-          </p>
+          <Toast>Hãy tạo nguồn công nợ trong navbar trước khi ghi công nợ.</Toast>
         )}
-        {!data.debtTypes.length && (
-          <p role="alert" className="form-error">
-            Chưa có loại công nợ để chọn.
-          </p>
-        )}
+        {!data.debtTypes.length && <Toast>Chưa có loại công nợ để chọn.</Toast>}
         <>
           <div className="debt-category-heading">
             <label id="debt-category-label">
@@ -221,17 +215,17 @@ export function DebtForm({ data, save, done, busy, debt }: { debt?: Debt } & For
                 aria-pressed={categoryId === category.id}
                 onClick={() => setCategoryId(category.id)}
               >
-                <CategoryIcon category={category} assets={data.customIcons} style={{ color: category.color }} />
+                <CategoryIcon
+                  category={category}
+                  assets={data.customIcons}
+                  style={{ color: category.color }}
+                />
                 <span>{category.name}</span>
               </button>
             ))}
           </div>
         </>
-        {error && (
-          <p role="alert" className="form-error">
-            {error}
-          </p>
-        )}
+        {error && <Toast>{error}</Toast>}
         <button
           aria-busy={busy}
           className="button primary full monexa-action monexa-create"

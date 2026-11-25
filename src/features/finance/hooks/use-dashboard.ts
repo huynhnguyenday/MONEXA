@@ -51,7 +51,7 @@ export function useDashboard() {
   }, []);
   useEffect(() => {
     if (!notice) return;
-    const timer = setTimeout(() => setNotice(''), 5000);
+    const timer = setTimeout(() => setNotice(''), 1500);
     return () => clearTimeout(timer);
   }, [notice]);
   useEffect(() => {
@@ -99,7 +99,11 @@ export function useDashboard() {
   }
   function done() {
     setModal(null);
-    setNotice('Đã lưu.');
+    setNotice(
+      modal?.type === 'expense' && !modal.expense
+        ? 'Đã tạo chi tiêu thành công.'
+        : 'Đã lưu thành công.',
+    );
   }
   async function readReminders(ids: string[]) {
     if (!ready || modal) return false;

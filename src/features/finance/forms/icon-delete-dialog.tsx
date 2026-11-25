@@ -1,4 +1,5 @@
 'use client';
+import Toast from '@/components/toast';
 import { useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import Dialog from '@/components/dialog';
@@ -53,9 +54,9 @@ export default function IconDeleteDialog({
           </p>
         )}
         {error && (
-          <p className="form-error" role="alert">
+          <Toast>
             {error}
-          </p>
+          </Toast>
         )}
         <div className="custom-icon-delete-actions">
           <button

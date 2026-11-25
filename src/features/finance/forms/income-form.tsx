@@ -1,8 +1,10 @@
 'use client';
+import Toast from '@/components/toast';
 import { useState } from 'react';
 import { FontAwesomeIcon as Icon } from '@fortawesome/react-fontawesome';
 import { faSackDollar } from '@fortawesome/free-solid-svg-icons';
 import DateTimeField from '@/components/date-time-field';
+import PaymentMethodField from '@/components/payment-method-field';
 import PendingLabel from '@/components/pending-label';
 import { ZodError } from 'zod';
 import { incomeTypes, type IncomeRecord } from '../income-model';
@@ -98,17 +100,7 @@ export function IncomeForm({
             ))}
           </select>
         </label>
-        <label>
-          Nhận vào
-          <select
-            aria-label="Nhận vào"
-            value={method}
-            onChange={(e) => setMethod(e.target.value as 'cash' | 'bank')}
-          >
-            <option value="cash">Tiền mặt</option>
-            <option value="bank">Chuyển khoản</option>
-          </select>
-        </label>
+        <PaymentMethodField value={method} onChange={setMethod} legend="Nhận vào" />
         <label>
           Số tiền nhận (VND)
           <input
@@ -129,11 +121,7 @@ export function IncomeForm({
           Ghi chú
           <textarea maxLength={500} value={note} onChange={(e) => setNote(e.target.value)} />
         </label>
-        {error && (
-          <p role="alert" className="form-error">
-            {error}
-          </p>
-        )}
+        {error && <Toast>{error}</Toast>}
         <button className="button primary full monexa-action monexa-create" aria-busy={busy}>
           {busy ? (
             <PendingLabel>Đang lưu</PendingLabel>
