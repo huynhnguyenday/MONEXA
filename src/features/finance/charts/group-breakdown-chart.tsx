@@ -145,7 +145,9 @@ export default function GroupBreakdownChart({
         className="category-chart"
         data-axis-labels={kind === 'debt' ? 'source-logos' : 'icons'}
         ref={ref}
-        onPointerLeave={floatingTooltip.hide}
+        onPointerLeave={(event) => {
+          if (event.pointerType === 'mouse') floatingTooltip.hide();
+        }}
         role="img"
         aria-label={`${title}, ${periodLabel}. Tổng: ${money(allTotals.reduce((sum, group) => sum + group.amount, 0))}`}
       >

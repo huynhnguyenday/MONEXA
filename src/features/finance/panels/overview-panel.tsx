@@ -3,6 +3,7 @@ import { Fragment, useMemo, useState } from 'react';
 import { FontAwesomeIcon as Icon } from '@fortawesome/react-fontawesome';
 import {
   faPlus,
+  faFilter,
   faPen,
   faTrashCan,
   faMagnifyingGlass,
@@ -25,6 +26,7 @@ import {
   money,
 } from '../model';
 import ExpenseDetails from '../components/expense-details';
+import ExpenseFilters, { emptyExpenseFilter } from '../components/expense-filters';
 import { createNameAmountSearchMatcher } from '@/lib/search';
 import { useHistoryWindow } from '../hooks/use-history-window';
 import HistoryEnd from '../components/history-end';
@@ -59,14 +61,26 @@ export default function OverviewPanel({
   const carousel = useWorkspaceCarousel();
   const mobileView = carousel.active === 0 ? 'charts' : 'expenses';
   const [search, setSearch] = useState('');
+  const [filters, setFilters] = useState(emptyExpenseFilter);
+  const [filterOpen, setFilterOpen] = useState(false);
+  const filterCount = Object.values(filters).filter(Boolean).length;
   const [expandedExpense, setExpandedExpense] = useState<string | null>(null);
-  const filtered = useMemo(
-    () => stats.expenses.filter(createNameAmountSearchMatcher(search)),
-    [stats.expenses, search],
-  );
+  const filtered = useMemo(() => {
+    const matchesSearch = createNameAmountSearchMatcher(search);
+    const sourceDebts = new Set(
+      data.debts.filter((debt) => debt.debtSourceId === filters.sourceId).map((debt) => debt.id),
+    );
+    return stats.expenses.filter(
+      (expense) =>
+        matchesSearch(expense) &&
+        (!filters.day || dateKey(expense.occurredAt) === filters.day) &&
+        (!filters.categoryId || expense.categoryId === filters.categoryId) &&
+        (!filters.sourceId || (!!expense.debtId && sourceDebts.has(expense.debtId))),
+    );
+  }, [stats.expenses, search, filters, data.debts]);
   const { viewportRef, endRef, visibleCount, hasMore } = useHistoryWindow(
     filtered.length,
-    JSON.stringify([month, search]),
+    JSON.stringify([month, search, filters]),
     !ready,
   );
   const selectedMonth = month || dateKey().slice(0, 7);
@@ -238,7 +252,20 @@ export default function OverviewPanel({
           />
           <article className="card expense-panel">
             <div className="panel-heading">
-              <h2>Chi tiêu</h2>
+              <h2 className="sr-only">Lịch sử chi tiêu</h2>
+              <button
+                type="button"
+                className="expense-filter-button"
+                aria-label="Lọc chi tiêu"
+                title="Lọc chi tiêu"
+                aria-haspopup="dialog"
+                aria-expanded={filterOpen}
+                data-active={filterCount > 0}
+                onClick={() => setFilterOpen(true)}
+              >
+                <Icon icon={faFilter} />
+                {filterCount > 0 && <span>{filterCount}</span>}
+              </button>
               <label className="search-box expense-search-box">
                 <Icon icon={faMagnifyingGlass} />
                 <span className="sr-only">Tìm chi tiêu</span>
@@ -376,6 +403,14 @@ export default function OverviewPanel({
           </article>
         </aside>
       </div>
+      {filterOpen && (
+        <ExpenseFilters
+          data={data}
+          value={filters}
+          apply={setFilters}
+          close={() => setFilterOpen(false)}
+        />
+      )}
     </section>
   );
 }

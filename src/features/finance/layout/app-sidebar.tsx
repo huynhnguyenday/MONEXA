@@ -101,7 +101,7 @@ export default function AppSidebar({
         </nav>
         <div className="sidebar-data">
           <span className="sidebar-section-label">Dữ liệu</span>
-          <button className="nav-button" disabled={!canExport || busy} onClick={onExport}>
+          <button className="nav-button" disabled={!canExport} onClick={onExport}>
             <Icon icon={faDownload} /> Xuất dữ liệu
           </button>
           <button className="nav-button" disabled={!ready} onClick={onImport}>

@@ -1,6 +1,7 @@
 'use client';
 import DatePicker from 'react-datepicker';
 import { vi } from 'date-fns/locale';
+import { useId } from 'react';
 export default function DateTimeField({
   id,
   label,
@@ -20,11 +21,13 @@ export default function DateTimeField({
   withTime?: boolean;
   wholeHours?: boolean;
 }) {
+  const instanceId = useId();
+  const inputId = `${id}-${instanceId}`;
   return (
     <div className="date-time-field">
-      <label htmlFor={id}>{label}</label>
+      <label htmlFor={inputId}>{label}</label>
       <DatePicker
-        id={id}
+        id={inputId}
         selected={value}
         onChange={(next: Date | null) => {
           if (next && wholeHours) {

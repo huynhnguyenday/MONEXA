@@ -5,12 +5,9 @@ import { faBars, faXmark } from '@fortawesome/free-solid-svg-icons';
 import MonthPicker from '@/components/month-picker';
 import { MonthPickerSkeleton } from '../components/loading-skeleton';
 import type { FinanceView } from '../types';
-import type { FinanceData } from '../model';
 import DebtNotifications from './debt-notifications';
 
 type Props = {
-  data: FinanceData;
-  onReadReminders: (ids: string[]) => Promise<boolean>;
   view: FinanceView;
   debtView: 'calendar' | 'history';
   onDebtViewChange: (view: 'calendar' | 'history') => void;
@@ -23,8 +20,6 @@ type Props = {
   loading?: boolean;
 };
 export default function AppHeader({
-  data,
-  onReadReminders,
   view,
   debtView,
   onDebtViewChange,
@@ -79,7 +74,7 @@ export default function AppHeader({
         <div id="header-workspace-tabs" />
       </div>
       <div className="header-primary-action">
-        <DebtNotifications data={data} ready={ready} onRead={onReadReminders} />
+        <DebtNotifications ready={ready} />
       </div>
     </header>
   );

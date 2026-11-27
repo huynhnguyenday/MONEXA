@@ -2,6 +2,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { usePathname, useRouter } from 'next/navigation';
 import { useFinance } from './use-finance';
+import { useConfirmation } from './use-confirmation';
 import { useVietnamToday } from './use-vietnam-today';
 import { debtPaymentGroup } from '../debt-payments';
 import type { FinanceView, FinanceModal } from '../types';
@@ -18,6 +19,7 @@ import {
   LEGACY_STORAGE_KEY,
 } from '../model';
 export function useDashboard() {
+  const { confirm, confirmation } = useConfirmation();
   const today = useVietnamToday();
   const router = useRouter();
   const pathname = usePathname();
@@ -39,7 +41,7 @@ export function useDashboard() {
     [navOpen, setNavOpen] = useState(false);
   const { snapshot, busy, loading, error, conflict, refresh, save } = useFinance();
   const data = snapshot?.data || initialData,
-    ready = !!snapshot && !loading && !busy;
+    ready = !!snapshot && !loading;
   const importRef = useRef<HTMLInputElement>(null),
     navToggleRef = useRef<HTMLButtonElement>(null);
   useEffect(() => {
@@ -98,22 +100,11 @@ export function useDashboard() {
     setModal(null);
   }
   function done() {
-    setModal(null);
     setNotice(
       modal?.type === 'expense' && !modal.expense
         ? 'Đã tạo chi tiêu thành công.'
         : 'Đã lưu thành công.',
     );
-  }
-  async function readReminders(ids: string[]) {
-    if (!ready || modal) return false;
-    const selected = new Set(ids);
-    return await save({
-      ...data,
-      debts: data.debts.map((debt) =>
-        selected.has(debt.id) && debt.dueDate ? { ...debt, reminderReadFor: debt.dueDate } : debt,
-      ),
-    });
   }
   const formProps = { data, save: async (next: FinanceData) => await save(next), done, busy };
   async function deleteExpense(expense: Expense) {
@@ -122,7 +113,7 @@ export function useDashboard() {
       return;
     }
     if (
-      window.confirm(`Xóa khoản chi “${expense.title}”?`) &&
+      (await confirm(`Xóa khoản chi “${expense.title}”?`)) &&
       (await save({ ...data, expenses: data.expenses.filter((e) => e.id !== expense.id) }))
     )
       setNotice('Đã xóa khoản chi.');
@@ -138,7 +129,7 @@ export function useDashboard() {
       return setNotice('Không thể xóa danh mục đang có chi tiêu hoặc công nợ.');
     if (data.categories.length === 1) return setNotice('Cần giữ ít nhất một danh mục.');
     if (
-      window.confirm(`Xóa danh mục “${category.name}”?`) &&
+      (await confirm(`Xóa danh mục “${category.name}”?`)) &&
       (await save({
         ...data,
         categories: data.categories.filter((item) => item.id !== category.id),
@@ -150,7 +141,7 @@ export function useDashboard() {
     if (data.debts.some((debt) => debt.debtSourceId === source.id))
       return setNotice('Không thể xóa nguồn đang được công nợ sử dụng.');
     if (
-      window.confirm(`Xóa nguồn công nợ “${source.name}”?`) &&
+      (await confirm(`Xóa nguồn công nợ “${source.name}”?`)) &&
       (await save({
         ...data,
         debtSources: data.debtSources.filter((item) => item.id !== source.id),
@@ -175,9 +166,9 @@ export function useDashboard() {
       if (file.size > 1950000) throw new Error();
       const next = parseBackup(JSON.parse(await file.text()));
       if (
-        window.confirm(
+        (await confirm(
           'Thay thế toàn bộ dữ liệu ngân sách, thu nhập, gửi mẹ và tiết kiệm bằng bản sao lưu này? Các sổ không có trong tệp cũ sẽ được thay bằng dữ liệu rỗng.',
-        ) &&
+        )) &&
         (await save(next, true))
       )
         setNotice('Đã nhập bản sao lưu.');
@@ -193,9 +184,9 @@ export function useDashboard() {
       if (!raw) return;
       const next = parseBackup(JSON.parse(raw));
       if (
-        window.confirm(
+        (await confirm(
           'Chuyển dữ liệu cũ lên MongoDB và thay thế toàn bộ ngân sách, thu nhập, gửi mẹ và tiết kiệm hiện tại? Sổ không có trong bản cũ sẽ rỗng. Bản cũ trong trình duyệt được giữ lại.',
-        ) &&
+        )) &&
         (await save(next, true))
       ) {
         setHasLegacy(false);
@@ -225,8 +216,8 @@ export function useDashboard() {
     }
   }
   return {
+    confirmation,
     snapshot,
-    readReminders,
     busy,
     loading,
     error,

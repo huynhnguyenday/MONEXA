@@ -12,6 +12,10 @@ import { BudgetExchange } from '../forms/budget-exchange';
 import { BudgetHistory } from '../forms/budget-history';
 import DebtPaymentConfirmation from './debt-payment-confirmation';
 import DebtDeleteConfirmation from './debt-delete-confirmation';
+import './income-dialogs.css';
+import FormTasks from './form-tasks';
+import { IncomeForm } from '../forms/income-form';
+import { AllocationForm } from '../forms/allocation-form';
 
 type Props = {
   modal: FinanceModal;
@@ -21,35 +25,52 @@ type Props = {
   month: string;
 };
 export default function FinanceDialogs({ modal, onClose, formProps, error, month }: Props) {
+  return (
+    <FormTasks modal={modal} onClose={onClose} forms={formProps}>
+      {(task, forms, close) => (
+        <FinanceDialog modal={task} onClose={close} formProps={forms} error={error} month={month} />
+      )}
+    </FormTasks>
+  );
+}
+function FinanceDialog({ modal, onClose, formProps, error, month }: Props) {
   if (!modal) return null;
   const title =
-    modal.type === 'debt-delete'
-      ? 'Xác nhận xóa công nợ'
-      : modal.type === 'debt-payment'
-        ? modal.reopen
-          ? 'Xác nhận mở lại công nợ'
-          : 'Xác nhận thanh toán'
-        : modal.type === 'budget-exchange'
-          ? 'Đổi nguồn tiền'
-          : modal.type === 'expense'
-            ? modal.expense
-              ? 'Sửa khoản chi'
-              : 'Ghi một khoản chi'
-            : modal.type === 'debt'
-              ? modal.debt
-                ? 'Sửa công nợ'
-                : 'Ghi công nợ'
-              : modal.type === 'category'
-                ? modal.category
-                  ? 'Sửa danh mục'
-                  : 'Thêm danh mục'
-                : modal.type === 'debtSource'
-                  ? modal.debtSource
-                    ? 'Sửa nguồn công nợ'
-                    : 'Thêm nguồn công nợ'
-                  : modal.type === 'budget-history'
-                    ? 'Lịch sử ngân sách'
-                    : 'Ngân sách của bạn';
+    modal.type === 'income-entry'
+      ? modal.kind === 'income'
+        ? modal.record
+          ? 'Sửa thu nhập'
+          : 'Nhận thu nhập'
+        : modal.record
+          ? 'Sửa phân bổ'
+          : 'Phân bổ tiền'
+      : modal.type === 'debt-delete'
+        ? 'Xác nhận xóa công nợ'
+        : modal.type === 'debt-payment'
+          ? modal.reopen
+            ? 'Xác nhận mở lại công nợ'
+            : 'Xác nhận thanh toán'
+          : modal.type === 'budget-exchange'
+            ? 'Đổi nguồn tiền'
+            : modal.type === 'expense'
+              ? modal.expense
+                ? 'Sửa khoản chi'
+                : 'Ghi một khoản chi'
+              : modal.type === 'debt'
+                ? modal.debt
+                  ? 'Sửa công nợ'
+                  : 'Ghi công nợ'
+                : modal.type === 'category'
+                  ? modal.category
+                    ? 'Sửa danh mục'
+                    : 'Thêm danh mục'
+                  : modal.type === 'debtSource'
+                    ? modal.debtSource
+                      ? 'Sửa nguồn công nợ'
+                      : 'Thêm nguồn công nợ'
+                    : modal.type === 'budget-history'
+                      ? 'Lịch sử ngân sách'
+                      : 'Ngân sách của bạn';
   return (
     <Dialog
       title={title}
@@ -57,18 +78,33 @@ export default function FinanceDialogs({ modal, onClose, formProps, error, month
       busy={formProps.busy}
       compact={modal.type === 'debt'}
       className={
-        modal.type === 'debt-payment' || modal.type === 'debt-delete'
-          ? 'debt-payment-dialog'
-          : modal.type === 'budget-exchange'
-            ? 'budget-exchange-dialog'
-            : modal.type === 'debt'
-              ? 'debt-entry-dialog'
-              : modal.type === 'budget-history'
-                ? 'budget-history-dialog'
-                : undefined
+        modal.type === 'income-entry'
+          ? `income-entry-dialog${modal.kind === 'income' ? '' : ' allocation-entry-dialog'}`
+          : modal.type === 'debt-payment' || modal.type === 'debt-delete'
+            ? 'debt-payment-dialog'
+            : modal.type === 'budget-exchange'
+              ? 'budget-exchange-dialog'
+              : modal.type === 'debt'
+                ? 'debt-entry-dialog'
+                : modal.type === 'budget-history'
+                  ? 'budget-history-dialog'
+                  : undefined
       }
     >
       {error}
+      {modal.type === 'income-entry' &&
+        (modal.kind === 'income' ? (
+          <IncomeForm
+            {...formProps}
+            record={modal.record?.kind === 'income' ? modal.record : undefined}
+          />
+        ) : (
+          <AllocationForm
+            {...formProps}
+            month={month}
+            record={modal.record?.kind !== 'income' ? modal.record : undefined}
+          />
+        ))}
       {modal.type === 'debt-delete' && (
         <DebtDeleteConfirmation {...formProps} debt={modal.debt} onCancel={onClose} />
       )}

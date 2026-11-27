@@ -16,11 +16,7 @@ import { viewLabels } from './types';
 import { useWorkspaceViewport } from './hooks/use-workspace-viewport';
 
 const FinanceDialogs = dynamic(() => import('./dialogs/finance-dialogs'), {
-  loading: () => (
-    <Toast tone="pending">
-      Đang mở biểu mẫu…
-    </Toast>
-  ),
+  loading: () => <Toast tone="pending">Đang mở biểu mẫu…</Toast>,
 });
 
 export default function Dashboard({ passwordLoginEnabled }: { passwordLoginEnabled: boolean }) {
@@ -59,8 +55,6 @@ export default function Dashboard({ passwordLoginEnabled }: { passwordLoginEnabl
       <main className="workspace" id="overview">
         <h1 className="sr-only">MONEXA · {viewLabels[dashboard.tab]}</h1>
         <AppHeader
-          data={dashboard.data}
-          onReadReminders={dashboard.readReminders}
           view={dashboard.tab}
           debtView={dashboard.debtView}
           onDebtViewChange={dashboard.setDebtView}
@@ -87,7 +81,7 @@ export default function Dashboard({ passwordLoginEnabled }: { passwordLoginEnabl
               {...dashboard.formProps}
               month={dashboard.month}
               ready={dashboard.ready}
-              error={error}
+              onOpen={(kind, record) => dashboard.open({ type: 'income-entry', kind, record })}
             />
           ) : dashboard.tab === 'overview' ? (
             <OverviewPanel
@@ -153,15 +147,14 @@ export default function Dashboard({ passwordLoginEnabled }: { passwordLoginEnabl
         onDismissLegacy={() => dashboard.setHasLegacy(false)}
       />
       {dashboard.busy && <Toast tone="pending">Đang lưu…</Toast>}
-      {dashboard.modal && (
-        <FinanceDialogs
-          modal={dashboard.modal}
-          onClose={dashboard.close}
-          formProps={dashboard.formProps}
-          error={error}
-          month={dashboard.month}
-        />
-      )}
+      <FinanceDialogs
+        modal={dashboard.modal}
+        onClose={dashboard.close}
+        formProps={dashboard.formProps}
+        error={error}
+        month={dashboard.month}
+      />
+      {dashboard.confirmation}
     </div>
   );
 }

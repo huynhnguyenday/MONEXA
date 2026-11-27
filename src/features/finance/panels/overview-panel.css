@@ -1,3 +1,49 @@
+.expense-filter-button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 3px;
+  flex: none;
+  min-width: 44px;
+  min-height: 44px;
+  padding: 6px;
+  border: 1px solid #cbd5e1;
+  border-radius: 10px;
+  background: #f8fafc;
+  color: #1d4ed8;
+}
+.expense-filter-button[data-active='true'] {
+  background: #1d4ed8;
+  color: #fff;
+}
+.expense-filter-button svg {
+  width: 15px;
+  height: 15px;
+}
+.expense-filter-button:focus-visible {
+  outline: 2px solid #1d4ed8;
+  outline-offset: 2px;
+}
+@media (prefers-reduced-motion: no-preference) {
+  .expense-filter-button:hover {
+    transform: translateY(-1px);
+  }
+}
+dialog.expense-filter-dialog {
+  width: min(420px, calc(100vw - 24px));
+}
+.expense-filter-dialog form {
+  display: grid;
+  gap: 12px;
+  min-width: 0;
+}
+.expense-filter-dialog label {
+  min-width: 0;
+}
+.expense-filter-dialog select {
+  width: 100%;
+  min-width: 0;
+}
 .expense-table .expense-summary-row .expense-wrapped-title {
   display: -webkit-box;
   -webkit-box-orient: vertical;

@@ -165,7 +165,7 @@ export function usePushDevice(onNotice: (message: string) => void) {
     }
   }
   async function test() {
-    if (working.current) return;
+    if (working.current) return false;
     working.current = true;
     setBusy(true);
     setError('');
@@ -174,8 +174,10 @@ export function usePushDevice(onNotice: (message: string) => void) {
       onNotice(
         `Đã gửi yêu cầu thông báo thử tới ${result.sent}/${result.total} thiết bị.${result.failed ? ` ${result.failed} thiết bị gửi lỗi.` : ''}${result.skipped ? ` ${result.skipped} thiết bị đang chờ đủ một phút.` : ''}`,
       );
+      return true;
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Chưa gửi được thông báo thử.');
+      return false;
     } finally {
       working.current = false;
       setBusy(false);

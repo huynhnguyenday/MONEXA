@@ -1,18 +1,19 @@
 'use client';
 import { format } from 'date-fns';
 import { vi } from 'date-fns/locale';
-import { useMemo, useState } from 'react';
+import { useMemo } from 'react';
 import { FontAwesomeIcon as Icon } from '@fortawesome/react-fontawesome';
-import { faCheck, faTrashCan, faXmark } from '@fortawesome/free-solid-svg-icons';
+import { faTrashCan } from '@fortawesome/free-solid-svg-icons';
 import type { FormProps } from './types';
 import { budgetMonth, dateKey, money } from '../model';
 import './budget-history.css';
 import { useHistoryWindow } from '../hooks/use-history-window';
 import HistoryEnd from '../components/history-end';
 import LoadingSpinner from '@/components/loading-spinner';
+import { useConfirmation } from '../hooks/use-confirmation';
 
 export function BudgetHistory({ data, save, busy, done, month }: FormProps & { month: string }) {
-  const [pendingDelete, setPendingDelete] = useState<string | null>(null);
+  const { confirm, confirmation } = useConfirmation();
   const entries = useMemo(
     () =>
       data.budgets
@@ -33,6 +34,7 @@ export function BudgetHistory({ data, save, busy, done, month }: FormProps & { m
   if (!entries.length) return <p className="empty-state">Tháng này chưa ghi thêm ngân sách.</p>;
   return (
     <div className="budget-history-manager">
+      {confirmation}
       <div
         className="budget-history-list"
         ref={viewportRef}
@@ -62,57 +64,29 @@ export function BudgetHistory({ data, save, busy, done, month }: FormProps & { m
                     )}
                   </div>
                   <div className="budget-history-actions">
-                    {pendingDelete === entry.id ? (
-                      <>
-                        <button
-                          type="button"
-                          className="button secondary budget-confirm-delete"
-                          disabled={busy}
-                          aria-busy={busy}
-                          aria-label={`Có, xóa khoản thu ${money(entry.cash + entry.bank)}`}
-                          title="Có, xóa khoản thu"
-                          onClick={async () => {
-                            if (busy) return;
-                            const budgets = data.budgets.filter((item) => item.id !== entry.id);
-                            const budget = budgets
-                              .filter((item) => budgetMonth(item) === month)
-                              .reduce((sum, item) => sum + item.cash + item.bank, 0);
-                            if (await save({ ...data, budget, budgets })) {
-                              setPendingDelete(null);
-                              done();
-                            }
-                          }}
-                        >
-                          {busy ? <LoadingSpinner /> : <Icon icon={faCheck} />}
-                        </button>
-                        <button
-                          type="button"
-                          className="button secondary budget-cancel-delete monexa-action monexa-close"
-                          disabled={busy}
-                          autoFocus
-                          aria-label="Không, giữ khoản thu"
-                          title="Không, giữ khoản thu"
-                          onClick={() => setPendingDelete(null)}
-                        >
-                          <Icon icon={faXmark} />
-                        </button>
-                      </>
-                    ) : (
-                      <button
-                        type="button"
-                        className="button secondary budget-delete"
-                        disabled={busy || !!entry.transferId}
-                        aria-label={`Xóa khoản thu ${money(entry.cash + entry.bank)}`}
-                        title={
-                          entry.transferId
-                            ? 'Chỉnh tại Thu nhập & phân bổ'
-                            : 'Xóa khoản ngân sách cũ'
-                        }
-                        onClick={() => setPendingDelete(entry.id)}
-                      >
-                        <Icon icon={faTrashCan} />
-                      </button>
-                    )}
+                    <button
+                      type="button"
+                      className="button secondary budget-delete"
+                      disabled={busy || !!entry.transferId}
+                      aria-label={`Xóa khoản thu ${money(entry.cash + entry.bank)}`}
+                      title={
+                        entry.transferId ? 'Chỉnh tại Thu nhập & phân bổ' : 'Xóa khoản ngân sách cũ'
+                      }
+                      onClick={async () => {
+                        if (
+                          busy ||
+                          !(await confirm(`Xóa khoản ngân sách ${money(entry.cash + entry.bank)}?`))
+                        )
+                          return;
+                        const budgets = data.budgets.filter((item) => item.id !== entry.id);
+                        const budget = budgets
+                          .filter((item) => budgetMonth(item) === month)
+                          .reduce((sum, item) => sum + item.cash + item.bank, 0);
+                        if (await save({ ...data, budget, budgets })) done();
+                      }}
+                    >
+                      {busy ? <LoadingSpinner /> : <Icon icon={faTrashCan} />}
+                    </button>
                   </div>
                 </li>
               ))}

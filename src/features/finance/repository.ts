@@ -52,7 +52,7 @@ const transactions: TransactionOptions & { timeoutMS: number } = {
   timeoutMS: 20000,
 };
 let indexesReady: Promise<void> | undefined;
-const INDEXES_VERSION = 5;
+const INDEXES_VERSION = 6;
 
 function entities(db: Db, key: EntityKey) {
   const collection = financeCollections[key];
@@ -364,9 +364,28 @@ async function initialize(db: Db, session: ClientSession) {
 
 async function readEntities(db: Db, session: ClientSession) {
   const joined = await settings(db)
-    .aggregate<Record<EntityKey, EntityDocument[]>>(financeReadPipeline(PERSONAL_USER_ID), {
-      session,
-    })
+    .aggregate<Record<EntityKey | 'storedBalances' | 'storedFunds', EntityDocument[]>>(
+      [
+        ...financeReadPipeline(PERSONAL_USER_ID),
+        {
+          $lookup: {
+            from: 'balances',
+            pipeline: [{ $match: { _id: PERSONAL_USER_ID, userId: PERSONAL_USER_ID } }],
+            as: 'storedBalances',
+          },
+        },
+        {
+          $lookup: {
+            from: 'fund_balances',
+            pipeline: [{ $match: { userId: PERSONAL_USER_ID } }],
+            as: 'storedFunds',
+          },
+        },
+      ],
+      {
+        session,
+      },
+    )
     .next();
   if (!joined) throw new Error('UNINITIALIZED_EXISTING_DATA');
   const result: Record<string, unknown[]> = {};
@@ -376,7 +395,11 @@ async function readEntities(db: Db, session: ClientSession) {
       id: _id,
     }));
   }
-  return result;
+  return {
+    rows: result,
+    storedBalance: joined.storedBalances[0] ?? null,
+    storedFunds: joined.storedFunds,
+  };
 }
 
 /** Server-owned balance commits with the source documents and revision. */
@@ -394,10 +417,18 @@ async function reconcileBalance(db: Db, data: FinanceData, session: ClientSessio
 }
 
 /** Never overwrite evidence of an existing discrepancy during a new payment. */
-async function assertStoredBalance(db: Db, data: FinanceData, session: ClientSession) {
-  const stored = await db
-    .collection<EntityDocument>('balances')
-    .findOne({ _id: PERSONAL_USER_ID, userId: PERSONAL_USER_ID }, { session });
+async function assertStoredBalance(
+  db: Db,
+  data: FinanceData,
+  session: ClientSession,
+  snapshot?: EntityDocument | null,
+) {
+  const stored =
+    snapshot !== undefined
+      ? snapshot
+      : await db
+          .collection<EntityDocument>('balances')
+          .findOne({ _id: PERSONAL_USER_ID, userId: PERSONAL_USER_ID }, { session });
   const expected = calculateAccounts(data);
   if (
     stored &&
@@ -415,6 +446,7 @@ async function reconcileFundBalances(
   data: FinanceData,
   session: ClientSession,
   write: boolean,
+  snapshot?: EntityDocument[],
 ) {
   const expected = calculateFunds(data);
   if (write) {
@@ -436,7 +468,9 @@ async function reconcileFundBalances(
   }
   for (const fundId of ['unallocated', 'savings'] as const) {
     const collection = db.collection<EntityDocument>('fund_balances');
-    const stored = await collection.findOne({ _id: fundId, userId: PERSONAL_USER_ID }, { session });
+    const stored = snapshot
+      ? snapshot.find((item) => item._id === fundId)
+      : await collection.findOne({ _id: fundId, userId: PERSONAL_USER_ID }, { session });
     const value = expected[fundId];
     if (
       stored &&
@@ -517,10 +551,10 @@ export async function readFinance(): Promise<Snapshot> {
       return await client.withSession((session) =>
         session.withTransaction(async () => {
           const state = await initialize(db, session);
-          const rows = await readEntities(db, session);
+          const { rows, storedBalance, storedFunds } = await readEntities(db, session);
           const data = financeSchema.parse({ schemaVersion: 3, budget: state.budget, ...rows });
-          const balance = await assertStoredBalance(db, data, session);
-          await reconcileFundBalances(db, data, session, false);
+          const balance = await assertStoredBalance(db, data, session, storedBalance);
+          await reconcileFundBalances(db, data, session, false, storedFunds);
           if (state.pushScheduleVersion !== 4) {
             await syncDebtReminders(db, data.debts, session);
             await settings(db).updateOne(
@@ -576,13 +610,14 @@ export async function writeFinance(
         { session, returnDocument: 'after' },
       );
       if (!updated) return null;
+      const { rows, storedBalance, storedFunds } = await readEntities(db, session);
       const previous = financeSchema.parse({
         schemaVersion: 3,
         budget: updated.budget,
-        ...(await readEntities(db, session)),
+        ...rows,
       });
-      await assertStoredBalance(db, previous, session);
-      await reconcileFundBalances(db, previous, session, false);
+      await assertStoredBalance(db, previous, session, storedBalance);
+      await reconcileFundBalances(db, previous, session, false, storedFunds);
       data = reconcileDebtExpenses(previous, data);
       assertLendingFunds(previous, data);
       assertBudgetChanges(previous, data, replace);
@@ -603,8 +638,17 @@ export async function writeFinance(
       }
       for (const key of entityKeys)
         await syncEntities(entities(db, key), data[key], session, previous[key]);
-      await reconcileBalance(db, data, session);
-      await reconcileFundBalances(db, data, session, true);
+      const accounts = calculateAccounts(data);
+      data.balance = accounts.total;
+      if (!Number.isSafeInteger(data.balance)) throw new Error('INVALID_BALANCE');
+      if (
+        !storedBalance ||
+        storedBalance.cash !== accounts.cash ||
+        storedBalance.bank !== accounts.bank
+      )
+        await reconcileBalance(db, data, session);
+      if (JSON.stringify(calculateFunds(previous)) !== JSON.stringify(calculateFunds(data)))
+        await reconcileFundBalances(db, data, session, true);
       await syncDebtReminders(db, data.debts, session, previous.debts);
       return { data, revision: updated.revision };
     }, transactions),

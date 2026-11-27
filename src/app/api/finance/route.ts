@@ -41,6 +41,7 @@ export async function GET(request: Request) {
   }
 }
 export async function PUT(request: Request) {
+  const started = performance.now();
   const rejected = await guard(request, true);
   if (rejected) return rejected;
   let body: unknown;
@@ -82,6 +83,7 @@ export async function PUT(request: Request) {
           409,
         );
     }
+    const databaseStarted = performance.now();
     const snapshot = await writeFinance(
       parsed.data.data,
       parsed.data.revision,
@@ -95,7 +97,12 @@ export async function PUT(request: Request) {
         },
         409,
       );
-    return json(snapshot);
+    const response = json(snapshot);
+    response.headers.set(
+      'Server-Timing',
+      `database;dur=${(performance.now() - databaseStarted).toFixed(1)}, total;dur=${(performance.now() - started).toFixed(1)}`,
+    );
+    return response;
   } catch (error) {
     if (
       error instanceof Error &&

@@ -250,12 +250,6 @@ export type BudgetEntry = z.infer<typeof budgetEntrySchema>;
 export type DebtSource = z.infer<typeof debtSourceSchema>;
 export type DebtType = z.infer<typeof debtTypeSchema>;
 export type Debt = z.infer<typeof debtSchema>;
-export function upcomingDebtReminders(debts: Debt[], today = dateKey()) {
-  const tomorrow = new Date(`${today}T00:00:00.000Z`);
-  tomorrow.setUTCDate(tomorrow.getUTCDate() + 1);
-  const due = tomorrow.toISOString().slice(0, 10);
-  return debts.filter((debt) => !debt.settledAt && debt.dueDate === due);
-}
 export type FinanceData = z.infer<typeof financeSchema>;
 export function debtDirection(
   data: Pick<FinanceData, 'debtTypes'>,

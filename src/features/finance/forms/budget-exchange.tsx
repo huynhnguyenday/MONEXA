@@ -1,6 +1,6 @@
 'use client';
 import Toast from '@/components/toast';
-import { useState } from 'react';
+import { useId, useState } from 'react';
 import { FontAwesomeIcon as Icon } from '@fortawesome/react-fontawesome';
 import {
   faRightLeft,
@@ -14,6 +14,7 @@ import type { FormProps } from './types';
 import './budget-exchange.css';
 const labels = { cash: 'Tiền mặt', bank: 'Chuyển khoản' };
 export function BudgetExchange({ data, save, busy, done }: FormProps) {
+  const instanceId = useId();
   const [tab, setTab] = useState<'convert' | 'history'>('convert');
   const [from, setFrom] = useState<'cash' | 'bank'>('cash');
   const [amount, setAmount] = useState('');
@@ -29,8 +30,8 @@ export function BudgetExchange({ data, save, busy, done }: FormProps) {
         <button
           type="button"
           role="tab"
-          id="exchange-convert-tab"
-          aria-controls="exchange-convert"
+          id={`${instanceId}-convert-tab`}
+          aria-controls={`${instanceId}-convert`}
           aria-selected={tab === 'convert'}
           className={tab === 'convert' ? 'active' : ''}
           onClick={() => setTab('convert')}
@@ -40,8 +41,8 @@ export function BudgetExchange({ data, save, busy, done }: FormProps) {
         <button
           type="button"
           role="tab"
-          id="exchange-history-tab"
-          aria-controls="exchange-history"
+          id={`${instanceId}-history-tab`}
+          aria-controls={`${instanceId}-history`}
           aria-selected={tab === 'history'}
           className={tab === 'history' ? 'active' : ''}
           onClick={() => setTab('history')}
@@ -51,9 +52,9 @@ export function BudgetExchange({ data, save, busy, done }: FormProps) {
       </div>
       {tab === 'convert' ? (
         <form
-          id="exchange-convert"
+          id={`${instanceId}-convert`}
           role="tabpanel"
-          aria-labelledby="exchange-convert-tab"
+          aria-labelledby={`${instanceId}-convert-tab`}
           onSubmit={async (event) => {
             event.preventDefault();
             setError('');
@@ -150,9 +151,9 @@ export function BudgetExchange({ data, save, busy, done }: FormProps) {
         </form>
       ) : (
         <div
-          id="exchange-history"
+          id={`${instanceId}-history`}
           role="tabpanel"
-          aria-labelledby="exchange-history-tab"
+          aria-labelledby={`${instanceId}-history-tab`}
           className="exchange-history"
         >
           <div

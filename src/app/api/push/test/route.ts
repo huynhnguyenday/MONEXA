@@ -6,6 +6,7 @@ import { expiredPush, sendWebPush } from '@/features/finance/notifications/push-
 import { PERSONAL_USER_ID } from '@/features/finance/model';
 import { groupedDebtPushMessage } from '@/features/finance/notifications/push-message';
 import { readDebtSourceName } from '@/features/finance/notifications/debt-source-name';
+import { archiveNotification } from '@/features/finance/notifications/notification-repository';
 
 export const runtime = 'nodejs';
 export async function POST(request: Request) {
@@ -81,6 +82,8 @@ export async function POST(request: Request) {
           body: 'Đã nhận Web Push. Hiện không có khoản công nợ chưa thanh toán có hạn để gửi thử.',
           tag: 'monexa:test',
         };
+    message.tag = `monexa:test:${now.toISOString()}`;
+    const { notification } = await archiveNotification(db, message, now);
     databaseMs = performance.now() - databaseStarted;
     let sent = 0,
       failed = 0,
@@ -141,7 +144,7 @@ export async function POST(request: Request) {
         },
         503,
       );
-    return json({ ok: true, ...result });
+    return json({ ok: true, ...result, notification });
   } catch {
     return json(
       { error: 'Chưa gửi được thông báo thử. Kiểm tra kết nối và đăng ký lại thiết bị.' },

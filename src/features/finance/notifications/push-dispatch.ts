@@ -8,6 +8,7 @@ import { pushAuthEpoch, pushConfig } from './push-config';
 import { expiredPush, sendWebPush } from './push-sender';
 import { debtsByDueDate, groupedDebtPushMessage } from './push-message';
 import { readDebtSourceName } from './debt-source-name';
+import { archiveDueNotifications, reminderNotificationTag } from './notification-repository';
 
 type Delivery = {
   _id: string;
@@ -36,7 +37,6 @@ const deliveryId = (job: ReminderJob, device: PushDevice) =>
 /** External delivery happens outside transactions; durable receipts make retries idempotent. */
 export async function dispatchPushReminders(now = new Date()) {
   const config = pushConfig();
-  if (!config) throw new Error('PUSH_NOT_CONFIGURED');
   const db = await getDatabase();
   const client = await getMongoClient();
   const owner = { userId: PERSONAL_USER_ID };
@@ -62,6 +62,11 @@ export async function dispatchPushReminders(now = new Date()) {
     const devices = db.collection<PushDevice>('push_subscriptions');
     const jobs = db.collection<ReminderJob>('reminder_jobs');
     const receipts = db.collection<Delivery>('push_deliveries');
+    const pending = await jobs
+      .find({ ...owner, status: 'pending', scheduledAt: { $lte: now }, expiresAt: { $gt: now } })
+      .toArray();
+    const archived = await archiveDueNotifications(db, pending, now);
+    if (!config) return { sent: 0, failed: 0, devices: 0, archived };
     const epoch = pushAuthEpoch();
     const subscriptions = await devices
       .find({
@@ -72,10 +77,7 @@ export async function dispatchPushReminders(now = new Date()) {
       })
       .limit(20)
       .toArray();
-    if (!subscriptions.length) return { sent: 0, failed: 0, devices: 0 };
-    const pending = await jobs
-      .find({ ...owner, status: 'pending', scheduledAt: { $lte: now }, expiresAt: { $gt: now } })
-      .toArray();
+    if (!subscriptions.length) return { sent: 0, failed: 0, devices: 0, archived };
     let sent = 0,
       failed = 0;
     const gone = new Set<string>();
@@ -119,12 +121,7 @@ export async function dispatchPushReminders(now = new Date()) {
             );
             await sendWebPush(
               device,
-              groupedDebtPushMessage(
-                details,
-                `monexa:due:${group[0].dueDate}:${kind}:${group[0].scheduledAt.toISOString().slice(0, 10)}`,
-                false,
-                now,
-              ),
+              groupedDebtPushMessage(details, reminderNotificationTag(group[0]), false, now),
               Math.max(
                 1,
                 Math.floor(
@@ -194,7 +191,7 @@ export async function dispatchPushReminders(now = new Date()) {
         { readConcern: { level: 'snapshot' }, writeConcern: { w: 'majority' } },
       ),
     );
-    return { sent, failed, removed: gone.size, devices: subscriptions.length };
+    return { sent, failed, removed: gone.size, devices: subscriptions.length, archived };
   } finally {
     await locks.updateOne(
       { _id: PERSONAL_USER_ID, ...owner, token },

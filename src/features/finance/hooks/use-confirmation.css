@@ -1,0 +1,16 @@
+dialog.confirmation-dialog {
+  width: min(420px, calc(100vw - 24px));
+}
+.confirmation-dialog p {
+  font-size: 13px;
+  line-height: 1.6;
+  overflow-wrap: anywhere;
+}
+.confirmation-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+}
+.confirmation-actions button {
+  min-height: 44px;
+}

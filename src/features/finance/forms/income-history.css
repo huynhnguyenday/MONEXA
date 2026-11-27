@@ -19,6 +19,13 @@
   line-height: 1.6;
   color: #64748b;
 }
+.income-history-day {
+  margin: 0;
+  padding: 10px 0 6px;
+  border-bottom: 1px solid #cbd5e1;
+  color: #475569;
+  font-size: 12px;
+}
 .income-history-row {
   display: grid;
   grid-template-columns: minmax(0, 1fr) auto;

@@ -4,7 +4,7 @@ import PendingLabel from '@/components/pending-label';
 import { useState } from 'react';
 import DateTimeField from '@/components/date-time-field';
 import PaymentMethodField from '@/components/payment-method-field';
-import { type Expense, PERSONAL_USER_ID } from '../model';
+import { calculateAccounts, money, type Expense, PERSONAL_USER_ID } from '../model';
 import CategoryIcon from '../components/category-icon';
 import { type FormProps, field } from './types';
 export function ExpenseForm({
@@ -26,6 +26,7 @@ export function ExpenseForm({
   const [categoryId, setCategoryId] = useState(expense?.categoryId || data.categories[0]?.id || '');
   const [method, setMethod] = useState<Expense['paymentMethod']>(expense?.paymentMethod || 'cash');
   const [error, setError] = useState('');
+  const available = calculateAccounts(data)[method];
   const categories = expense?.categoryId
     ? [...data.categories].sort(
         (a, b) => Number(b.id === expense.categoryId) - Number(a.id === expense.categoryId),
@@ -97,6 +98,10 @@ export function ExpenseForm({
               required
               placeholder="Ví dụ: 50000"
             />
+            <span className="expense-current-budget" role="status">
+              <span>Ngân sách {method === 'cash' ? 'tiền mặt' : 'chuyển khoản'} hiện tại</span>
+              <strong>{money(available)}</strong>
+            </span>
           </label>
         </div>
         <label>Danh mục</label>

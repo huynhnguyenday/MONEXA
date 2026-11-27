@@ -1669,6 +1669,8 @@ dialog .dialog-content textarea { max-height: 150px; }
 .icon-picker button { min-width: 0; }
 .expense-amount-time-row { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; align-items: start; }
 .expense-amount-time-row > * { min-width: 0; }
+.expense-current-budget { display: grid; gap: 4px; margin-top: 6px; padding: 8px; border: 1px solid #bfdbfe; border-radius: 8px; background: #eff6ff; color: #475569; font-size: 10px; line-height: 1.4; overflow-wrap: anywhere; }
+.expense-current-budget strong { color: #1d4ed8; font-size: 12px; font-variant-numeric: tabular-nums; }
 .expense-amount-time-row .date-time-field > label { margin-top: 0; }
 .expense-amount-time-row .react-datepicker-wrapper { width: 100%; min-width: 0; }
 .expense-amount-time-row input { padding-inline: 8px; font-size: 12px; min-height: 46px; }

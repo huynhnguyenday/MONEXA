@@ -1,25 +1,25 @@
 'use client';
-import { useState, type ReactNode } from 'react';
 import { dateKey } from '../model';
 import { useIncomeSummary } from '../hooks/use-income-summary';
 import IncomeLayout from '../layout/income-layout';
 import IncomeAnalytics from './income-analytics';
 import IncomeManagement from './income-management';
-import IncomeDialogs, { type IncomeModal } from '../dialogs/income-dialogs';
+import type { IncomeRecord } from '../income-model';
 import type { FormProps } from '../forms/types';
 
 export default function IncomePanel({
   data,
   save,
-  busy,
   month,
   ready,
-  error,
-}: FormProps & { month: string; ready: boolean; error: ReactNode }) {
-  const [modal, setModal] = useState<IncomeModal>(null);
+  onOpen,
+}: Pick<FormProps, 'data' | 'save'> & {
+  month: string;
+  ready: boolean;
+  onOpen: (kind: 'income' | 'allocation', record?: IncomeRecord) => void;
+}) {
   const period = month || dateKey().slice(0, 7);
   const summary = useIncomeSummary(data, period);
-  const forms = { data, save, busy, done: () => setModal(null) };
   return (
     <IncomeLayout
       analytics={<IncomeAnalytics data={data} statistics={summary.statistics} />}
@@ -27,15 +27,13 @@ export default function IncomePanel({
         <IncomeManagement
           data={data}
           save={save}
-          busy={busy}
+          busy={false}
           balances={summary.balances}
           ready={ready}
-          onCreate={setModal}
-          onEdit={setModal}
+          onCreate={onOpen}
+          onEdit={(record) => onOpen(record.kind === 'income' ? 'income' : 'allocation', record)}
         />
       }
-    >
-      <IncomeDialogs {...forms} modal={modal} month={period} error={error} />
-    </IncomeLayout>
+    ></IncomeLayout>
   );
 }

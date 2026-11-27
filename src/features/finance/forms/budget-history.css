@@ -32,13 +32,10 @@
   background: #f3f4f6;
   transition: background-color 160ms ease, border-color 160ms ease, box-shadow 160ms ease;
 }
-.budget-history-actions .budget-confirm-delete { color: #59a47a; }
 .budget-history-actions .button:focus-visible { outline: 2px solid #1d4ed8; outline-offset: -2px; }
 @media (hover: hover) {
   .budget-history-actions .button:hover:not(:disabled) { transform: translateY(-2px); color: #b91c1c; background: transparent; box-shadow: none; }
   .budget-history-actions .button:hover:not(:disabled)::before { background: #fee2e2; border-color: #fecaca; box-shadow: 0 3px 6px #991b1b14; }
-  .budget-history-actions .budget-confirm-delete:hover:not(:disabled) { color: #15803d; }
-  .budget-history-actions .budget-confirm-delete:hover:not(:disabled)::before { background: #dcfce7; border-color: #bbf7d0; box-shadow: 0 3px 6px #16653414; }
 }
 .budget-history-actions .button:active:not(:disabled) { transform: translateY(0); }
 @media (prefers-reduced-motion: reduce) {

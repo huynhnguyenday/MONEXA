@@ -1,7 +1,7 @@
 'use client';
 import Toast from '@/components/toast';
 import PendingLabel from '@/components/pending-label';
-import { useState } from 'react';
+import { useId, useState } from 'react';
 import { FontAwesomeIcon as Icon } from '@fortawesome/react-fontawesome';
 import { faArrowRotateLeft } from '@fortawesome/free-solid-svg-icons';
 import CategoryIcon from '../components/category-icon';
@@ -21,6 +21,7 @@ import {
 import { type FormProps, field } from './types';
 import { splitDebtInstallments } from './debt-installments';
 export function DebtForm({ data, save, done, busy, debt }: { debt?: Debt } & FormProps) {
+  const categoryLabelId = useId();
   const [installments, setInstallments] = useState<1 | 3 | 6>(1);
   const [amount, setAmount] = useState(
     debt ? new Intl.NumberFormat('vi-VN').format(debt.amount) : '',
@@ -188,7 +189,7 @@ export function DebtForm({ data, save, done, busy, debt }: { debt?: Debt } & For
         {!data.debtTypes.length && <Toast>Chưa có loại công nợ để chọn.</Toast>}
         <>
           <div className="debt-category-heading">
-            <label id="debt-category-label">
+            <label id={categoryLabelId}>
               Danh mục <span>(tùy chọn)</span>
             </label>
             <button
@@ -202,11 +203,7 @@ export function DebtForm({ data, save, done, busy, debt }: { debt?: Debt } & For
               <Icon icon={faArrowRotateLeft} fixedWidth />
             </button>
           </div>
-          <div
-            className="expense-category-picker"
-            role="group"
-            aria-labelledby="debt-category-label"
-          >
+          <div className="expense-category-picker" role="group" aria-labelledby={categoryLabelId}>
             {data.categories.map((category) => (
               <button
                 type="button"

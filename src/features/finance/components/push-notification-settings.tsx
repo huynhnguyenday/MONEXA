@@ -2,6 +2,7 @@
 import Toast from '@/components/toast';
 import { useState } from 'react';
 import { usePushDevice } from '../hooks/use-push-device';
+import { useConfirmation } from '../hooks/use-confirmation';
 import { FontAwesomeIcon as Icon } from '@fortawesome/react-fontawesome';
 import { faInfo, faPaperPlane } from '@fortawesome/free-solid-svg-icons';
 
@@ -13,9 +14,11 @@ export default function PushNotificationSettings({
   onNotice: (message: string) => void;
 }) {
   const push = usePushDevice(onNotice);
+  const { confirm, confirmation } = useConfirmation();
   const [infoOpen, setInfoOpen] = useState(false);
   return (
     <div className="push-notification-settings" aria-busy={push.busy}>
+      {confirmation}
       <div className="notification-heading">
         <div className="notification-title">
           <h2>Thông báo</h2>
@@ -48,7 +51,16 @@ export default function PushNotificationSettings({
                 !push.configured ||
                 (!push.subscribed && push.permission === 'denied')
               }
-              onClick={() => void (push.subscribed ? push.disable() : push.enable())}
+              onClick={async () => {
+                if (
+                  await confirm(
+                    push.subscribed
+                      ? 'Tắt nhận thông báo trên thiết bị này?'
+                      : 'Bật nhận thông báo trên thiết bị này?',
+                  )
+                )
+                  await (push.subscribed ? push.disable() : push.enable());
+              }}
             >
               <span />
             </button>
@@ -67,9 +79,8 @@ export default function PushNotificationSettings({
             aria-label="Gửi thông báo thử"
             title="Gửi thử tới tất cả thiết bị đã đăng ký"
             disabled={push.busy}
-            onClick={() => {
-              onTest();
-              void push.test();
+            onClick={async () => {
+              if (await push.test()) onTest();
             }}
           >
             <span className="notification-button-face">
@@ -95,11 +106,7 @@ export default function PushNotificationSettings({
       {push.permission === 'denied' && (
         <p role="status">Thông báo bị chặn. Hãy cấp quyền trong cài đặt trình duyệt.</p>
       )}
-      {push.error && (
-        <Toast>
-          {push.error}
-        </Toast>
-      )}
+      {push.error && <Toast>{push.error}</Toast>}
     </div>
   );
 }
