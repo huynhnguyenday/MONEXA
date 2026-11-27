@@ -34,6 +34,7 @@ export default function ExpenseFilters({
           onChange={(day) => setDraft({ ...draft, day: day ? dateKeyFromLocal(day) : '' })}
           optional
           withTime={false}
+          calendarOnly
         />
         <div>
           <label htmlFor={categoryId}>Danh mục</label>

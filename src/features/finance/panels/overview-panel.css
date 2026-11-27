@@ -44,6 +44,28 @@ dialog.expense-filter-dialog {
   width: 100%;
   min-width: 0;
 }
+.expense-filter-dialog .react-datepicker-wrapper {
+  width: 100%;
+}
+.expense-filter-dialog .calendar-day-button {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  min-height: 44px;
+  margin-top: 5px;
+  padding: 10px 34px 10px 12px;
+  border: 1px solid #cbd5e1;
+  border-radius: 10px;
+  background: #fff;
+  color: #142d4e;
+  font-size: 13px;
+  text-align: left;
+}
+.calendar-day-button:focus-visible {
+  outline: 2px solid #1d4ed8;
+  outline-offset: 2px;
+}
 .expense-table .expense-summary-row .expense-wrapped-title {
   display: -webkit-box;
   -webkit-box-orient: vertical;

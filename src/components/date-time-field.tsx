@@ -1,7 +1,37 @@
 'use client';
 import DatePicker from 'react-datepicker';
 import { vi } from 'date-fns/locale';
-import { useId } from 'react';
+import { forwardRef, useId, type ComponentPropsWithoutRef } from 'react';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faCalendarDays } from '@fortawesome/free-solid-svg-icons';
+
+const CalendarButton = forwardRef<
+  HTMLButtonElement,
+  ComponentPropsWithoutRef<'button'> & { label: string }
+>(function CalendarButton(
+  { value, label, onClick, onKeyDown, onFocus, onBlur, tabIndex, id, disabled },
+  ref,
+) {
+  return (
+    <button
+      type="button"
+      ref={ref}
+      id={id}
+      className="calendar-day-button"
+      onClick={onClick}
+      onKeyDown={onKeyDown}
+      onFocus={onFocus}
+      onBlur={onBlur}
+      tabIndex={tabIndex}
+      disabled={disabled}
+      aria-label={label}
+      aria-haspopup="dialog"
+    >
+      <FontAwesomeIcon icon={faCalendarDays} aria-hidden="true" />
+      <span>{value || 'Chọn ngày'}</span>
+    </button>
+  );
+});
 export default function DateTimeField({
   id,
   label,
@@ -11,6 +41,7 @@ export default function DateTimeField({
   past = false,
   withTime = true,
   wholeHours = false,
+  calendarOnly = false,
 }: {
   id: string;
   label: string;
@@ -20,6 +51,7 @@ export default function DateTimeField({
   past?: boolean;
   withTime?: boolean;
   wholeHours?: boolean;
+  calendarOnly?: boolean;
 }) {
   const instanceId = useId();
   const inputId = `${id}-${instanceId}`;
@@ -28,6 +60,8 @@ export default function DateTimeField({
       <label htmlFor={inputId}>{label}</label>
       <DatePicker
         id={inputId}
+        customInput={calendarOnly ? <CalendarButton label={label} /> : undefined}
+        preventOpenOnFocus={calendarOnly}
         selected={value}
         onChange={(next: Date | null) => {
           if (next && wholeHours) {
