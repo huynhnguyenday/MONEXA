@@ -645,6 +645,19 @@ export function isSpendingExpense(
   return !debt || debtDirection(data, debt) === 'payable';
 }
 
+export function assertExpenseFunds(previous: FinanceData, next: FinanceData) {
+  const oldIds = new Set(previous.expenses.map((entry) => entry.id));
+  const accounts = calculateAccounts(previous);
+  const closing = calculateAccounts(next);
+  for (const method of ['cash', 'bank'] as const) {
+    const added = next.expenses
+      .filter((entry) => !entry.debtId && !oldIds.has(entry.id) && entry.paymentMethod === method)
+      .reduce((sum, entry) => sum + entry.amount, 0);
+    if (added > 0 && (added > accounts[method] || closing[method] < 0))
+      throw new Error('INSUFFICIENT_EXPENSE');
+  }
+}
+
 export function assertLendingFunds(previous: FinanceData, next: FinanceData) {
   const accounts = calculateAccounts(previous);
   const closing = calculateAccounts(next);

@@ -26,7 +26,7 @@ export default function CategorySkeleton({ sources = false }: { sources?: boolea
         loading
       />
       <div className="category-charts" aria-hidden="true">
-        {['month', 'year'].map((period) => (
+        {['month', 'year', 'trend', 'reserved'].map((period) => (
           <article className="card category-chart-panel" key={period}>
             <div className="category-chart-toolbar">
               <h2 className="skeleton-title-shell">

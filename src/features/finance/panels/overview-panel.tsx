@@ -1,5 +1,5 @@
 'use client';
-import { Fragment, useMemo, useState } from 'react';
+import { useMemo, useState } from 'react';
 import { FontAwesomeIcon as Icon } from '@fortawesome/react-fontawesome';
 import {
   faPlus,
@@ -83,6 +83,16 @@ export default function OverviewPanel({
     JSON.stringify([month, search, filters]),
     !ready,
   );
+  const dayGroups = useMemo(() => {
+    const groups = new Map<string, Expense[]>();
+    for (const expense of filtered.slice(0, visibleCount)) {
+      const day = dateKey(expense.occurredAt);
+      const group = groups.get(day);
+      if (group) group.push(expense);
+      else groups.set(day, [expense]);
+    }
+    return [...groups].map(([day, expenses]) => ({ day, expenses }));
+  }, [filtered, visibleCount]);
   const selectedMonth = month || dateKey().slice(0, 7);
   const cashStats = getCashStatistics(data, selectedMonth, stats.today);
   const monthBudget = cashStats.income;
@@ -309,94 +319,117 @@ export default function OverviewPanel({
                   </button>
                 </div>
               ) : (
-                <table className="expense-table">
-                  <caption className="sr-only">Chi tiêu trong tháng</caption>
-                  <colgroup>
-                    <col className="title-column" />
-                    <col className="amount-column" />
-                    <col className="action-column" />
-                  </colgroup>
-                  <thead>
-                    <tr>
-                      <th className="expense-title-heading" scope="col">
-                        Khoản chi
-                      </th>
-                      <th scope="col">Số tiền</th>
-                      <th scope="col">
-                        <span className="sr-only">Thao tác</span>
-                      </th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {filtered.slice(0, visibleCount).map((expense) => {
-                      const expanded = expandedExpense === expense.id;
-                      return (
-                        <Fragment key={expense.id}>
-                          <tr
-                            className={
-                              expanded ? 'expense-summary-row expanded' : 'expense-summary-row'
-                            }
-                            tabIndex={0}
-                            aria-label={`${expanded ? 'Thu gọn' : 'Xem chi tiết'} khoản chi ${expense.title}`}
-                            aria-expanded={expanded}
-                            aria-controls={`expense-details-${expense.id}`}
-                            onClick={() => setExpandedExpense(expanded ? null : expense.id)}
-                            onKeyDown={(event) => {
-                              if (event.target !== event.currentTarget) return;
-                              if (event.key === 'Enter' || event.key === ' ') {
-                                event.preventDefault();
-                                setExpandedExpense(expanded ? null : expense.id);
-                              }
-                            }}
-                          >
-                            <td className="expense-title-cell">
-                              <ExpenseTitle title={expense.title} />
-                            </td>
-                            <td className="expense-amount-td">
-                              <strong className="expense-amount-cell">
-                                {money(expense.amount)}
-                              </strong>
-                            </td>
-                            <td className="expense-actions-td">
-                              <div className="table-actions">
-                                <button
-                                  className="table-edit-action"
-                                  aria-label={`Sửa ${expense.title}`}
-                                  title="Sửa / xem chi tiết"
-                                  disabled={!ready}
-                                  onClick={(event) => {
-                                    event.stopPropagation();
-                                    onEdit(expense);
-                                  }}
-                                >
-                                  <Icon icon={faPen} />
-                                </button>
-                                <button
-                                  aria-label={`Xóa ${expense.title}`}
-                                  title="Xóa"
-                                  disabled={!ready}
-                                  onClick={(event) => {
-                                    event.stopPropagation();
-                                    onDelete(expense);
-                                  }}
-                                >
-                                  <Icon icon={faTrashCan} />
-                                </button>
-                              </div>
-                            </td>
-                          </tr>
-                          {expanded && (
-                            <tr className="expense-details-row">
-                              <td colSpan={3}>
-                                <ExpenseDetails data={data} expense={expense} />
-                              </td>
+                <div className="expense-day-list">
+                  {dayGroups.map(({ day, expenses }) => (
+                    <section
+                      className="expense-day-group"
+                      key={day}
+                      aria-label={`Chi ti?u ng?y ${day}`}
+                    >
+                      <h3 className="expense-day-heading">
+                        <time dateTime={day}>
+                          {new Intl.DateTimeFormat('vi-VN', {
+                            timeZone: 'Asia/Ho_Chi_Minh',
+                            day: '2-digit',
+                            month: '2-digit',
+                            year: 'numeric',
+                            weekday: 'long',
+                          }).format(new Date(`${day}T00:00:00+07:00`))}
+                        </time>
+                      </h3>
+                      <div className="expense-day-card">
+                        <table className="expense-table">
+                          <caption className="sr-only">Chi tiêu trong tháng</caption>
+                          <colgroup>
+                            <col className="title-column" />
+                            <col className="amount-column" />
+                            <col className="action-column" />
+                          </colgroup>
+                          <thead className="sr-only">
+                            <tr>
+                              <th className="expense-title-heading" scope="col">
+                                Khoản chi
+                              </th>
+                              <th scope="col">Số tiền</th>
+                              <th scope="col">
+                                <span className="sr-only">Thao tác</span>
+                              </th>
                             </tr>
-                          )}
-                        </Fragment>
-                      );
-                    })}
-                  </tbody>
-                </table>
+                          </thead>
+                          {expenses.map((expense) => {
+                            const expanded = expandedExpense === expense.id;
+                            return (
+                              <tbody key={expense.id}>
+                                <tr
+                                  className={
+                                    expanded
+                                      ? 'expense-summary-row expanded'
+                                      : 'expense-summary-row'
+                                  }
+                                  tabIndex={0}
+                                  aria-label={`${expanded ? 'Thu gọn' : 'Xem chi tiết'} khoản chi ${expense.title}`}
+                                  aria-expanded={expanded}
+                                  aria-controls={`expense-details-${expense.id}`}
+                                  onClick={() => setExpandedExpense(expanded ? null : expense.id)}
+                                  onKeyDown={(event) => {
+                                    if (event.target !== event.currentTarget) return;
+                                    if (event.key === 'Enter' || event.key === ' ') {
+                                      event.preventDefault();
+                                      setExpandedExpense(expanded ? null : expense.id);
+                                    }
+                                  }}
+                                >
+                                  <td className="expense-title-cell">
+                                    <ExpenseTitle title={expense.title} />
+                                  </td>
+                                  <td className="expense-amount-td">
+                                    <strong className="expense-amount-cell">
+                                      {money(expense.amount)}
+                                    </strong>
+                                  </td>
+                                  <td className="expense-actions-td">
+                                    <div className="table-actions">
+                                      <button
+                                        className="table-edit-action"
+                                        aria-label={`Sửa ${expense.title}`}
+                                        title="Sửa / xem chi tiết"
+                                        disabled={!ready}
+                                        onClick={(event) => {
+                                          event.stopPropagation();
+                                          onEdit(expense);
+                                        }}
+                                      >
+                                        <Icon icon={faPen} />
+                                      </button>
+                                      <button
+                                        aria-label={`Xóa ${expense.title}`}
+                                        title="Xóa"
+                                        disabled={!ready}
+                                        onClick={(event) => {
+                                          event.stopPropagation();
+                                          onDelete(expense);
+                                        }}
+                                      >
+                                        <Icon icon={faTrashCan} />
+                                      </button>
+                                    </div>
+                                  </td>
+                                </tr>
+                                {expanded && (
+                                  <tr className="expense-details-row">
+                                    <td colSpan={3}>
+                                      <ExpenseDetails data={data} expense={expense} />
+                                    </td>
+                                  </tr>
+                                )}
+                              </tbody>
+                            );
+                          })}
+                        </table>
+                      </div>
+                    </section>
+                  ))}
+                </div>
               )}
               <HistoryEnd endRef={endRef} hasMore={hasMore} />
             </div>

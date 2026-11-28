@@ -98,10 +98,7 @@ export default function DebtNotifications({ ready }: { ready: boolean }) {
                   type="button"
                   className="notification-mark-read"
                   disabled={feed.busy || feed.loading}
-                  onClick={async () => {
-                    if (await confirm('Đánh dấu tất cả thông báo là đã đọc?'))
-                      await feed.markAllRead();
-                  }}
+                  onClick={() => void feed.markAllRead()}
                 >
                   Đánh dấu đã đọc
                 </button>

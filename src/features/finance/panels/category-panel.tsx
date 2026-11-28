@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 import { useMemo, useState } from 'react';
 import { FontAwesomeIcon as Icon } from '@fortawesome/react-fontawesome';
 import { faMagnifyingGlass, faPen, faPlus, faTrashCan } from '@fortawesome/free-solid-svg-icons';
@@ -27,7 +27,14 @@ export default function CategoryPanel({
   const filteredCategories = data.categories.filter((item) => matchesSearch(item.name));
   const { groups: chartCategories, records } = useMemo(() => categoryBreakdown(data), [data]);
   return (
-    <ClassificationScreen month={month} groups={chartCategories} records={records} kind="expense" customIcons={data.customIcons}>
+    <ClassificationScreen
+      data={data}
+      month={month}
+      groups={chartCategories}
+      records={records}
+      kind="expense"
+      customIcons={data.customIcons}
+    >
       <article className="card category-list-panel">
         <div className="category-toolbar">
           <h2>

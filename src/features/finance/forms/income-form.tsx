@@ -27,7 +27,12 @@ export function IncomeForm({
   const [type, setType] = useState<keyof typeof incomeTypes>(entry?.type ?? 'salary');
   const [method, setMethod] = useState<'cash' | 'bank'>(entry?.paymentMethod ?? 'bank');
   const [amount, setAmount] = useState(entry ? formatVndInput(String(entry.amount)) : '');
-  const [date, setDate] = useState<Date | null>(entry ? new Date(entry.occurredAt) : new Date());
+  const [date, setDate] = useState<Date | null>(() => {
+    if (entry) return new Date(entry.occurredAt);
+    const now = new Date();
+    now.setMinutes(0, 0, 0);
+    return now;
+  });
   const [note, setNote] = useState(entry?.note ?? '');
   const [error, setError] = useState('');
   return (
@@ -77,7 +82,8 @@ export function IncomeForm({
       <fieldset disabled={busy}>
         <label>
           Nội dung nhận tiền
-          <input
+          <textarea
+            rows={2}
             autoFocus
             required
             maxLength={100}
@@ -86,6 +92,25 @@ export function IncomeForm({
             placeholder="Ví dụ: Lương tháng 11"
           />
         </label>
+        <div className="expense-amount-time-row">
+          <DateTimeField
+            id="income-date"
+            label="Ngày giờ nhận tiền"
+            value={date}
+            onChange={setDate}
+            wholeHours
+            past
+          />
+          <label>
+            Số tiền nhận (VND)
+            <input
+              required
+              inputMode="numeric"
+              value={amount}
+              onChange={(e) => setAmount(formatVndInput(e.target.value))}
+            />
+          </label>
+        </div>
         <label>
           Loại thu nhập
           <select
@@ -100,23 +125,8 @@ export function IncomeForm({
             ))}
           </select>
         </label>
+
         <PaymentMethodField value={method} onChange={setMethod} legend="Nhận vào" />
-        <label>
-          Số tiền nhận (VND)
-          <input
-            required
-            inputMode="numeric"
-            value={amount}
-            onChange={(e) => setAmount(formatVndInput(e.target.value))}
-          />
-        </label>
-        <DateTimeField
-          id="income-date"
-          label="Ngày giờ nhận tiền"
-          value={date}
-          onChange={setDate}
-          past
-        />
         <label>
           Ghi chú
           <textarea maxLength={500} value={note} onChange={(e) => setNote(e.target.value)} />

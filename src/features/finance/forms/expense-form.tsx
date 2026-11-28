@@ -27,6 +27,7 @@ export function ExpenseForm({
   const [method, setMethod] = useState<Expense['paymentMethod']>(expense?.paymentMethod || 'cash');
   const [error, setError] = useState('');
   const available = calculateAccounts(data)[method];
+  const insufficient = Number(amount.replace(/\D/g, '')) > available;
   const categories = expense?.categoryId
     ? [...data.categories].sort(
         (a, b) => Number(b.id === expense.categoryId) - Number(a.id === expense.categoryId),
@@ -41,6 +42,8 @@ export function ExpenseForm({
         const f = new FormData(e.currentTarget);
         if (!date || date.getTime() > Date.now())
           return setError('Chọn thời gian chi tiêu hợp lệ, không ở tương lai.');
+        if (!expense && insufficient)
+          return setError('Ngân sách không đủ cho khoản chi tiêu này.');
         const next: Expense = {
           id: expense?.id || crypto.randomUUID(),
           userId: PERSONAL_USER_ID,
@@ -98,8 +101,11 @@ export function ExpenseForm({
               required
               placeholder="Ví dụ: 50000"
             />
-            <span className="expense-current-budget" role="status">
-              <span>Ngân sách {method === 'cash' ? 'tiền mặt' : 'chuyển khoản'} hiện tại</span>
+            <span
+              className={`expense-current-budget${insufficient ? ' is-insufficient' : ''}`}
+              role="status"
+              aria-label={`Ngân sách ${method === 'cash' ? 'tiền mặt' : 'chuyển khoản'} hiện tại`}
+            >
               <strong>{money(available)}</strong>
             </span>
           </label>
@@ -129,7 +135,7 @@ export function ExpenseForm({
         <button
           aria-busy={busy}
           className="button primary full monexa-action monexa-create"
-          disabled={busy}
+          disabled={busy || (!expense && insufficient)}
         >
           {busy ? <PendingLabel>Đang lưu</PendingLabel> : expense ? 'Lưu thay đổi' : 'Lưu chi tiêu'}
         </button>

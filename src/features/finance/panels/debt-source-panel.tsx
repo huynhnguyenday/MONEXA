@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 import { useMemo, useState } from 'react';
 import { FontAwesomeIcon as Icon } from '@fortawesome/react-fontawesome';
 import { faMagnifyingGlass, faPen, faPlus, faTrashCan } from '@fortawesome/free-solid-svg-icons';
@@ -34,7 +34,13 @@ export default function DebtSourcePanel({
     [data.debts],
   );
   return (
-    <ClassificationScreen month={month} groups={data.debtSources} records={records} kind="debt">
+    <ClassificationScreen
+      data={data}
+      month={month}
+      groups={data.debtSources}
+      records={records}
+      kind="debt"
+    >
       <article className="card category-list-panel debt-source-list-panel">
         <div className="category-toolbar">
           <h2>

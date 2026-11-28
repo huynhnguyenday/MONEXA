@@ -1,5 +1,6 @@
-'use client';
+﻿'use client';
 import './workspace-gesture-plugin';
+import { inspectionEvents } from './chart-inspection';
 import { useCallback, useEffect, useState } from 'react';
 import { Line } from 'react-chartjs-2';
 import {
@@ -76,28 +77,30 @@ export default function DebtDailyChart({
         },
       },
     },
-    onClick: (event, _elements, chart) => {
-      if (event.type !== 'click' || !event.native) return;
-      const point = chart.getElementsAtEventForMode(
-        event.native,
-        'nearest',
-        { intersect: true },
-        false,
-      )[0];
-      if (!point) return close();
+    ...inspectionEvents((point, chart, hover) => {
       const entry = daily[point.index];
       if (!entry) return;
       const rect = chart.canvas.getBoundingClientRect();
-      setSelection({
+      const next: ExpenseChartSelection = {
         title: `${label} ngày ${entry.date.split('-').reverse().join('/')}`,
         items: entry.items,
+        anchor: chart.canvas,
+        hover,
         x: rect.left + point.element.x,
         y: rect.top + point.element.y,
         detailLabel: 'Chi tiết thanh toán công nợ trên biểu đồ',
         totalLabel: direction === 'receivable' ? 'Tổng thu hồi' : 'Tổng trả nợ',
         emptyLabel: 'Không có khoản thanh toán.',
-      });
-    },
+      };
+      setSelection((previous) =>
+        previous?.title === next.title &&
+        previous.x === next.x &&
+        previous.y === next.y &&
+        previous.hover === next.hover
+          ? previous
+          : next,
+      );
+    }),
   };
   return (
     <>

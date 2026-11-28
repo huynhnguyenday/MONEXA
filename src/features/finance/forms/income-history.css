@@ -5,13 +5,18 @@
   min-width: 0;
 }
 .income-history-rows {
+  position: relative;
+  isolation: isolate;
+  background: var(--bg);
   flex: 1;
   min-height: 0;
   min-width: 0;
   overflow-y: auto;
   overscroll-behavior: contain;
-  scrollbar-width: thin;
-  scrollbar-color: var(--scrollbar-thumb) transparent;
+  scrollbar-width: none;
+}
+.income-history-rows::-webkit-scrollbar {
+  display: none;
 }
 .income-history-empty {
   margin: 8px 0;
@@ -20,20 +25,55 @@
   color: #64748b;
 }
 .income-history-day {
+  position: sticky;
+  top: 0;
+  z-index: 2;
   margin: 0;
-  padding: 10px 0 6px;
-  border-bottom: 1px solid #cbd5e1;
-  color: #475569;
-  font-size: 12px;
+  padding: 10px 12px;
+  background: var(--bg);
+  box-shadow: 0 -2px 0 var(--bg);
+  color: #142d4e;
+  font-size: 13px;
+  font-weight: 700;
+  line-height: 1.5;
+}
+.income-history-day-group {
+  margin-bottom: 14px;
+}
+.income-history-day-card {
+  padding: 0 10px;
+  background: #fff;
+  border-radius: 16px;
 }
 .income-history-row {
   display: grid;
   grid-template-columns: minmax(0, 1fr) auto;
   align-items: center;
   gap: 10px;
-  border-bottom: 1px solid #e2e8f0;
-  padding: 8px 0;
+  padding: 12px 0;
   min-width: 0;
+}
+.income-history-row + .income-history-row {
+  border-top: 1px solid #edf2f8;
+}
+:root .income-history-actions .monexa-edit {
+  --action-ink: #1d4ed8;
+  --action-hover-bg: #1d4ed8;
+  --action-hover-border: #1d4ed8;
+  --action-focus: #1d4ed8;
+}
+:root .income-history-actions .monexa-delete {
+  --action-ink: #dc2626;
+  --action-hover-bg: #dc2626;
+  --action-hover-border: #dc2626;
+}
+:root .income-history-actions .monexa-edit:is(:hover, :focus-visible):not(:disabled) {
+  background: #1d4ed8;
+  color: #fff;
+}
+:root .income-history-actions .monexa-delete:is(:hover, :focus-visible):not(:disabled) {
+  background: #dc2626;
+  color: #fff;
 }
 .income-history-summary {
   display: flex;

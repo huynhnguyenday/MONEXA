@@ -226,3 +226,64 @@ dialog.expense-filter-dialog {
     height: 100%;
   }
 }
+
+/* Each day heading pins to the history scroll boundary. */
+.overview-panel .expense-panel {
+  background: var(--bg);
+  border-color: transparent;
+  box-shadow: none;
+}
+.overview-panel .expense-table-viewport {
+  position: relative;
+  isolation: isolate;
+  background: var(--bg);
+  scrollbar-width: none;
+}
+.overview-panel .expense-table-viewport::-webkit-scrollbar {
+  display: none;
+}
+.expense-day-group {
+  margin-bottom: 14px;
+}
+.expense-day-heading {
+  position: sticky;
+  top: 0;
+  z-index: 2;
+  margin: 0;
+  padding: 10px 12px;
+  background: var(--bg);
+  box-shadow: 0 -2px 0 var(--bg);
+  color: #142d4e;
+  font-size: 13px;
+  font-weight: 700;
+  line-height: 1.5;
+}
+.expense-day-card {
+  padding: 0 10px;
+  border-radius: 16px;
+  background: #fff;
+}
+.overview-panel .expense-day-card td {
+  border-bottom: 0;
+}
+.overview-panel .expense-day-card tbody + tbody {
+  border-top: 1px solid #edf2f8;
+}
+.overview-panel .expense-day-card .expense-summary-row:hover td {
+  background: transparent;
+}
+.compact-layout .overview-panel .expense-panel .expense-search-box {
+  height: 44px;
+  min-height: 44px;
+  background: #fff;
+}
+.overview-panel .expense-actions-td .table-actions .table-edit-action {
+  color: #1d4ed8;
+}
+.overview-panel .expense-actions-td .table-actions button:not(.table-edit-action) {
+  color: #dc2626;
+}
+.overview-panel .expense-actions-td .table-actions button:hover:not(:disabled),
+.overview-panel .expense-actions-td .table-actions button:focus-visible:not(:disabled) {
+  color: #fff;
+}

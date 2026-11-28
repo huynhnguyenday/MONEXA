@@ -9,6 +9,7 @@ import {
   financeSchema,
   calculateAccounts,
   assertLendingFunds,
+  assertExpenseFunds,
   reconcileDebtExpenses,
   defaultDebtTypes,
   debtSourceIconColors,
@@ -620,6 +621,7 @@ export async function writeFinance(
       await reconcileFundBalances(db, previous, session, false, storedFunds);
       data = reconcileDebtExpenses(previous, data);
       assertLendingFunds(previous, data);
+      if (!replace) assertExpenseFunds(previous, data);
       assertBudgetChanges(previous, data, replace);
       if (!replace) {
         const next = new Map(data.budgetExchanges.map((entry) => [entry.id, entry]));

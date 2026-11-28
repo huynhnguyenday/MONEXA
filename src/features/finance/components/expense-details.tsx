@@ -15,12 +15,6 @@ export default function ExpenseDetails({ data, expense }: { data: FinanceData; e
     minute: '2-digit',
     hour12: false,
   }).format(date);
-  const day = new Intl.DateTimeFormat('vi-VN', {
-    timeZone: 'Asia/Ho_Chi_Minh',
-    day: '2-digit',
-    month: '2-digit',
-    year: 'numeric',
-  }).format(date);
   return (
     <div
       className="expense-expanded-info"
@@ -31,7 +25,11 @@ export default function ExpenseDetails({ data, expense }: { data: FinanceData; e
         <div className="expense-detail-item expense-detail-category">
           <small>Danh mục</small>
           <span style={{ color: category.color }}>
-            <CategoryIcon category={category} assets={data.customIcons} style={{ color: category.color }} />
+            <CategoryIcon
+              category={category}
+              assets={data.customIcons}
+              style={{ color: category.color }}
+            />
             {category.name}
           </span>
         </div>
@@ -50,7 +48,6 @@ export default function ExpenseDetails({ data, expense }: { data: FinanceData; e
         <small>Thời gian</small>
         <time dateTime={expense.occurredAt}>
           <span>{time}</span>
-          <span>{day}</span>
         </time>
       </div>
       <div className="expense-detail-item expense-detail-payment">

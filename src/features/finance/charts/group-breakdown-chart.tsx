@@ -1,6 +1,6 @@
-'use client';
+﻿'use client';
 import './workspace-gesture-plugin';
-import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import { Bar } from 'react-chartjs-2';
 import {
   BarElement,
@@ -18,7 +18,8 @@ import type { CustomIcon } from '../custom-icon-schema';
 import { type Category } from '../model';
 import { moneyAxisMaximum } from './money-axis';
 import { groupBreakdown, type BreakdownGroup, type BreakdownRecord } from './group-breakdown';
-import { useGroupChartTooltip } from './group-chart-tooltip';
+import ExpenseChartTooltip, { type ExpenseChartSelection } from './expense-chart-tooltip';
+import { inspectionEvents } from './chart-inspection';
 
 ChartJS.register(CategoryScale, LinearScale, BarElement, Tooltip);
 
@@ -42,7 +43,8 @@ export default function GroupBreakdownChart({
   customIcons?: CustomIcon[];
 }) {
   const [width, setWidth] = useState(640);
-  const floatingTooltip = useGroupChartTooltip();
+  const [selection, setSelection] = useState<ExpenseChartSelection | null>(null);
+  const close = useCallback(() => setSelection(null), []);
   const ref = useRef<HTMLDivElement>(null);
   useEffect(() => {
     const element = ref.current;
@@ -54,11 +56,8 @@ export default function GroupBreakdownChart({
     return () => observer.disconnect();
   }, []);
   const allTotals = useMemo(
-    () =>
-      groupBreakdown(groups, records, period).filter(
-        (group) => kind !== 'expense' || group.count > 0,
-      ),
-    [groups, records, period, kind],
+    () => groupBreakdown(groups, records, period).filter((group) => group.count > 0),
+    [groups, records, period],
   );
   const [page, setPage] = useState(0);
   useEffect(() => {
@@ -73,8 +72,8 @@ export default function GroupBreakdownChart({
   const sourceIcons = useRef<HTMLDivElement>(null);
   const sourceIconPlugin = useMemo(() => debtSourceAxisIcons(() => sourceIcons.current), []);
   useEffect(() => {
-    floatingTooltip.hide();
-  }, [period, currentPage, floatingTooltip.hide]);
+    close();
+  }, [period, currentPage, close]);
   const noun = kind === 'expense' ? 'chi tiêu' : 'công nợ';
   const periodLabel =
     period.length === 4 ? `năm ${period}` : `tháng ${period.slice(5)}/${period.slice(0, 4)}`;
@@ -85,16 +84,38 @@ export default function GroupBreakdownChart({
     interaction: { mode: 'index', intersect: false },
     plugins: {
       legend: { display: false },
-      tooltip: {
-        enabled: false,
-        external: floatingTooltip.external,
-        callbacks: {
-          title: (items) => totals[items[0]?.dataIndex]?.name ?? '',
-          label: (item) => `Tổng ${noun}: ${money(item.parsed.y ?? 0)}`,
-          afterLabel: (item) => `${totals[item.dataIndex]?.count ?? 0} khoản ${noun}`,
-        },
-      },
+      tooltip: { enabled: false },
     },
+    ...inspectionEvents((point, chart, hover) => {
+      const group = totals[point.index];
+      if (!group) return;
+      const rect = chart.canvas.getBoundingClientRect();
+      const next: ExpenseChartSelection = {
+        title: `${group.name} · ${periodLabel}`,
+        items: allTotals.map((g) => ({
+          id: g.id,
+          title: g.name,
+          amount: g.amount,
+          color: g.color,
+        })),
+        x: rect.left + point.element.x,
+        y: rect.top + point.element.y,
+        anchor: chart.canvas,
+        hover,
+        totalLabel: `Tổng ${noun}`,
+        totalAmount: group.amount,
+        itemUnit: 'mục',
+        metrics: [{ label: 'Số khoản', value: String(group.count) }],
+      };
+      setSelection((previous) =>
+        previous?.title === next.title &&
+        previous.x === next.x &&
+        previous.y === next.y &&
+        previous.hover === next.hover
+          ? previous
+          : next,
+      );
+    }),
     scales: {
       x: {
         afterFit: (axis) => {
@@ -145,9 +166,6 @@ export default function GroupBreakdownChart({
         className="category-chart"
         data-axis-labels={kind === 'debt' ? 'source-logos' : 'icons'}
         ref={ref}
-        onPointerLeave={(event) => {
-          if (event.pointerType === 'mouse') floatingTooltip.hide();
-        }}
         role="img"
         aria-label={`${title}, ${periodLabel}. Tổng: ${money(allTotals.reduce((sum, group) => sum + group.amount, 0))}`}
       >
@@ -175,7 +193,7 @@ export default function GroupBreakdownChart({
             <p>
               {kind === 'expense'
                 ? 'Chưa có chi tiêu trong kỳ này.'
-                : 'Thêm nguồn công nợ để xem biểu đồ.'}
+                : 'Chưa có công nợ trong kỳ này.'}
             </p>
           </div>
         )}
@@ -232,7 +250,7 @@ export default function GroupBreakdownChart({
           .map((group) => `${group.name}: ${money(group.amount)}, ${group.count} khoản ${noun}`)
           .join('; ')}
       </span>
-      {floatingTooltip.tooltip}
+      {selection && <ExpenseChartTooltip selection={selection} close={close} />}
     </article>
   );
 }

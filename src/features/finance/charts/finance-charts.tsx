@@ -4,6 +4,7 @@ import './workspace-gesture-plugin';
 import { Bar, Line } from 'react-chartjs-2';
 import { useCallback, useEffect, useState } from 'react';
 import ExpenseChartTooltip, { type ExpenseChartSelection } from './expense-chart-tooltip';
+import { inspectionEvents } from './chart-inspection';
 import {
   Chart as ChartJS,
   CategoryScale,
@@ -125,7 +126,14 @@ export default function Charts({ stats }: { stats: ReturnType<typeof getStatisti
   const daily = mobile ? stats.daily.slice(offset, half === 0 ? 15 : undefined) : stats.daily;
   const visibleLabels = labels.slice(offset, offset + daily.length);
   const description = `Chi tiêu từng ngày tháng ${Number(month)}/${year}. Tổng tháng ${money(stats.total)}. ${mobile ? (half === 0 ? 'Nửa tháng đầu. ' : 'Nửa tháng sau. ') : ''}${daily.map((amount, index) => `${visibleLabels[index]}: ${money(amount)}`).join('; ')}.`;
-  const show = (kind: 'daily' | 'weekday', index: number, x: number, y: number) => {
+  const show = (
+    kind: 'daily' | 'weekday',
+    index: number,
+    x: number,
+    y: number,
+    anchor: HTMLCanvasElement,
+    hover: boolean,
+  ) => {
     const title =
       kind === 'daily'
         ? `Khoản chi ngày ${labels[index]}/${year}`
@@ -138,31 +146,29 @@ export default function Charts({ stats }: { stats: ReturnType<typeof getStatisti
     setSelection((previous) =>
       previous?.title === title && previous.x === x && previous.y === y
         ? previous
-        : { title, items, x, y, average: kind === 'weekday' ? stats.weekday[index] : undefined },
+        : {
+            title,
+            items,
+            x,
+            y,
+            anchor,
+            hover,
+            average: kind === 'weekday' ? stats.weekday[index] : undefined,
+          },
     );
   };
   const handlers = (kind: 'daily' | 'weekday') => {
-    const click: NonNullable<ChartOptions<'line'>['onClick']> = (event, _elements, chart) => {
-      if (event.type !== 'click' || !event.native) return;
-      const point = chart.getElementsAtEventForMode(
-        event.native,
-        'nearest',
-        { intersect: true },
-        false,
-      )[0];
-      if (!point) {
-        close();
-        return;
-      }
+    return inspectionEvents((point, chart, hover) => {
       const rect = chart.canvas.getBoundingClientRect();
       show(
         kind,
         point.index + (kind === 'daily' ? offset : 0),
         rect.left + point.element.x,
         rect.top + point.element.y,
+        chart.canvas,
+        hover,
       );
-    };
-    return { onClick: click };
+    });
   };
   const dailyOptions: ChartOptions<'line'> = {
     ...options,

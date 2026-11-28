@@ -4,6 +4,11 @@
   gap: 8px;
   min-height: 0;
 }
+.income-panel .income-actions {
+  background: var(--bg);
+  border-color: #94a3b8;
+  box-shadow: none;
+}
 .income-action-heading {
   display: flex;
   align-items: center;

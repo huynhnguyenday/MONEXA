@@ -107,6 +107,7 @@ export async function PUT(request: Request) {
     if (
       error instanceof Error &&
       [
+        'INSUFFICIENT_EXPENSE',
         'INSUFFICIENT_LENDING',
         'INSUFFICIENT_EXCHANGE',
         'EXCHANGE_HISTORY_CHANGED',
@@ -116,7 +117,9 @@ export async function PUT(request: Request) {
       return json(
         {
           error:
-            error.message === 'INSUFFICIENT_LENDING'
+            error.message === 'INSUFFICIENT_EXPENSE'
+              ? 'Ngân sách không đủ cho khoản chi tiêu này.'
+              : error.message === 'INSUFFICIENT_LENDING'
               ? 'Không đủ số dư nguồn tiền đã chọn để cho mượn.'
               : 'Không đủ số dư để chuyển đổi hoặc lịch sử chuyển đổi đã bị thay đổi. Giữ nội dung và tải lại dữ liệu.',
         },

@@ -41,7 +41,7 @@ export default function DateTimeField({
   past = false,
   withTime = true,
   wholeHours = false,
-  calendarOnly = false,
+  calendarOnly = true,
 }: {
   id: string;
   label: string;

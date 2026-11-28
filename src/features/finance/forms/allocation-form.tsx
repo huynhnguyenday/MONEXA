@@ -41,7 +41,12 @@ export function AllocationForm({
   );
   const [method, setMethod] = useState<'cash' | 'bank'>(entry?.paymentMethod ?? 'bank');
   const [amount, setAmount] = useState(entry ? formatVndInput(String(entry.amount)) : '');
-  const [date, setDate] = useState<Date | null>(entry ? new Date(entry.occurredAt) : new Date());
+  const [date, setDate] = useState<Date | null>(() => {
+    if (entry) return new Date(entry.occurredAt);
+    const now = new Date();
+    now.setMinutes(0, 0, 0);
+    return now;
+  });
   const budgetPeriod =
     data.budgets.find((b) => b.transferId === entry?.id)?.month ?? dateKey().slice(0, 7);
   const [error, setError] = useState('');
@@ -145,6 +150,33 @@ export function AllocationForm({
             </select>
           </label>
         </div>
+        <div className="expense-amount-time-row">
+          <DateTimeField
+            id="allocation-date"
+            label="Ngày giờ chuyển tiền"
+            value={date}
+            onChange={setDate}
+            wholeHours
+            past
+          />
+          <label>
+            Số tiền chuyển (VND)
+            <input
+              autoFocus
+              required
+              inputMode="numeric"
+              value={amount}
+              onChange={(e) => setAmount(formatVndInput(e.target.value))}
+            />
+            <span
+              className={`expense-current-budget${value > available ? ' is-insufficient' : ''}`}
+              role="status"
+              aria-label="Số dư nguồn phân bổ hiện tại"
+            >
+              <strong>{money(available)}</strong>
+            </span>
+          </label>
+        </div>
         <PaymentMethodField value={method} onChange={setMethod} legend="Nguồn tiền" />
         <div className="allocation-summary" aria-live="polite">
           <span>
@@ -154,23 +186,7 @@ export function AllocationForm({
             Nguồn sau chuyển <b>{money(available - value)}</b>
           </span>
         </div>
-        <label>
-          Số tiền chuyển (VND)
-          <input
-            autoFocus
-            required
-            inputMode="numeric"
-            value={amount}
-            onChange={(e) => setAmount(formatVndInput(e.target.value))}
-          />
-        </label>
-        <DateTimeField
-          id="allocation-date"
-          label="Ngày giờ chuyển tiền"
-          value={date}
-          onChange={setDate}
-          past
-        />
+
         {target === 'spending' && (
           <>
             <div className="allocation-summary">
@@ -185,7 +201,11 @@ export function AllocationForm({
           </>
         )}
         {error && <Toast>{error}</Toast>}
-        <button className="button primary full monexa-action monexa-create" aria-busy={busy}>
+        <button
+          className="button primary full monexa-action monexa-create"
+          aria-busy={busy}
+          disabled={busy || value > available}
+        >
           {busy ? (
             <PendingLabel>Đang lưu</PendingLabel>
           ) : (
