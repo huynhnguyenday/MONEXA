@@ -6,6 +6,7 @@ import MonthPicker from '@/components/month-picker';
 import { MonthPickerSkeleton } from '../components/loading-skeleton';
 import type { FinanceView } from '../types';
 import DebtNotifications from './debt-notifications';
+import './header-debt-tabs.css';
 
 type Props = {
   view: FinanceView;
@@ -54,7 +55,12 @@ export default function AppHeader({
             <MonthPicker value={month} onChange={onMonthChange} compact />
           )
         ) : view === 'debts' ? (
-          <div className="header-debt-tabs" role="group" aria-label="Nội dung công nợ">
+          <div
+            className="header-debt-tabs"
+            data-active={debtView}
+            role="group"
+            aria-label="Nội dung công nợ"
+          >
             <button
               type="button"
               aria-pressed={debtView === 'calendar'}

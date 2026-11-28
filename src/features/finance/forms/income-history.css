@@ -1,8 +1,12 @@
 .income-history {
+  position: relative;
   display: flex;
   flex: 1;
   min-height: 0;
   min-width: 0;
+}
+.income-history > .finance-scrollbar-indicator {
+  right: -10px;
 }
 .income-history-rows {
   position: relative;

@@ -24,6 +24,7 @@ dialog.debt-payment-dialog {
   color: #526581;
 }
 .debt-payment-context {
+  margin-top: 5px;
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -47,6 +48,8 @@ dialog.debt-payment-dialog {
   color: #64748b;
 }
 .debt-payment-list {
+  border: 1px solid #cbd5e1;
+  border-radius: 10px;
   min-height: 0;
   max-height: min(340px, 38dvh);
   overflow-y: auto;
@@ -59,7 +62,8 @@ dialog.debt-payment-dialog {
 }
 .debt-payment-list table {
   width: 100%;
-  border-collapse: collapse;
+  border-collapse: separate;
+  border-spacing: 0;
   table-layout: fixed;
   font-size: 13px;
 }
@@ -74,6 +78,14 @@ dialog.debt-payment-dialog {
   top: 0;
   background: #f1f5f9;
   z-index: 1;
+}
+.debt-payment-list tbody tr,
+.debt-payment-list tbody tr:hover {
+  background: #fff;
+  color: #142d4e;
+}
+.debt-payment-list tbody tr:last-child td {
+  border-bottom: 0;
 }
 .debt-payment-list :is(th, td):last-child {
   width: 42%;
@@ -106,6 +118,18 @@ dialog.debt-payment-dialog {
 .debt-payment-actions svg {
   width: 16px;
   height: 16px;
+}
+:root .debt-payment-actions > button.monexa-create {
+  --action-bg: #eff6ff;
+  --action-ink: #1d4ed8;
+  --action-border: #1e40af;
+  --action-hover-bg: #1e40af;
+  --action-hover-ink: #fff;
+  --action-hover-border: #1e40af;
+}
+:root .debt-payment-actions > button.monexa-create:hover:not(:disabled),
+:root .debt-payment-actions > button.monexa-create:active:not(:disabled) {
+  transform: none;
 }
 @media (prefers-reduced-motion: reduce) {
   .debt-payment-actions .fa-spin {

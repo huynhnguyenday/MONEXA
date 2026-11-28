@@ -9,22 +9,26 @@ export default function IncomeBalances({ balances }: { balances: IncomeSummary['
   return (
     <div className="income-balances">
       <article className="card income-balance" aria-label="Số dư chưa phân bổ">
-        <div className="income-balance-heading">
+        <div className="income-balance-part">
           <h2>
             <Icon icon={faWallet} />
             Chưa phân bổ
           </h2>
           <strong>{money(amounts.total)}</strong>
         </div>
-        <div className="income-balance-sources">
-          <span>
+        <div className="income-balance-part">
+          <h2>
             <Icon icon={faMoneyBillWave} />
-            Tiền mặt <b>{money(amounts.cash)}</b>
-          </span>
-          <span>
+            Tiền mặt
+          </h2>
+          <strong>{money(amounts.cash)}</strong>
+        </div>
+        <div className="income-balance-part">
+          <h2>
             <Icon icon={faBuildingColumns} />
-            Chuyển khoản <b>{money(amounts.bank)}</b>
-          </span>
+            Chuyển khoản
+          </h2>
+          <strong>{money(amounts.bank)}</strong>
         </div>
       </article>
     </div>

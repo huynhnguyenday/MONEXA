@@ -2,12 +2,7 @@
 
 import { FontAwesomeIcon as Icon } from '@fortawesome/react-fontawesome';
 import { faClock, faRightLeft } from '@fortawesome/free-solid-svg-icons';
-import {
-  getMonthlyBudget,
-  getCashStatistics,
-  money,
-  type FinanceData,
-} from '../model';
+import { getMonthlyBudget, getCashStatistics, money, type FinanceData } from '../model';
 import FinanceTooltip from './finance-tooltip';
 import './budget-card.css';
 
@@ -93,11 +88,12 @@ export default function BudgetCard({ data, month, ready, onHistory, onExchange }
           className="budget-caption-button budget-debt-caption"
           label={'N\u1ee3'}
           content={
-            <>
-              <span>
-                Nợ còn phải trả: <b>{money(reserve)}</b>
-              </span>{' '}
-            </>
+            <div className="finance-tooltip-stats">
+              <div className="finance-tooltip-stat">
+                <span>Nợ còn phải trả</span>
+                <b>{money(reserve)}</b>
+              </div>{' '}
+            </div>
           }
         >
           {' '}
@@ -107,14 +103,16 @@ export default function BudgetCard({ data, month, ready, onHistory, onExchange }
           className="budget-caption-button budget-remaining-caption"
           label={'C\u00f2n l\u1ea1i'}
           content={
-            <>
-              <span>
-                Tiền mặt: <b>{money(sourceRemaining('cash'))}</b>
-              </span>
-              <span>
-                Chuyển khoản: <b>{money(sourceRemaining('bank'))}</b>
-              </span>{' '}
-            </>
+            <div className="finance-tooltip-stats">
+              <div className="finance-tooltip-stat">
+                <span>Tiền mặt</span>
+                <b>{money(sourceRemaining('cash'))}</b>
+              </div>
+              <div className="finance-tooltip-stat">
+                <span>Chuyển khoản</span>
+                <b>{money(sourceRemaining('bank'))}</b>
+              </div>{' '}
+            </div>
           }
         >
           {' '}
@@ -124,20 +122,24 @@ export default function BudgetCard({ data, month, ready, onHistory, onExchange }
           className="budget-caption-button budget-total-caption"
           label={'T\u1ed5ng ng\u00e2n s\u00e1ch'}
           content={
-            <>
-              <span>
-                Dư chuyển kỳ: <b>{money(opening.total)}</b>
-              </span>
-              <span>
-                Phân bổ thêm: <b>{money(allocated.cash + allocated.bank)}</b>
-              </span>
-              <span>
-                Tiền mặt: <b>{money(monthlySources.cash)}</b>
-              </span>
-              <span>
-                Chuyển khoản: <b>{money(monthlySources.bank)}</b>
-              </span>{' '}
-            </>
+            <div className="finance-tooltip-stats">
+              <div className="finance-tooltip-stat">
+                <span>Dư chuyển kỳ</span>
+                <b>{money(opening.total)}</b>
+              </div>
+              <div className="finance-tooltip-stat">
+                <span>Phân bổ thêm</span>
+                <b>{money(allocated.cash + allocated.bank)}</b>
+              </div>
+              <div className="finance-tooltip-stat">
+                <span>Tiền mặt</span>
+                <b>{money(monthlySources.cash)}</b>
+              </div>
+              <div className="finance-tooltip-stat">
+                <span>Chuyển khoản</span>
+                <b>{money(monthlySources.bank)}</b>
+              </div>{' '}
+            </div>
           }
         >
           {' '}

@@ -59,3 +59,9 @@
   color: #2563a6;
   background: #dbeafe;
 }
+.budget-card .budget-summary .budget-history-button.button:hover:not(:disabled) {
+  background: #eab308;
+  border-color: #eab308;
+  color: #fff;
+  transform: none;
+}

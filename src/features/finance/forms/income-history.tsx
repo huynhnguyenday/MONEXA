@@ -1,14 +1,14 @@
 'use client';
 import Toast from '@/components/toast';
-import { useMemo, useState } from 'react';
+import { useMemo, useRef, useState } from 'react';
 import { FontAwesomeIcon as Icon } from '@fortawesome/react-fontawesome';
 import { faPen, faTrashCan } from '@fortawesome/free-solid-svg-icons';
 import { financeSchema, dateKey, money } from '../model';
 import { useConfirmation } from '../hooks/use-confirmation';
 import { incomeRecords, incomeTypes, fundLabels, type IncomeRecord } from '../income-model';
 import { removeIncomeRecord } from '../income-operations';
-import { useHistoryWindow } from '../hooks/use-history-window';
-import HistoryEnd from '../components/history-end';
+import { useVisibleScrollbar } from '../hooks/use-visible-scrollbar';
+import { VisibleScrollbar } from '../components/visible-scrollbar';
 import LoadingSpinner from '@/components/loading-spinner';
 import type { FormProps } from './types';
 import './income-history.css';
@@ -43,21 +43,18 @@ export default function IncomeHistory({
         .sort((a, b) => b.entry.occurredAt.localeCompare(a.entry.occurredAt)),
     [data, scope],
   );
-  const { viewportRef, endRef, visibleCount, hasMore } = useHistoryWindow(
-    records.length,
-    scope,
-    busy,
-  );
+  const viewportRef = useRef<HTMLDivElement>(null);
+  const scrollbar = useVisibleScrollbar(viewportRef, true, 40, 10);
   const dayGroups = useMemo(() => {
     const groups = new Map<string, IncomeRecord[]>();
-    for (const record of records.slice(0, visibleCount)) {
+    for (const record of records) {
       const day = dateKey(record.entry.occurredAt);
       const group = groups.get(day);
       if (group) group.push(record);
       else groups.set(day, [record]);
     }
     return [...groups].map(([day, entries]) => ({ day, entries }));
-  }, [records, visibleCount]);
+  }, [records]);
   return (
     <div className="income-history">
       <div
@@ -149,8 +146,8 @@ export default function IncomeHistory({
             </div>
           </section>
         ))}
-        <HistoryEnd endRef={endRef} hasMore={hasMore} />
       </div>
+      <VisibleScrollbar state={scrollbar} />
       {confirmation}
     </div>
   );

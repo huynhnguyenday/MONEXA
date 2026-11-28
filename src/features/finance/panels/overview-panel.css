@@ -223,10 +223,18 @@ dialog.expense-filter-dialog {
   border-color: transparent;
   box-shadow: none;
 }
+.overview-panel .expense-table-scroll-shell {
+  position: relative;
+  display: flex;
+  flex: 1;
+  min-width: 0;
+  min-height: 0;
+}
 .overview-panel .expense-table-viewport {
   position: relative;
   isolation: isolate;
   background: var(--bg);
+  width: 100%;
   scrollbar-width: none;
 }
 .overview-panel .expense-table-viewport::-webkit-scrollbar {
@@ -276,4 +284,21 @@ dialog.expense-filter-dialog {
 .overview-panel .expense-actions-td .table-actions button:hover:not(:disabled),
 .overview-panel .expense-actions-td .table-actions button:focus-visible:not(:disabled) {
   color: #fff;
+}
+
+.overview-panel .expense-table-scroll-shell > .finance-scrollbar-indicator {
+  right: -10px;
+}
+.overview-panel .expense-search-box > svg {
+  color: #475569;
+  stroke: currentColor;
+  stroke-width: 12;
+}
+.overview-panel .expense-search-box input {
+  font-weight: 600;
+}
+.overview-panel .expense-search-box input::placeholder {
+  color: #64748b;
+  font-weight: 600;
+  opacity: 1;
 }

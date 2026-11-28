@@ -47,6 +47,7 @@ export default function WorkspaceTabs({
     ? createPortal(
         <div
           className={`workspace-icon-tabs${loading ? ' is-loading' : ''}`}
+          data-active={active === 0 ? 'calendar' : 'history'}
           role="group"
           aria-label={`Chuyển nội dung ${kind === 'overview' ? 'tổng quan' : kind === 'income' ? 'thu nhập' : kind === 'categories' ? 'danh mục' : 'nguồn công nợ'}`}
         >

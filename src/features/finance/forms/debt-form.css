@@ -55,10 +55,48 @@
 .debt-entry-dialog form .debt-type-source-row:has(+ .debt-installment-options) > label {
   margin-bottom: 2px;
 }
-.debt-entry-dialog form .debt-installment-options + .debt-amount-due-row {
-  margin-top: 2px;
+dialog.debt-entry-dialog .dialog-content .debt-amount-due-row {
+  margin-top: 22px;
 }
-.debt-amount-due-row > * { min-width: 0; }
+dialog.debt-entry-dialog .dialog-content .debt-installment-options + .debt-amount-due-row {
+  margin-top: 8px;
+}
+:root .debt-entry-dialog .debt-payment-method label {
+  min-height: 36px;
+  padding: 4px 6px;
+}
+:root .debt-entry-dialog .debt-payment-method label:has(input[value='cash']) {
+  color: #16a34a;
+  border-color: #86efac;
+  background: #f0fdf4;
+  box-shadow: 0 3px 8px #15803d14;
+}
+:root .debt-entry-dialog .debt-payment-method label:has(input[value='cash']:checked) {
+  color: #15803d;
+  border-color: #15803d;
+  background: #dcfce7;
+}
+:root .debt-entry-dialog .debt-payment-method input[value='cash'] {
+  border-color: #86efac;
+}
+:root .debt-entry-dialog .debt-payment-method input[value='cash']:checked {
+  border-color: #15803d;
+}
+:root .debt-entry-dialog .debt-payment-method input[value='cash']:checked::before {
+  background: #15803d;
+}
+.debt-entry-dialog .calendar-day-button {
+  border-color: #cbd5e1;
+  background: #fff;
+  color: #142d4e;
+}
+.debt-entry-dialog .calendar-day-button:hover:not(:disabled) {
+  border-color: #94a3b8;
+  background: #f8fafc;
+}
+.debt-amount-due-row > * {
+  min-width: 0;
+}
 .debt-entry-dialog form .debt-installment-options input[type='checkbox'] {
   width: 16px;
   height: 16px;
@@ -66,4 +104,7 @@
   margin: 0;
   padding: 0;
   accent-color: #1d4ed8;
+}
+.debt-entry-dialog .react-datepicker-popper .react-datepicker__day--outside-month {
+  opacity: 0.35;
 }

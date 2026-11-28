@@ -12,22 +12,121 @@
   color: #142d4e;
 }
 .insight-canvas {
+  position: relative;
   min-height: 90px;
 }
-.insight-canvas canvas:focus-visible,
-.insight-direction select:focus-visible {
+.insight-plot {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  min-height: 0;
+}
+.category-share-chart {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.category-share-chart .insight-plot {
+  flex: 1 1 0;
+  height: auto;
+  width: 88%;
+  align-self: center;
+  padding: 6px;
+}
+.category-share-legend {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 4px 8px;
+  flex: 0 1 auto;
+  min-height: 0;
+  max-height: 40%;
+  overflow-y: auto;
+}
+.category-share-legend button {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  min-width: 52px;
+  min-height: 44px;
+  padding: 6px;
+  border: 1px solid transparent;
+  border-radius: 8px;
+  background: transparent;
+  cursor: pointer;
+}
+.category-share-legend button > :is(svg, img, span:not(.category-share-dot)) {
+  width: 20px;
+  height: 20px;
+}
+.category-share-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  flex: none;
+}
+.category-share-legend button[aria-pressed='false'] {
+  opacity: 0.4;
+}
+.category-share-legend button[aria-pressed='false']::after {
+  content: '';
+  position: absolute;
+  left: 6px;
+  right: 6px;
+  top: 50%;
+  height: 2px;
+  background: #142d4e;
+  pointer-events: none;
+}
+.category-share-legend button:hover {
+  background: #eff6ff;
+}
+.category-share-legend button:focus-visible {
   outline: 2px solid #1d4ed8;
   outline-offset: -2px;
 }
-.insight-direction select {
-  min-height: 44px;
+.comparison-category-axis-icons {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+.comparison-category-axis-icons > span {
+  position: absolute;
+  display: grid;
+  place-items: center;
+  width: 20px;
+  height: 20px;
+  transform: translate(-50%, -50%);
+}
+.comparison-category-axis-icons > span > :is(svg, img, span) {
+  width: 20px;
+  height: 20px;
+}
+.insight-canvas canvas:focus-visible,
+.insight-direction:focus-visible {
+  outline: 2px solid #1d4ed8;
+  outline-offset: -2px;
+}
+.insight-direction {
+  min-height: 30px;
   max-width: 100%;
   border: 1px solid #cbd8ea;
   border-radius: 8px;
-  padding: 4px 8px;
+  padding: 3px 8px;
   color: #142d4e;
   background: #fff;
   font-size: 11px;
+  cursor: pointer;
+}
+.insight-direction:hover {
+  background: #eff6ff;
+  border-color: #93c5fd;
+}
+.category-share-legend button > span:not(.category-share-dot) > svg {
+  width: 20px;
+  height: 20px;
 }
 @media (max-width: 1023px) {
   .insight-canvas {

@@ -39,8 +39,8 @@
   --action-ink: #a16207;
   --action-border: #eab308;
   --action-shadow: #a1620720;
-  --action-hover-bg: #fde68a;
-  --action-hover-ink: #854d0e;
+  --action-hover-bg: #eab308;
+  --action-hover-ink: #fff;
   --action-hover-border: #eab308;
   --action-focus: #854d0e;
 }
@@ -141,6 +141,9 @@
 }
 :root button.monexa-action:active:not(:disabled) {
   transform: translateY(0);
+}
+:root button.monexa-bell:hover:not(:disabled) {
+  transform: none;
 }
 :root button.monexa-action:focus-visible {
   outline: 2px solid var(--action-focus);

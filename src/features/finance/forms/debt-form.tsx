@@ -40,6 +40,12 @@ export function DebtForm({ data, save, done, busy, debt }: { debt?: Debt } & For
       ? (debt && data.expenses.find((expense) => expense.debtId === debt.id)?.categoryId) || ''
       : debt.categoryId || '',
   );
+  const categories =
+    debt && categoryId
+      ? [...data.categories].sort(
+          (a, b) => Number(b.id === categoryId) - Number(a.id === categoryId),
+        )
+      : data.categories;
   return (
     <form
       onSubmit={async (e) => {
@@ -177,6 +183,7 @@ export function DebtForm({ data, save, done, busy, debt }: { debt?: Debt } & For
           />
         </div>
         <PaymentMethodField
+          className="debt-payment-method"
           value={method}
           onChange={setMethod}
           legend="Hình thức chi tiền"
@@ -204,7 +211,7 @@ export function DebtForm({ data, save, done, busy, debt }: { debt?: Debt } & For
             </button>
           </div>
           <div className="expense-category-picker" role="group" aria-labelledby={categoryLabelId}>
-            {data.categories.map((category) => (
+            {categories.map((category) => (
               <button
                 type="button"
                 key={category.id}

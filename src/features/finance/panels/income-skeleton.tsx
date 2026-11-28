@@ -39,14 +39,12 @@ export default function IncomeSkeleton() {
         <section className="income-management">
           <div className="income-balances">
             <article className="card income-balance">
-              <div className="income-balance-heading">
-                <LoadingSkeleton style={{ height: 20, width: '40%' }} />
-                <LoadingSkeleton style={{ height: 24, width: '45%' }} />
-              </div>
-              <div className="income-balance-sources">
-                <LoadingSkeleton style={{ height: 16, width: '46%' }} />
-                <LoadingSkeleton style={{ height: 16, width: '46%' }} />
-              </div>
+              {[0, 1, 2].map((index) => (
+                <div className="income-balance-part" key={index}>
+                  <LoadingSkeleton style={{ height: 16, width: '80%' }} />
+                  <LoadingSkeleton style={{ height: 20, width: '90%' }} />
+                </div>
+              ))}
             </article>
           </div>
           <div className="income-action-cards">

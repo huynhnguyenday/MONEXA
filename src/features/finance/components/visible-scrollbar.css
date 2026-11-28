@@ -1,0 +1,16 @@
+.finance-scrollbar-indicator {
+  position: absolute;
+  z-index: 3;
+  inset: 0 0 0 auto;
+  width: 4px;
+  background: transparent;
+  pointer-events: none;
+}
+.finance-scrollbar-thumb {
+  top: 0;
+  position: absolute;
+  right: 0;
+  left: 0;
+  border-radius: 4px;
+  background: var(--scrollbar-thumb);
+}

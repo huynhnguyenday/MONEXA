@@ -5,6 +5,8 @@ import { FontAwesomeIcon as Icon } from '@fortawesome/react-fontawesome';
 import { faXmark } from '@fortawesome/free-solid-svg-icons';
 import type { ReactNode } from 'react';
 import { money, type Expense } from '../model';
+import { VisibleScrollbar } from '../components/visible-scrollbar';
+import { useVisibleScrollbar } from '../hooks/use-visible-scrollbar';
 import './expense-chart-tooltip.css';
 
 export type ExpenseChartSelection = {
@@ -36,7 +38,7 @@ export default function ExpenseChartTooltip({
   const ref = useRef<HTMLDivElement>(null);
   const listRef = useRef<HTMLDivElement>(null);
   const [measuredHeight, setMeasuredHeight] = useState(0);
-  const [scrollbar, setScrollbar] = useState({ visible: false, height: 0, top: 0 });
+  const scrollbar = useVisibleScrollbar(listRef, !selection.hideDetails, 10, 10);
   useLayoutEffect(() => {
     const measure = () => {
       if (!ref.current) return;
@@ -46,33 +48,6 @@ export default function ExpenseChartTooltip({
     const observer = new ResizeObserver(measure);
     if (ref.current) observer.observe(ref.current);
     return () => observer.disconnect();
-  }, [selection]);
-  useLayoutEffect(() => {
-    const list = listRef.current;
-    if (!list) return;
-    const updateScrollbar = () => {
-      const trackHeight = Math.max(list.clientHeight - 8, 0);
-      const maxScroll = list.scrollHeight - list.clientHeight;
-      if (maxScroll <= 0 || trackHeight <= 0) {
-        setScrollbar({ visible: false, height: 0, top: 0 });
-        return;
-      }
-      const height = Math.min(
-        trackHeight,
-        Math.max(18, (trackHeight * list.clientHeight) / list.scrollHeight),
-      );
-      const progress = Math.max(0, Math.min(1, list.scrollTop / maxScroll));
-      const top = 4 + progress * (trackHeight - height);
-      setScrollbar({ visible: true, height, top });
-    };
-    updateScrollbar();
-    const observer = new ResizeObserver(updateScrollbar);
-    observer.observe(list);
-    list.addEventListener('scroll', updateScrollbar, { passive: true });
-    return () => {
-      observer.disconnect();
-      list.removeEventListener('scroll', updateScrollbar);
-    };
   }, [selection]);
   useEffect(() => {
     let leaveTimer: ReturnType<typeof setTimeout> | undefined;
@@ -220,14 +195,7 @@ export default function ExpenseChartTooltip({
                 <p>{selection.emptyLabel || 'Không có khoản chi.'}</p>
               )}
             </div>
-            {scrollbar.visible && (
-              <div className="expense-chart-tooltip-scrollbar" aria-hidden="true">
-                <span
-                  className="expense-chart-tooltip-scrollbar-thumb"
-                  style={{ height: scrollbar.height, top: scrollbar.top }}
-                />
-              </div>
-            )}
+            <VisibleScrollbar state={scrollbar} />
           </div>
         </>
       )}

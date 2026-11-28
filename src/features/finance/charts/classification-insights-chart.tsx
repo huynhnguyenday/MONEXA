@@ -1,6 +1,6 @@
 ﻿'use client';
 import './workspace-gesture-plugin';
-import { useCallback, useEffect, useState, type ReactNode } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import { Chart } from 'react-chartjs-2';
 import {
   Chart as ChartJS,
@@ -13,6 +13,7 @@ import {
   Tooltip,
   type ChartData,
   type ChartOptions,
+  type Plugin,
 } from 'chart.js';
 import { money, type FinanceData } from '../model';
 import type { Category, DebtSource } from '../model';
@@ -48,6 +49,7 @@ type Row = {
 };
 type Panel = {
   title: string;
+  control?: ReactNode;
   period: string;
   type: Kind;
   data: ChartData<Kind>;
@@ -81,6 +83,36 @@ function InsightCard({
   customIcons: CustomIcon[];
 }) {
   const [selection, setSelection] = useState<ExpenseChartSelection | null>(null);
+  const chartRef = useRef<ChartJS<Kind>>(null);
+  const [hiddenRows, setHiddenRows] = useState<Set<string>>(() => new Set());
+  const isShareChart = panel.type === 'doughnut';
+  useEffect(() => {
+    setHiddenRows(new Set());
+    const chart = chartRef.current;
+    if (!chart || !isShareChart) return;
+    panel.rows.forEach((_, index) => {
+      if (!chart.getDataVisibility(index)) chart.toggleDataVisibility(index);
+    });
+    chart.update('none');
+  }, [panel, isShareChart]);
+  const axisIcons = useRef<HTMLDivElement>(null);
+  const categoryAxis = kind === 'expense' && panel.indexAxis === 'y';
+  const axisIconPlugin = useMemo<Plugin<Kind>>(
+    () => ({
+      id: 'comparison-category-icons',
+      afterDraw(chart) {
+        const axis = chart.scales.y;
+        if (!axis) return;
+        axisIcons.current
+          ?.querySelectorAll<HTMLElement>('[data-category-axis-icon]')
+          .forEach((node, index) => {
+            node.style.left = `${axis.right - 16}px`;
+            node.style.top = `${axis.getPixelForValue(index)}px`;
+          });
+      },
+    }),
+    [],
+  );
   const close = useCallback(() => setSelection(null), []);
   useEffect(close, [panel, close]);
   const show = (index: number, x: number, y: number, anchor?: HTMLCanvasElement, hover = false) => {
@@ -175,12 +207,23 @@ function InsightCard({
               },
             },
             y: {
+              ...(categoryAxis
+                ? {
+                    afterFit: (axis) => {
+                      axis.width = 32;
+                    },
+                  }
+                : {}),
               stacked: panel.stacked,
               beginAtZero: true,
               grid: { display: panel.indexAxis !== 'y', color: '#edf2f8' },
               ticks:
                 panel.indexAxis === 'y'
-                  ? { font: { size: 9 }, autoSkip: false }
+                  ? {
+                      font: { size: 9 },
+                      autoSkip: false,
+                      ...(categoryAxis ? { callback: () => '' } : {}),
+                    }
                   : { font: { size: 10 }, maxTicksLimit: 4, callback: compact },
             },
           },
@@ -197,27 +240,107 @@ function InsightCard({
         {control}
       </div>
       {panel.rows.some((r) => r.amount > 0 || r.details.some((detail) => detail.amount > 0)) ? (
-        <div className="category-chart insight-canvas">
-          <Chart
-            type={panel.type}
-            data={panel.data}
-            options={options}
-            role="img"
-            tabIndex={0}
-            aria-label={`${panel.title}. ${panel.period}. ${panel.rows.map((r) => (panel.indexAxis === 'y' ? `${r.name}: tháng trước ${money(r.details[0]?.amount || 0)}, tháng này ${money(r.amount)}` : `${r.name}: ${money(r.amount)}`)).join('; ')}. Dùng phím mũi tên để xem chi tiết.`}
-            onKeyDown={(e) => {
-              if (e.key !== 'ArrowRight' && e.key !== 'ArrowLeft' && e.key !== 'Enter') return;
-              e.preventDefault();
-              e.stopPropagation();
-              const current = panel.rows.findIndex(
-                  (r) => selection?.title === `${r.name} · ${panel.period}`,
-                ),
-                step = e.key === 'ArrowLeft' ? -1 : 1,
-                index = (current + step + panel.rows.length) % panel.rows.length,
-                rect = e.currentTarget.getBoundingClientRect();
-              show(index, rect.left + rect.width / 2, rect.top + rect.height / 2);
-            }}
-          />
+        <div
+          className={`category-chart insight-canvas${isShareChart ? ' category-share-chart' : ''}`}
+        >
+          <div className="insight-plot">
+            <Chart
+              ref={chartRef}
+              type={panel.type}
+              data={panel.data}
+              options={options}
+              plugins={categoryAxis ? [axisIconPlugin] : []}
+              role="img"
+              tabIndex={0}
+              aria-label={`${panel.title}. ${panel.period}. ${panel.rows.map((r) => (panel.indexAxis === 'y' ? `${r.name}: tháng trước ${money(r.details[0]?.amount || 0)}, tháng này ${money(r.amount)}` : `${r.name}: ${money(r.amount)}`)).join('; ')}. Dùng phím mũi tên để xem chi tiết.`}
+              onKeyDown={(e) => {
+                if (e.key !== 'ArrowRight' && e.key !== 'ArrowLeft' && e.key !== 'Enter') return;
+                e.preventDefault();
+                e.stopPropagation();
+                const current = panel.rows.findIndex(
+                    (r) => selection?.title === `${r.name} · ${panel.period}`,
+                  ),
+                  step = e.key === 'ArrowLeft' ? -1 : 1,
+                  index = (current + step + panel.rows.length) % panel.rows.length,
+                  rect = e.currentTarget.getBoundingClientRect();
+                show(index, rect.left + rect.width / 2, rect.top + rect.height / 2);
+              }}
+            />
+            {categoryAxis && (
+              <div className="comparison-category-axis-icons" ref={axisIcons} aria-hidden="true">
+                {panel.rows.map((row) => (
+                  <span
+                    key={row.id}
+                    data-category-axis-icon
+                    title={row.name}
+                    style={{ color: row.color }}
+                  >
+                    <CategoryIcon
+                      category={{
+                        icon: (row.icon as Category['icon']) || 'receipt',
+                        customIconId: row.customIconId,
+                      }}
+                      assets={customIcons}
+                    />
+                  </span>
+                ))}
+              </div>
+            )}
+          </div>
+          {isShareChart && (
+            <div
+              className="category-share-legend"
+              role="group"
+              aria-label={
+                kind === 'expense'
+                  ? 'Ẩn hoặc hiện danh mục trên biểu đồ tỷ trọng'
+                  : 'Ẩn hoặc hiện nguồn công nợ trên biểu đồ tỷ trọng'
+              }
+            >
+              {panel.rows.map((row, index) => (
+                <button
+                  key={row.id}
+                  type="button"
+                  aria-label={`${hiddenRows.has(row.id) ? 'Hiện' : 'Ẩn'} ${row.name}`}
+                  aria-pressed={!hiddenRows.has(row.id)}
+                  title={row.name}
+                  onClick={() => {
+                    const chart = chartRef.current;
+                    if (!chart) return;
+                    chart.toggleDataVisibility(index);
+                    chart.update('none');
+                    close();
+                    setHiddenRows((previous) => {
+                      const next = new Set(previous);
+                      if (chart.getDataVisibility(index)) next.delete(row.id);
+                      else next.add(row.id);
+                      return next;
+                    });
+                  }}
+                >
+                  <span
+                    className="category-share-dot"
+                    style={{ backgroundColor: row.color }}
+                    aria-hidden="true"
+                  />
+                  {kind === 'debt' ? (
+                    <span style={{ color: row.color }}>
+                      <DebtSourceIcon icon={(row.icon as DebtSource['icon']) || 'person'} />
+                    </span>
+                  ) : (
+                    <CategoryIcon
+                      category={{
+                        icon: (row.icon as Category['icon']) || 'receipt',
+                        customIconId: row.customIconId,
+                      }}
+                      assets={customIcons}
+                      style={{ color: row.color }}
+                    />
+                  )}
+                </button>
+              ))}
+            </div>
+          )}
         </div>
       ) : (
         <div className="compact-empty">
@@ -246,7 +369,11 @@ export default function ClassificationInsights({
   customIcons?: CustomIcon[];
 }) {
   const today = useVietnamToday();
-  const [direction, setDirection] = useState<'payable' | 'receivable'>('payable');
+  const [directions, setDirections] = useState<Array<'payable' | 'receivable'>>([
+    'payable',
+    'payable',
+    'payable',
+  ]);
   const carousel = useWorkspaceCarousel({ handoffForwardSwipeAtEnd: true });
   const renderChartPages = (panels: Panel[], control?: ReactNode) => {
     const pages = panels.reduce<[Panel[], Panel[]]>(
@@ -283,7 +410,7 @@ export default function ClassificationInsights({
               <InsightCard
                 key={panel.title}
                 panel={panel}
-                control={control}
+                control={panel.control ?? control}
                 kind={kind}
                 customIcons={customIcons}
               />
@@ -351,7 +478,7 @@ export default function ClassificationInsights({
             {
               label: `Tháng ${period(month)}`,
               data: rows.map((r) => r.amount),
-              backgroundColor: '#1d4ed8',
+              backgroundColor: rows.map((r) => r.color),
               maxBarThickness: 14,
             },
           ],
@@ -398,98 +525,108 @@ export default function ClassificationInsights({
     ];
     return renderChartPages(panels);
   }
-  const { rows, weeks, settledAmount } = debtInsights(data, direction, today),
-    total = rows.reduce((s, r) => s + r.amount, 0),
-    noun = direction === 'payable' ? 'Phải trả' : 'Phải thu';
-  const control = (
-    <label className="insight-direction">
-      <span className="sr-only">Loại công nợ cho ba biểu đồ</span>
-      <select value={direction} onChange={(e) => setDirection(e.target.value as typeof direction)}>
-        <option value="payable">Phải trả</option>
-        <option value="receivable">Phải thu</option>
-      </select>
-    </label>
-  );
-  const statuses = ['Chưa đến hạn', 'Hôm nay', 'Quá hạn', 'Chưa có hạn'];
-  const panels: Panel[] = [
-    {
-      title: 'Trạng thái công nợ',
-      period: `${noun} · ${period(today)}`,
-      type: 'bar',
-      stacked: true,
-      totalLabel: 'Nợ chưa thanh toán',
-      data: {
-        labels: statuses,
-        datasets: rows.map((r) => ({
-          label: r.name,
-          data: r.amounts,
-          backgroundColor: r.color,
-          maxBarThickness: 48,
+  const debtPanels = (direction: 'payable' | 'receivable', index: number) => {
+    const { rows, weeks, settledAmount } = debtInsights(data, direction, today),
+      total = rows.reduce((s, r) => s + r.amount, 0),
+      noun = direction === 'payable' ? 'Phải trả' : 'Phải thu';
+    const control = (
+      <button
+        type="button"
+        className="insight-direction"
+        aria-label={`Loại công nợ: ${noun}. Chuyển sang ${direction === 'payable' ? 'Phải thu' : 'Phải trả'}`}
+        onClick={() =>
+          setDirections((previous) =>
+            previous.map((value, i) =>
+              i === index ? (value === 'payable' ? 'receivable' : 'payable') : value,
+            ),
+          )
+        }
+      >
+        {noun}
+      </button>
+    );
+    const statuses = ['Chưa đến hạn', 'Hôm nay', 'Quá hạn', 'Chưa có hạn'];
+    const panels: Panel[] = [
+      {
+        title: 'Trạng thái công nợ',
+        period: `${noun} · ${period(today)}`,
+        type: 'bar',
+        stacked: true,
+        totalLabel: 'Nợ chưa thanh toán',
+        data: {
+          labels: statuses,
+          datasets: rows.map((r) => ({
+            label: r.name,
+            data: r.amounts,
+            backgroundColor: r.color,
+            maxBarThickness: 48,
+          })),
+        },
+        rows: statuses.map((label, i) => ({
+          id: label,
+          name: label,
+          amount: rows.reduce((s, r) => s + r.amounts[i], 0),
+          metric: { label: 'Đã thanh toán', value: money(settledAmount) },
+          details: rows
+            .map((r) => ({ label: r.name, amount: r.amounts[i], color: r.color }))
+            .filter((r) => r.amount > 0),
         })),
       },
-      rows: statuses.map((label, i) => ({
-        id: label,
-        name: label,
-        amount: rows.reduce((s, r) => s + r.amounts[i], 0),
-        metric: { label: 'Đã thanh toán', value: money(settledAmount) },
-        details: rows
-          .map((r) => ({ label: r.name, amount: r.amounts[i], color: r.color }))
-          .filter((r) => r.amount > 0),
-      })),
-    },
-    {
-      title: 'Đến hạn trong 4 tuần tới',
-      period: noun,
-      type: 'bar',
-      stacked: true,
-      totalLabel: 'Đến hạn trong tuần',
-      data: {
-        labels: weeks.map(
-          (w) => `${w.from.slice(8)}/${w.from.slice(5, 7)}–${w.to.slice(8)}/${w.to.slice(5, 7)}`,
-        ),
-        datasets: rows.map((r, i) => ({
-          label: r.name,
-          data: weeks.map((w) => w.amounts[i]),
-          backgroundColor: r.color,
-          maxBarThickness: 48,
+      {
+        title: 'Đến hạn trong 4 tuần tới',
+        period: noun,
+        type: 'bar',
+        stacked: true,
+        totalLabel: 'Đến hạn trong tuần',
+        data: {
+          labels: weeks.map(
+            (w) => `${w.from.slice(8)}/${w.from.slice(5, 7)}–${w.to.slice(8)}/${w.to.slice(5, 7)}`,
+          ),
+          datasets: rows.map((r, i) => ({
+            label: r.name,
+            data: weeks.map((w) => w.amounts[i]),
+            backgroundColor: r.color,
+            maxBarThickness: 48,
+          })),
+        },
+        rows: weeks.map((w) => ({
+          id: w.from,
+          name: `${period(w.from)}–${period(w.to)}`,
+          amount: w.amounts.reduce((s, a) => s + a, 0),
+          details: rows
+            .map((r, i) => ({ label: r.name, amount: w.amounts[i], color: r.color }))
+            .filter((r) => r.amount > 0),
         })),
       },
-      rows: weeks.map((w) => ({
-        id: w.from,
-        name: `${period(w.from)}–${period(w.to)}`,
-        amount: w.amounts.reduce((s, a) => s + a, 0),
-        details: rows
-          .map((r, i) => ({ label: r.name, amount: w.amounts[i], color: r.color }))
-          .filter((r) => r.amount > 0),
-      })),
-    },
-    {
-      title: 'Tỷ trọng nợ còn lại',
-      period: noun,
-      type: 'doughnut',
-      showDetails: false,
-      totalLabel: 'Nợ chưa thanh toán',
-      data: {
-        labels: rows.map((r) => r.name),
-        datasets: [
-          {
-            data: rows.map((r) => r.amount),
-            backgroundColor: rows.map((r) => r.color),
-            borderWidth: 2,
-            borderColor: '#fff',
-          },
-        ],
+      {
+        title: 'Tỷ trọng nợ còn lại',
+        period: noun,
+        type: 'doughnut',
+        showDetails: false,
+        totalLabel: 'Nợ chưa thanh toán',
+        data: {
+          labels: rows.map((r) => r.name),
+          datasets: [
+            {
+              data: rows.map((r) => r.amount),
+              backgroundColor: rows.map((r) => r.color),
+              borderWidth: 2,
+              borderColor: '#fff',
+            },
+          ],
+        },
+        rows: rows.map((r) => ({
+          id: r.id,
+          name: r.name,
+          amount: r.amount,
+          color: r.color,
+          icon: 'icon' in r ? r.icon : undefined,
+          metric: { label: 'Tỷ trọng', value: pct(r.amount, total) },
+          details: rows.map((g) => ({ label: g.name, amount: g.amount, color: g.color })),
+        })),
       },
-      rows: rows.map((r) => ({
-        id: r.id,
-        name: r.name,
-        amount: r.amount,
-        color: r.color,
-        icon: 'icon' in r ? r.icon : undefined,
-        metric: { label: 'Tỷ trọng', value: pct(r.amount, total) },
-        details: rows.map((g) => ({ label: g.name, amount: g.amount, color: g.color })),
-      })),
-    },
-  ];
-  return renderChartPages(panels, control);
+    ];
+    return { ...panels[index], control };
+  };
+  return renderChartPages(directions.map(debtPanels));
 }
