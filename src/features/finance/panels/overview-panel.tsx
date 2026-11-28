@@ -23,6 +23,7 @@ import {
   type Expense,
   type FinanceData,
   type getStatistics,
+  debtSourceIdForDisplay,
   money,
 } from '../model';
 import ExpenseDetails from '../components/expense-details';
@@ -47,6 +48,24 @@ type Props = {
   onBudgetExchange: () => void;
   month: string;
 };
+
+function TooltipStat({
+  label,
+  value,
+  highlight = false,
+}: {
+  label: string;
+  value: string;
+  highlight?: boolean;
+}) {
+  return (
+    <div className={`finance-tooltip-stat${highlight ? ' finance-tooltip-stat-highlight' : ''}`}>
+      <span>{label}</span>
+      <b>{value}</b>
+    </div>
+  );
+}
+
 export default function OverviewPanel({
   data,
   stats,
@@ -68,7 +87,9 @@ export default function OverviewPanel({
   const filtered = useMemo(() => {
     const matchesSearch = createNameAmountSearchMatcher(search);
     const sourceDebts = new Set(
-      data.debts.filter((debt) => debt.debtSourceId === filters.sourceId).map((debt) => debt.id),
+      data.debts
+        .filter((debt) => debtSourceIdForDisplay(data, debt) === filters.sourceId)
+        .map((debt) => debt.id),
     );
     return stats.expenses.filter(
       (expense) =>
@@ -77,7 +98,7 @@ export default function OverviewPanel({
         (!filters.categoryId || expense.categoryId === filters.categoryId) &&
         (!filters.sourceId || (!!expense.debtId && sourceDebts.has(expense.debtId))),
     );
-  }, [stats.expenses, search, filters, data.debts]);
+  }, [stats.expenses, search, filters, data.debts, data.debtTypes]);
   const { viewportRef, endRef, visibleCount, hasMore } = useHistoryWindow(
     filtered.length,
     JSON.stringify([month, search, filters]),
@@ -128,24 +149,19 @@ export default function OverviewPanel({
               className="stat overview-stat overview-stat-remaining"
               label="Còn lại trong tháng"
               placement="bottom"
+              interaction="click"
               content={
                 <>
-                  <span>
-                    Dư đầu kỳ: <b>{money(periodBalances.opening.total)}</b>
-                  </span>
-                  <span>
-                    Tiền cấp tháng: <b>{money(monthBudget)}</b>
-                  </span>
-                  <span>
-                    Đã chi tiêu: <b>{money(stats.total)}</b>
-                  </span>
-                  <span>
-                    Dư ngân sách cuối kỳ: <b>{money(periodBalances.closing.total)}</b>
-                  </span>
-                  <span>
-                    Bao gồm biến động thu/trả công nợ; không gồm tiết kiệm hoặc thu nhập chưa phân
-                    bổ.
-                  </span>
+                  <div className="finance-tooltip-stats">
+                    <TooltipStat label="Dư đầu kỳ" value={money(periodBalances.opening.total)} />
+                    <TooltipStat label="Tiền cấp tháng" value={money(monthBudget)} />
+                    <TooltipStat label="Đã chi tiêu" value={money(stats.total)} />
+                    <TooltipStat
+                      label="Còn lại cuối kỳ"
+                      value={money(periodBalances.closing.total)}
+                      highlight
+                    />
+                  </div>
                 </>
               }
             >
@@ -163,18 +179,20 @@ export default function OverviewPanel({
               className="stat overview-stat overview-stat-remaining"
               label="Thực tế"
               placement="bottom"
+              interaction="click"
               content={
-                <>
-                  <span>
-                    Tổng tiền hiện có: <b>{money(data.balance)}</b>
-                  </span>
-                  <span>
-                    Nợ phải trả trong tháng: <b>{money(cashStats.reserve)}</b>
-                  </span>
-                  <span>
-                    Thực tế: <b>{money(cashStats.actual)}</b>
-                  </span>
-                </>
+                <div className="finance-tooltip-stats">
+                  <TooltipStat label="Tổng tiền hiện có" value={money(data.balance)} />
+                  <TooltipStat
+                    label="Nợ chưa thanh toán trong tháng"
+                    value={money(cashStats.reserve)}
+                  />
+                  <TooltipStat
+                    label="Thực tế sau khi trừ nợ"
+                    value={money(cashStats.actual)}
+                    highlight
+                  />
+                </div>
               }
             >
               <span className="stat-label">
@@ -197,23 +215,17 @@ export default function OverviewPanel({
               className="stat overview-stat overview-stat-debt"
               label="Nợ/ngày"
               placement="bottom"
+              interaction="click"
               content={
-                <>
-                  <span>
-                    Nợ phải trả trong tháng: <b>{money(cashStats.reserve)}</b>
-                  </span>
-                  <span>
-                    Số ngày thống kê: <b>{stats.elapsedDays} ngày</b>
-                  </span>
-                  <span>
-                    Nợ trung bình/ngày: <b>{money(cashStats.averageDebt)}</b>
-                  </span>
-                  <span>Chỉ gồm nợ phải trả chưa hoàn tất, đến hạn trong tháng đang xem.</span>
-                  <span>
-                    Tháng hiện tại tính đến hôm nay; tháng đã qua tính đủ ngày; tháng tương lai bằng
-                    0.
-                  </span>
-                </>
+                <div className="finance-tooltip-stats">
+                  <TooltipStat label="Nợ đến hạn trong tháng" value={money(cashStats.reserve)} />
+                  <TooltipStat label="Số ngày thống kê" value={`${stats.elapsedDays} ngày`} />
+                  <TooltipStat
+                    label="Nợ trung bình mỗi ngày"
+                    value={money(cashStats.averageDebt)}
+                    highlight
+                  />
+                </div>
               }
             >
               <span className="stat-label">

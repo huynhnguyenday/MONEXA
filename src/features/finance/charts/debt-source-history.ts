@@ -1,4 +1,4 @@
-import { dateKey, debtDirection, type FinanceData } from '../model';
+import { dateKey, debtDirection, debtSourceIdForDisplay, type FinanceData } from '../model';
 
 export function debtSourceHistory(
   data: FinanceData,
@@ -23,11 +23,15 @@ export function debtSourceHistory(
     const date = `${month}-${String(index + 1).padStart(2, '0')}`;
     const items = entries
       .filter((debt) => dateKey(debt.settledAt!) === date)
-      .map((debt) => ({
-        id: debt.id,
-        title: `${data.debtSources.find((source) => source.id === debt.debtSourceId)?.name || 'Nguồn công nợ'} · ${debt.title}`,
-        amount: debt.amount,
-      }));
+      .map((debt) => {
+        const sourceId = debtSourceIdForDisplay(data, debt);
+        const source = data.debtSources.find((item) => item.id === sourceId);
+        return {
+          id: debt.id,
+          title: `${source?.name || (!sourceId ? 'Ngân sách' : 'Nguồn công nợ')} · ${debt.title}`,
+          amount: debt.amount,
+        };
+      });
     return { date, items, amount: items.reduce((sum, item) => sum + item.amount, 0) };
   });
   return daily;

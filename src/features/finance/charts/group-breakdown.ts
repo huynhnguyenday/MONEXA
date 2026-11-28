@@ -1,5 +1,17 @@
-export type BreakdownGroup = { id: string; name: string; color: string; icon?: string; customIconId?: string | null };
-export type BreakdownRecord = { groupId: string; amount: number; date: string };
+export type BreakdownGroup = {
+  id: string;
+  name: string;
+  color: string;
+  icon?: string;
+  customIconId?: string | null;
+};
+export type BreakdownRecord = {
+  id: string;
+  groupId: string;
+  title: string;
+  amount: number;
+  date: string;
+};
 
 // Dates arrive as Vietnam calendar keys: YYYY-MM-DD, never device-local timestamps.
 export function groupBreakdown(

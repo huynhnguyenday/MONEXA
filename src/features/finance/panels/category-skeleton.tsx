@@ -10,6 +10,10 @@ import './category-panel.css';
 
 export default function CategorySkeleton({ sources = false }: { sources?: boolean }) {
   const label = sources ? 'nguồn công nợ' : 'danh mục';
+  const chartGroups = [
+    ['month', 'year'],
+    ['trend', 'reserved'],
+  ];
   return (
     <section
       className="category-screen finance-skeleton category-skeleton"
@@ -26,18 +30,22 @@ export default function CategorySkeleton({ sources = false }: { sources?: boolea
         loading
       />
       <div className="category-charts" aria-hidden="true">
-        {['month', 'year', 'trend', 'reserved'].map((period) => (
-          <article className="card category-chart-panel" key={period}>
-            <div className="category-chart-toolbar">
-              <h2 className="skeleton-title-shell">
-                <Skeleton />
-              </h2>
-              <MonthPickerSkeleton />
-            </div>
-            <div className="category-chart">
-              <ChartSkeleton />
-            </div>
-          </article>
+        {chartGroups.map((periods, index) => (
+          <div className="category-chart-page" key={index}>
+            {periods.map((period) => (
+              <article className="card category-chart-panel" key={period}>
+                <div className="category-chart-toolbar">
+                  <h2 className="skeleton-title-shell">
+                    <Skeleton />
+                  </h2>
+                  <MonthPickerSkeleton />
+                </div>
+                <div className="category-chart">
+                  <ChartSkeleton />
+                </div>
+              </article>
+            ))}
+          </div>
         ))}
       </div>
       <div className="category-management">

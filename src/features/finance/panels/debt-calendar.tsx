@@ -11,7 +11,14 @@ import {
 import DatePicker from 'react-datepicker';
 import { format, startOfMonth, getDaysInMonth } from 'date-fns';
 import { vi } from 'date-fns/locale';
-import { type Debt, type FinanceData, dateKey, debtDirection, money } from '../model';
+import {
+  type Debt,
+  type FinanceData,
+  dateKey,
+  debtDirection,
+  debtSourceIdForDisplay,
+  money,
+} from '../model';
 import DebtCalendarAmount from './debt-calendar-amount';
 import { LoadingSkeleton } from '../components/loading-skeleton';
 export default function DebtCalendar({
@@ -186,7 +193,10 @@ export default function DebtCalendar({
             <div className="debt-day-tooltip-list">
               {(byDueDate.get(tooltipDate) || []).length ? (
                 (byDueDate.get(tooltipDate) || []).map((debt) => {
-                  const source = data.debtSources.find((item) => item.id === debt.debtSourceId);
+                  const sourceId = debtSourceIdForDisplay(data, debt);
+                  const source = sourceId
+                    ? data.debtSources.find((item) => item.id === sourceId)
+                    : undefined;
                   return (
                     <article className="debt-day-tooltip-entry" key={debt.id}>
                       <div className="debt-day-tooltip-row">
@@ -206,8 +216,7 @@ export default function DebtCalendar({
                             'Loại công nợ'}
                         </span>
                         <span>
-                          {source?.name ||
-                            (!debt.debtSourceId ? 'Ngân sách' : 'Không rõ nguồn công nợ')}
+                          {source?.name || (!sourceId ? 'Ngân sách' : 'Không rõ nguồn công nợ')}
                         </span>
                       </div>
                     </article>

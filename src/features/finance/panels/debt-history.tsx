@@ -14,8 +14,18 @@ import {
 import { useHistoryWindow } from '../hooks/use-history-window';
 import HistoryEnd from '../components/history-end';
 import { DebtSourceIcon } from '../debt-source-icon';
-import DebtHistoryFilters, { type DebtHistorySort } from './debt-history-filters';
-import { type Debt, type FinanceData, dateKey, debtDirection, money } from '../model';
+import DebtHistoryFilters, {
+  BUDGET_SOURCE_FILTER,
+  type DebtHistorySort,
+} from './debt-history-filters';
+import {
+  type Debt,
+  type FinanceData,
+  dateKey,
+  debtDirection,
+  debtSourceIdForDisplay,
+  money,
+} from '../model';
 import './debt-history.css';
 type Props = {
   data: FinanceData;
@@ -37,7 +47,10 @@ export default function DebtHistory({ data, ready, onAdd, onEdit, onDelete, onSe
       data.debts
         .filter(
           (debt) =>
-            (!source || debt.debtSourceId === source) &&
+            (!source ||
+              (source === BUDGET_SOURCE_FILTER
+                ? !debtSourceIdForDisplay(data, debt)
+                : debtSourceIdForDisplay(data, debt) === source)) &&
             (!statusFilter ||
               (statusFilter === 'settled'
                 ? !!debt.settledAt
@@ -62,7 +75,7 @@ export default function DebtHistory({ data, ready, onAdd, onEdit, onDelete, onSe
             a.id.localeCompare(b.id)
           );
         }),
-    [data.debts, source, statusFilter, sort, today],
+    [data.debts, data.debtTypes, source, statusFilter, sort, today],
   );
   const { viewportRef, endRef, visibleCount, hasMore } = useHistoryWindow(
     history.length,
@@ -81,6 +94,7 @@ export default function DebtHistory({ data, ready, onAdd, onEdit, onDelete, onSe
         }}
       >
         <option value="">Nguồn công nợ</option>
+        <option value={BUDGET_SOURCE_FILTER}>Ngân sách</option>
         {data.debtSources.map((item) => (
           <option key={item.id} value={item.id}>
             {item.name}
@@ -235,7 +249,10 @@ export default function DebtHistory({ data, ready, onAdd, onEdit, onDelete, onSe
             </thead>
             <tbody>
               {visibleItems.map((debt) => {
-                const source = data.debtSources.find((item) => item.id === debt.debtSourceId);
+                const sourceId = debtSourceIdForDisplay(data, debt);
+                const source = sourceId
+                  ? data.debtSources.find((item) => item.id === sourceId)
+                  : undefined;
                 const status = debt.settledAt
                   ? 'Đã thanh toán'
                   : overdue(debt)
@@ -257,8 +274,7 @@ export default function DebtHistory({ data, ready, onAdd, onEdit, onDelete, onSe
                       >
                         {source && <DebtSourceIcon icon={source.icon} />}
                         <span>
-                          {source?.name ||
-                            (!debt.debtSourceId ? 'Ngân sách' : 'Không rõ nguồn công nợ')}
+                          {source?.name || (!sourceId ? 'Ngân sách' : 'Không rõ nguồn công nợ')}
                         </span>
                       </span>
                     </td>

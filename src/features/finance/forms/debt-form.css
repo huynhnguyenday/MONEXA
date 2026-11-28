@@ -3,7 +3,7 @@
   gap: 10px;
 }
 .debt-entry-dialog .dialog-heading {
-  padding-bottom: 0;
+  padding-bottom: 8px;
 }
 .debt-category-heading {
   display: flex;

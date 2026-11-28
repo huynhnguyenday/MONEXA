@@ -68,21 +68,24 @@ export default function ClassificationScreen({
           style={carousel.paneStyle(0)}
           inert={carousel.mobile && carousel.active !== 0}
         >
-          <GroupBreakdownChart
-            groups={groups}
-            records={records}
-            period={chartMonth}
-            kind={kind}
-            customIcons={customIcons}
-            title={`${chartLabel} theo tháng`}
-            picker={<MonthPicker value={chartMonth} onChange={setChartMonth} />}
-          />
           <ClassificationInsights
+            lead={
+              <GroupBreakdownChart
+                groups={groups}
+                records={records}
+                period={chartMonth}
+                kind={kind}
+                customIcons={customIcons}
+                title={`${chartLabel} theo tháng`}
+                picker={<MonthPicker value={chartMonth} onChange={setChartMonth} />}
+              />
+            }
             groups={groups}
             records={records}
             month={chartMonth}
             kind={kind}
             data={data}
+            customIcons={customIcons}
           />
         </div>
         <div

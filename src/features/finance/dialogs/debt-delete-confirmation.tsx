@@ -4,7 +4,7 @@ import { FontAwesomeIcon as Icon } from '@fortawesome/react-fontawesome';
 import { faTrashCan, faXmark } from '@fortawesome/free-solid-svg-icons';
 import LoadingSpinner from '@/components/loading-spinner';
 import { DebtSourceIcon } from '../debt-source-icon';
-import { money, type Debt } from '../model';
+import { debtSourceIdForDisplay, money, type Debt } from '../model';
 import type { FormProps } from '../forms/types';
 import './debt-payment-confirmation.css';
 
@@ -18,7 +18,8 @@ export default function DebtDeleteConfirmation({
 }: FormProps & { debt: Debt; onCancel: () => void }) {
   const current = data.debts.find((item) => item.id === debt.id);
   const unchanged = !!current && JSON.stringify(current) === JSON.stringify(debt);
-  const source = data.debtSources.find((item) => item.id === debt.debtSourceId);
+  const sourceId = debtSourceIdForDisplay(data, debt);
+  const source = sourceId ? data.debtSources.find((item) => item.id === sourceId) : undefined;
   return (
     <form
       className="debt-payment-confirmation"
@@ -38,7 +39,7 @@ export default function DebtDeleteConfirmation({
       <div className="debt-payment-context">
         <span style={{ color: source?.color }}>
           {source && <DebtSourceIcon icon={source.icon} />}
-          <strong>{source?.name || (!debt.debtSourceId ? 'Ngân sách' : 'Nguồn công nợ')}</strong>
+          <strong>{source?.name || (!sourceId ? 'Ngân sách' : 'Nguồn công nợ')}</strong>
         </span>
         {debt.dueDate && (
           <time dateTime={debt.dueDate}>{debt.dueDate.split('-').reverse().join('/')}</time>
@@ -69,11 +70,7 @@ export default function DebtDeleteConfirmation({
         Xóa khoản công nợ này và chi tiêu tự động liên kết (nếu có). Số dư sẽ được tính lại theo các
         giao dịch còn lại.
       </p>
-      {!unchanged && (
-        <Toast>
-          Công nợ đã thay đổi. Hãy đóng và mở lại xác nhận xóa.
-        </Toast>
-      )}
+      {!unchanged && <Toast>Công nợ đã thay đổi. Hãy đóng và mở lại xác nhận xóa.</Toast>}
       <div className="debt-payment-actions">
         <button
           type="button"

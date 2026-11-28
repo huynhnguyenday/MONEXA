@@ -2575,7 +2575,7 @@ dialog .dialog-content textarea {
   padding-inline: 6px;
   font-size: 11px;
 }
-.expense-amount-time-row .calendar-day-button {
+.calendar-day-button {
   display: flex;
   align-items: center;
   justify-content: center;
@@ -2591,20 +2591,20 @@ dialog .dialog-content textarea {
   box-shadow: 0 1px 2px rgb(20 45 78 / 8%);
   font-size: 11px;
 }
-.expense-amount-time-row .calendar-day-button span {
+.calendar-day-button span {
   min-width: 0;
   overflow-wrap: anywhere;
 }
-.expense-amount-time-row .calendar-day-button svg {
+.calendar-day-button svg {
   flex: none;
   width: 14px;
   height: 14px;
 }
-.expense-amount-time-row .calendar-day-button:hover:not(:disabled) {
+.calendar-day-button:hover:not(:disabled) {
   border-color: #1d4ed8;
   background: #dbeafe;
 }
-.expense-amount-time-row .calendar-day-button:focus-visible {
+.calendar-day-button:focus-visible {
   outline: 2px solid #1d4ed8;
   outline-offset: 2px;
 }

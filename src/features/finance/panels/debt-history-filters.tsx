@@ -5,6 +5,7 @@ import { faSliders } from '@fortawesome/free-solid-svg-icons';
 import Dialog from '@/components/dialog';
 import type { FinanceData } from '../model';
 
+export const BUDGET_SOURCE_FILTER = 'virtual:budget';
 export type DebtHistorySort = 'default' | 'amountAsc' | 'amountDesc' | 'dueDesc';
 export default function DebtHistoryFilters({
   sources,
@@ -55,6 +56,7 @@ export default function DebtHistoryFilters({
                 onChange={(event) => onSource(event.target.value)}
               >
                 <option value="">Tất cả nguồn</option>
+                <option value={BUDGET_SOURCE_FILTER}>Ngân sách</option>
                 {sources.map((item) => (
                   <option key={item.id} value={item.id}>
                     {item.name}

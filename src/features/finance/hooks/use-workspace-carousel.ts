@@ -2,7 +2,11 @@
 import { useEffect, useRef, useState, type CSSProperties, type TouchEvent } from 'react';
 
 // Both full screens stay mounted; swiping either way reveals the other screen.
-export function useWorkspaceCarousel() {
+export function useWorkspaceCarousel({
+  handoffForwardSwipeAtEnd = false,
+}: {
+  handoffForwardSwipeAtEnd?: boolean;
+} = {}) {
   const ref = useRef<HTMLDivElement>(null);
   const [active, setActive] = useState(0);
   const [side, setSide] = useState(1);
@@ -60,9 +64,11 @@ export function useWorkspaceCarousel() {
     gesture.current = null;
     settle();
   };
-  const move = () => {
-    setActive((current) => 1 - current);
-    setSide(-dragSide.current);
+  const move = (direction: 1 | -1) => {
+    const next = active + direction;
+    if (next < 0 || next > 1) return settle();
+    setActive(next);
+    setSide(-direction);
     settle();
   };
   return {
@@ -70,8 +76,7 @@ export function useWorkspaceCarousel() {
     active,
     select: (index: number) => {
       if (index !== active && (index === 0 || index === 1)) {
-        dragSide.current = side;
-        move();
+        move(index > active ? 1 : -1);
       }
     },
     mobile,
@@ -115,6 +120,20 @@ export function useWorkspaceCarousel() {
         start.horizontal = true;
         dragSide.current = dx < 0 ? 1 : -1;
       }
+      const direction = dx < 0 ? 1 : -1;
+      const atBoundary = direction === 1 ? active === 1 : active === 0;
+      if (handoffForwardSwipeAtEnd) {
+        if (atBoundary && direction === 1) {
+          gesture.current = null;
+          return;
+        }
+        event.stopPropagation();
+        if (atBoundary) {
+          start.dx = dx;
+          suppressClick.current = true;
+          return;
+        }
+      }
       start.dx = dx;
       if (ref.current) ref.current.dataset.workspaceDragging = 'true';
       suppressClick.current = true;
@@ -131,7 +150,7 @@ export function useWorkspaceCarousel() {
       const start = gesture.current;
       gesture.current = null;
       const threshold = Math.min(60, width.current * 0.18);
-      if (start?.horizontal && Math.abs(start.dx) >= threshold) move();
+      if (start?.horizontal && Math.abs(start.dx) >= threshold) move(start.dx < 0 ? 1 : -1);
       else {
         settle();
       }
@@ -148,7 +167,7 @@ export function useWorkspaceCarousel() {
       if (event.target !== event.currentTarget || !mobile) return;
       if (event.key === 'ArrowRight' || event.key === 'ArrowLeft') {
         event.preventDefault();
-        move();
+        move(event.key === 'ArrowRight' ? 1 : -1);
       }
     },
   };

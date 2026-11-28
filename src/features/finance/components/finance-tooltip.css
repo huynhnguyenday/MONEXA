@@ -15,8 +15,72 @@
   line-height: 1.5;
   text-align: left;
 }
-.finance-tooltip > strong {
+.finance-tooltip-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+.finance-tooltip-heading > strong {
   font-size: 12px;
+}
+.finance-tooltip .monexa-close {
+  display: none;
+}
+.finance-tooltip.finance-tooltip-click .monexa-close {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 30.8px;
+  height: 30.8px;
+  min-width: 30.8px;
+  min-height: 30.8px;
+  padding: 0;
+  flex: none;
+}
+.finance-tooltip.finance-tooltip-click .monexa-close svg {
+  width: 14px;
+  height: 14px;
+}
+.finance-tooltip:has(.finance-tooltip-stats) {
+  width: 304px;
+  gap: 10px;
+  padding: 12px;
+  border-radius: 16px;
+  box-shadow: 0 8px 28px #142d4e33;
+  font-size: 12px;
+}
+.finance-tooltip-stats {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+}
+.finance-tooltip-stat {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-width: 0;
+  padding: 12px 8px;
+  border: 1px solid #dbeafe;
+  border-radius: 10px;
+  background: #eff6ff;
+}
+.finance-tooltip-stat span {
+  color: #526581;
+  font-size: 11px;
+}
+.finance-tooltip-stat b {
+  color: #1d4ed8;
+  font-size: 14px;
+  font-variant-numeric: tabular-nums;
+  overflow-wrap: anywhere;
+  white-space: normal;
+}
+.finance-tooltip-stat-highlight {
+  border-color: #93c5fd;
+}
+.finance-tooltip-stat-highlight b {
+  font-size: 16px;
 }
 .finance-tooltip > span {
   display: flex;

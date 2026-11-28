@@ -1,10 +1,16 @@
 import CategoryIcon from './category-icon';
 import { DebtSourceIcon } from '../debt-source-icon';
-import { expenseCategoryId, type Expense, type FinanceData } from '../model';
+import {
+  debtSourceIdForDisplay,
+  expenseCategoryId,
+  type Expense,
+  type FinanceData,
+} from '../model';
 
 export default function ExpenseDetails({ data, expense }: { data: FinanceData; expense: Expense }) {
   const debt = expense.debtId ? data.debts.find((item) => item.id === expense.debtId) : undefined;
-  const source = debt && data.debtSources.find((item) => item.id === debt.debtSourceId);
+  const sourceId = debt && debtSourceIdForDisplay(data, debt);
+  const source = sourceId ? data.debtSources.find((item) => item.id === sourceId) : undefined;
   const categoryId = expenseCategoryId(data, expense);
   const category = data.categories.find((item) => item.id === categoryId);
   const sourceColor = source?.color || '#1d4ed8';
@@ -39,8 +45,7 @@ export default function ExpenseDetails({ data, expense }: { data: FinanceData; e
           <small>Nguồn công nợ</small>
           <span style={{ color: sourceColor }}>
             {source && <DebtSourceIcon icon={source.icon} />}
-            {source?.name ||
-              (!debt.debtSourceId ? 'Ngân sách' : 'Nguồn công nợ không còn khả dụng')}
+            {source?.name || (!sourceId ? 'Ngân sách' : 'Nguồn công nợ không còn khả dụng')}
           </span>
         </div>
       )}

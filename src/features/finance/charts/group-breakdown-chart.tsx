@@ -92,19 +92,36 @@ export default function GroupBreakdownChart({
       const rect = chart.canvas.getBoundingClientRect();
       const next: ExpenseChartSelection = {
         title: `${group.name} · ${periodLabel}`,
-        items: allTotals.map((g) => ({
-          id: g.id,
-          title: g.name,
-          amount: g.amount,
-          color: g.color,
-        })),
+        items: records
+          .filter((record) => record.groupId === group.id && record.date.startsWith(`${period}-`))
+          .sort((a, b) => b.date.localeCompare(a.date))
+          .map((record) => ({
+            id: record.id,
+            title: record.title,
+            amount: record.amount,
+          })),
         x: rect.left + point.element.x,
         y: rect.top + point.element.y,
         anchor: chart.canvas,
         hover,
+        titleColor: group.color,
+        titleIcon: group.icon ? (
+          kind === 'expense' ? (
+            <CategoryIcon
+              category={{
+                icon: (group.icon as Category['icon']) || 'receipt',
+                customIconId: group.customIconId,
+              }}
+              assets={customIcons}
+              style={{ color: group.color }}
+            />
+          ) : (
+            <DebtSourceIcon icon={(group.icon as DebtSource['icon']) || 'person'} />
+          )
+        ) : undefined,
         totalLabel: `Tổng ${noun}`,
         totalAmount: group.amount,
-        itemUnit: 'mục',
+        itemUnit: kind === 'expense' ? 'khoản chi' : 'khoản công nợ',
         metrics: [{ label: 'Số khoản', value: String(group.count) }],
       };
       setSelection((previous) =>
@@ -154,7 +171,9 @@ export default function GroupBreakdownChart({
     },
   };
   return (
-    <article className="card category-chart-panel">
+    <article
+      className={`card category-chart-panel category-monthly-chart${kind === 'expense' ? ' category-monthly-expense-chart' : ''}`}
+    >
       <div className="category-chart-toolbar">
         <h2>
           {title}

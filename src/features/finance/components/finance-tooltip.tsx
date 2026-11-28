@@ -8,6 +8,8 @@ import {
   useState,
   type ReactNode,
 } from 'react';
+import { FontAwesomeIcon as Icon } from '@fortawesome/react-fontawesome';
+import { faXmark } from '@fortawesome/free-solid-svg-icons';
 import { createPortal } from 'react-dom';
 import './finance-tooltip.css';
 
@@ -18,6 +20,7 @@ export default function FinanceTooltip({
   content,
   children,
   placement = 'top',
+  interaction = 'hover',
 }: {
   as?: 'button' | 'article';
   className: string;
@@ -25,6 +28,7 @@ export default function FinanceTooltip({
   content: ReactNode;
   children: ReactNode;
   placement?: 'top' | 'bottom';
+  interaction?: 'hover' | 'click';
 }) {
   const id = useId();
   const anchor = useRef<HTMLElement>(null);
@@ -32,6 +36,7 @@ export default function FinanceTooltip({
   const closeTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [open, setOpen] = useState(false);
   const [position, setPosition] = useState<{ left: number; top: number } | null>(null);
+  const clickOnly = interaction === 'click';
   const show = () => {
     if (closeTimer.current) clearTimeout(closeTimer.current);
     document.dispatchEvent(new CustomEvent('finance-tooltip-open', { detail: id }));
@@ -111,10 +116,10 @@ export default function FinanceTooltip({
           'aria-label': label,
           'aria-describedby': open ? id : undefined,
           'aria-expanded': open,
-          onMouseEnter: show,
-          onMouseLeave: hideSoon,
-          onFocus: show,
-          onBlur: () => setOpen(false),
+          onMouseEnter: clickOnly ? undefined : show,
+          onMouseLeave: clickOnly ? undefined : hideSoon,
+          onFocus: clickOnly ? undefined : show,
+          onBlur: clickOnly ? undefined : () => setOpen(false),
           onClick: show,
           onKeyDown: (event: React.KeyboardEvent) => {
             if (as === 'article' && (event.key === 'Enter' || event.key === ' ')) {
@@ -131,16 +136,26 @@ export default function FinanceTooltip({
             ref={popup}
             id={id}
             role="tooltip"
-            className="finance-tooltip"
+            className={`finance-tooltip${clickOnly ? ' finance-tooltip-click' : ''}`}
             style={{
               left: position?.left ?? 0,
               top: position?.top ?? 0,
               visibility: position ? 'visible' : 'hidden',
             }}
-            onMouseEnter={show}
-            onMouseLeave={hideSoon}
+            onMouseEnter={clickOnly ? undefined : show}
+            onMouseLeave={clickOnly ? undefined : hideSoon}
           >
-            <strong>{label}</strong>
+            <div className="finance-tooltip-heading">
+              <strong>{label}</strong>
+              <button
+                type="button"
+                className="monexa-action monexa-close"
+                aria-label={`Đóng ${label}`}
+                onClick={() => setOpen(false)}
+              >
+                <Icon icon={faXmark} />
+              </button>
+            </div>
             {content}
           </div>,
           document.body,

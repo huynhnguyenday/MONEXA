@@ -19,10 +19,28 @@
   gap: 10px;
   flex: none;
 }
-.expense-chart-tooltip-heading strong {
+.expense-chart-tooltip-title {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  min-width: 0;
+  flex: 1;
+}
+.expense-chart-tooltip-title strong {
   min-width: 0;
   font-size: 13px;
   overflow-wrap: anywhere;
+}
+.expense-chart-tooltip-title-icon {
+  display: grid;
+  place-items: center;
+  width: 18px;
+  height: 18px;
+  flex: none;
+}
+.expense-chart-tooltip-title-icon > :is(svg, img, span) {
+  width: 18px;
+  height: 18px;
 }
 .expense-chart-tooltip-heading .monexa-close {
   flex: none;
@@ -66,16 +84,47 @@
   color: #64748b;
   font-size: 11px;
 }
-.expense-chart-tooltip-list {
+.expense-chart-tooltip-list-container {
+  position: relative;
+  display: flex;
   flex: 0 1 auto;
+  min-height: 0;
+  max-height: 224px;
+}
+.expense-chart-tooltip-list {
+  flex: 1 1 auto;
+  min-width: 0;
   min-height: 0;
   max-height: 224px;
   overflow-y: auto;
   overscroll-behavior: contain;
-  scrollbar-width: thin;
+  scrollbar-width: none;
   border: 1px solid #e2e8f0;
   border-radius: 10px;
   background: #f8fafc;
+}
+.expense-chart-tooltip-list::-webkit-scrollbar {
+  display: none;
+  width: 0;
+  height: 0;
+}
+.expense-chart-tooltip-scrollbar {
+  position: absolute;
+  top: 4px;
+  right: 4px;
+  bottom: 4px;
+  width: 4px;
+  border-radius: 4px;
+  background: #cbd5e1;
+  pointer-events: none;
+}
+.expense-chart-tooltip-scrollbar-thumb {
+  position: absolute;
+  right: 0;
+  left: 0;
+  min-height: 18px;
+  border-radius: 4px;
+  background: var(--scrollbar-thumb);
 }
 .expense-chart-tooltip-list:focus-visible {
   outline: 2px solid #1d4ed8;

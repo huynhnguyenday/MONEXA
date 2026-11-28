@@ -30,9 +30,6 @@
   font-size: 11px;
 }
 @media (max-width: 1023px) {
-  .category-workspace .category-charts {
-    grid-template-rows: repeat(4, minmax(280px, 1fr));
-  }
   .insight-canvas {
     min-height: 160px;
   }

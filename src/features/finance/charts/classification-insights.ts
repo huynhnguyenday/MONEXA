@@ -1,4 +1,4 @@
-﻿import { debtDirection, type FinanceData } from '../model';
+import { debtDirection, debtSourceIdForDisplay, type FinanceData } from '../model';
 import { groupBreakdown, type BreakdownGroup, type BreakdownRecord } from './group-breakdown';
 
 export function categoryInsights(
@@ -29,11 +29,14 @@ export function debtInsights(
   today: string,
 ) {
   const open = data.debts.filter((d) => !d.settledAt && debtDirection(data, d) === direction);
+  const settledAmount = data.debts
+    .filter((d) => d.settledAt && debtDirection(data, d) === direction)
+    .reduce((sum, d) => sum + d.amount, 0);
   // Missing source on lending is a display group only, never a persisted relationship.
   const groups = [...data.debtSources, { id: '', name: 'Từ ngân sách', color: '#64748b' }];
   const rows = groups
     .map((g) => {
-      const debts = open.filter((d) => d.debtSourceId === g.id);
+      const debts = open.filter((d) => debtSourceIdForDisplay(data, d) === g.id);
       const amounts = [0, 0, 0, 0]; // Future, today, overdue, no due date.
       for (const d of debts)
         amounts[!d.dueDate ? 3 : d.dueDate < today ? 2 : d.dueDate === today ? 1 : 0] += d.amount;
@@ -51,13 +54,17 @@ export function debtInsights(
       amounts: rows.map((g) =>
         open
           .filter(
-            (d) => d.debtSourceId === g.id && d.dueDate && d.dueDate >= from && d.dueDate <= to,
+            (d) =>
+              debtSourceIdForDisplay(data, d) === g.id &&
+              d.dueDate &&
+              d.dueDate >= from &&
+              d.dueDate <= to,
           )
           .reduce((s, d) => s + d.amount, 0),
       ),
     };
   });
-  return { rows, weeks };
+  return { rows, weeks, settledAmount };
 }
 
 export function weeklyCategoryInsights(

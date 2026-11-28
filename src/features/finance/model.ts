@@ -257,6 +257,12 @@ export function debtDirection(
 ) {
   return data.debtTypes.find((type) => type.id === debt.debtTypeId)?.direction || 'payable';
 }
+export function debtSourceIdForDisplay(
+  data: Pick<FinanceData, 'debtTypes'>,
+  debt: Pick<Debt, 'debtTypeId' | 'debtSourceId'>,
+) {
+  return debtDirection(data, debt) === 'receivable' ? '' : debt.debtSourceId;
+}
 export type Snapshot = { data: FinanceData; revision: number };
 export const LEGACY_STORAGE_KEY = 'vi-cua-toi:v1';
 export const initialData: FinanceData = {

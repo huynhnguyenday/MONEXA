@@ -115,6 +115,23 @@
   width: 14px;
   height: 14px;
 }
+@media (max-width: 1023px) {
+  :root :is(.finance-tooltip, .expense-chart-tooltip, .debt-day-tooltip) button.monexa-close {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 30.8px;
+    height: 30.8px;
+    min-width: 30.8px;
+    min-height: 30.8px;
+    padding: 0;
+    flex: none;
+  }
+  :root :is(.finance-tooltip, .expense-chart-tooltip, .debt-day-tooltip) button.monexa-close svg {
+    width: 14px;
+    height: 14px;
+  }
+}
 :root button.monexa-action:hover:not(:disabled) {
   background: var(--action-hover-bg) !important;
   color: var(--action-hover-ink) !important;

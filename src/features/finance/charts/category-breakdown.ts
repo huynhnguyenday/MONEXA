@@ -12,7 +12,17 @@ export function categoryBreakdown(data: FinanceData): {
     if (!isSpendingExpense(data, expense)) return [];
     const groupId =
       expenseCategoryId(data, expense) || (expense.debtId ? UNCATEGORIZED_DEBT_GROUP : null);
-    return groupId ? [{ groupId, amount: expense.amount, date: dateKey(expense.occurredAt) }] : [];
+    return groupId
+      ? [
+          {
+            id: expense.id,
+            groupId,
+            title: expense.title,
+            amount: expense.amount,
+            date: dateKey(expense.occurredAt),
+          },
+        ]
+      : [];
   });
   const used = new Set(records.map((record) => record.groupId));
   const groups: BreakdownGroup[] = data.categories.filter(

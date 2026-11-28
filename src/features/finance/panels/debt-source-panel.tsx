@@ -3,9 +3,10 @@ import { useMemo, useState } from 'react';
 import { FontAwesomeIcon as Icon } from '@fortawesome/react-fontawesome';
 import { faMagnifyingGlass, faPen, faPlus, faTrashCan } from '@fortawesome/free-solid-svg-icons';
 import { createSearchMatcher } from '@/lib/search';
-import { type DebtSource, type FinanceData } from '../model';
+import { debtSourceIdForDisplay, type DebtSource, type FinanceData } from '../model';
 import ClassificationScreen from './classification-screen';
 import { DebtSourceIcon } from '../debt-source-icon';
+import type { BreakdownGroup } from '../charts/group-breakdown';
 export default function DebtSourcePanel({
   data,
   ready,
@@ -24,23 +25,23 @@ export default function DebtSourcePanel({
   const [search, setSearch] = useState('');
   const matchesSearch = createSearchMatcher(search);
   const sources = data.debtSources.filter((item) => matchesSearch(item.name));
+  const groups = useMemo<BreakdownGroup[]>(
+    () => [...data.debtSources, { id: '', name: 'Ngân sách', color: '#64748b', icon: 'bank' }],
+    [data.debtSources],
+  );
   const records = useMemo(
     () =>
       data.debts.map((item) => ({
-        groupId: item.debtSourceId,
+        id: item.id,
+        groupId: debtSourceIdForDisplay(data, item),
+        title: item.title,
         amount: item.amount,
         date: item.dueDate ?? '',
       })),
-    [data.debts],
+    [data.debts, data.debtTypes],
   );
   return (
-    <ClassificationScreen
-      data={data}
-      month={month}
-      groups={data.debtSources}
-      records={records}
-      kind="debt"
-    >
+    <ClassificationScreen data={data} month={month} groups={groups} records={records} kind="debt">
       <article className="card category-list-panel debt-source-list-panel">
         <div className="category-toolbar">
           <h2>

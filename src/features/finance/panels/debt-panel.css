@@ -1,3 +1,6 @@
+.compact-debts > .compact-stats.debt-overview-stats > .stat.debt-stat:not(.debt-create-stat) {
+  padding-left: 11px;
+}
 .compact-debts > .compact-stats.debt-overview-stats .debt-create-stat.button.primary {
   background: #1d4ed8;
   color: #fff;
