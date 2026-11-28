@@ -1,7 +1,8 @@
 'use client';
-import { useMemo, useState } from 'react';
+import { Fragment, useEffect, useMemo, useRef, useState } from 'react';
 import { FontAwesomeIcon as Icon } from '@fortawesome/react-fontawesome';
 import {
+  faPlus,
   faCheck,
   faPen,
   faRotateLeft,
@@ -11,8 +12,8 @@ import {
   faSortUp,
   faSortDown,
 } from '@fortawesome/free-solid-svg-icons';
-import { useHistoryWindow } from '../hooks/use-history-window';
-import HistoryEnd from '../components/history-end';
+import { useVisibleScrollbar } from '../hooks/use-visible-scrollbar';
+import { VisibleScrollbar } from '../components/visible-scrollbar';
 import { DebtSourceIcon } from '../debt-source-icon';
 import DebtHistoryFilters, {
   BUDGET_SOURCE_FILTER,
@@ -77,12 +78,21 @@ export default function DebtHistory({ data, ready, onAdd, onEdit, onDelete, onSe
         }),
     [data.debts, data.debtTypes, source, statusFilter, sort, today],
   );
-  const { viewportRef, endRef, visibleCount, hasMore } = useHistoryWindow(
-    history.length,
-    JSON.stringify([source, statusFilter, sort]),
-    !ready,
-  );
-  const visibleItems = history.slice(0, visibleCount);
+  const viewportRef = useRef<HTMLDivElement>(null);
+  const historyGroups = useMemo(() => {
+    const groups: { key: string; debts: Debt[] }[] = [];
+    for (const debt of history) {
+      const key = `${debt.dueDate ?? 'none'}:${!!debt.settledAt}`;
+      const previous = groups.at(-1);
+      if (previous?.key === key) previous.debts.push(debt);
+      else groups.push({ key, debts: [debt] });
+    }
+    return groups;
+  }, [history]);
+  const scrollbar = useVisibleScrollbar(viewportRef, true, 20, 10);
+  useEffect(() => {
+    if (viewportRef.current) viewportRef.current.scrollTop = 0;
+  }, [source, statusFilter, sort]);
   const sourceControl = (
     <label className="debt-filter-select">
       <Icon icon={faFilter} />
@@ -153,8 +163,7 @@ export default function DebtHistory({ data, ready, onAdd, onEdit, onDelete, onSe
   };
   const dueLabel = (debt: Debt) => {
     if (!debt.dueDate) return 'Chưa có hạn thanh toán';
-    const date = dateLabel(debt.dueDate);
-    if (debt.settledAt) return `Hạn ${date}`;
+    if (debt.settledAt) return 'Hạn thanh toán';
     // Compare calendar dates in Vietnam, independently of the device timezone.
     const days = Math.round(
       (Date.parse(`${debt.dueDate}T00:00:00Z`) - Date.parse(`${dateKey()}T00:00:00Z`)) / 86_400_000,
@@ -173,7 +182,6 @@ export default function DebtHistory({ data, ready, onAdd, onEdit, onDelete, onSe
             Quá hạn <strong className="debt-days-urgent">{-days}</strong> ngày
           </>
         )}
-        {` - ${date}`}
       </>
     );
   };
@@ -183,162 +191,198 @@ export default function DebtHistory({ data, ready, onAdd, onEdit, onDelete, onSe
         <div className="debt-history-heading">
           Tất cả công nợ <span>{history.length}</span>
         </div>
-        <DebtHistoryFilters
-          sources={data.debtSources}
-          source={source}
-          status={statusFilter}
-          sort={sort}
-          onSource={setSource}
-          onStatus={setStatusFilter}
-          onSort={setSort}
-        />
+        <div className="debt-history-heading-actions">
+          <DebtHistoryFilters
+            sources={data.debtSources}
+            source={source}
+            status={statusFilter}
+            sort={sort}
+            onSource={setSource}
+            onStatus={setStatusFilter}
+            onSort={setSort}
+          />
+          <button
+            type="button"
+            className="button primary monexa-action monexa-create debt-history-create"
+            disabled={!ready}
+            onClick={onAdd}
+          >
+            <Icon icon={faPlus} /> <span>Ghi công nợ</span>
+          </button>
+        </div>
       </div>
-      <div
-        className="debt-table-viewport debt-history-viewport"
-        ref={viewportRef}
-        role="region"
-        aria-label="Lịch sử công nợ"
-        tabIndex={0}
-      >
-        {!data.debts.length ? (
-          <div className="compact-empty">
-            <p>Chưa có lịch sử công nợ.</p>
-            <button
-              className="button primary monexa-action monexa-create"
-              disabled={!ready}
-              onClick={onAdd}
-            >
-              + Ghi công nợ
-            </button>
-          </div>
-        ) : (
-          <table className="compact-debt-table">
-            <caption className="sr-only">Lịch sử công nợ</caption>
-            <colgroup>
-              <col />
-              <col className="debt-source-column" />
-              <col className="debt-money-column" />
-              <col className="debt-date-column" />
-              <col className="debt-status-column" />
-              <col className="debt-actions-column" />
-            </colgroup>
-            <thead>
-              <tr>
-                <th scope="col">Khoản nợ</th>
-                <th scope="col">{sourceControl}</th>
-                <th
-                  scope="col"
-                  aria-sort={
-                    sort === 'amountAsc'
-                      ? 'ascending'
-                      : sort === 'amountDesc'
-                        ? 'descending'
-                        : 'none'
-                  }
-                >
-                  {amountControl}
-                </th>
-                <th scope="col" aria-sort={sort === 'dueDesc' ? 'descending' : 'none'}>
-                  {dueControl}
-                </th>
-                <th scope="col">{statusControl}</th>
-                <th scope="col">
-                  <span className="sr-only">Thao tác</span>
-                </th>
-              </tr>
-            </thead>
-            <tbody>
-              {visibleItems.map((debt) => {
-                const sourceId = debtSourceIdForDisplay(data, debt);
-                const source = sourceId
-                  ? data.debtSources.find((item) => item.id === sourceId)
-                  : undefined;
-                const status = debt.settledAt
-                  ? 'Đã thanh toán'
-                  : overdue(debt)
-                    ? 'Quá hạn'
-                    : 'Đang nợ';
-                const titleChars = Array.from(debt.title);
-                const title =
-                  titleChars.length > 40 ? `${titleChars.slice(0, 40).join('')}...` : debt.title;
-                return (
-                  <tr key={debt.id}>
-                    <td>
-                      <h3 title={debt.title}>{title}</h3>
-                    </td>
-                    <td>
-                      <span
-                        className="debt-source"
-                        title={source?.name}
-                        style={{ color: source?.color || '#1d4ed8' }}
-                      >
-                        {source && <DebtSourceIcon icon={source.icon} />}
-                        <span>
-                          {source?.name || (!sourceId ? 'Ngân sách' : 'Không rõ nguồn công nợ')}
-                        </span>
-                      </span>
-                    </td>
-                    <td>
-                      <strong className={direction(debt)}>{money(debt.amount)}</strong>
-                      <small>{direction(debt) === 'receivable' ? 'Phải thu' : 'Phải trả'}</small>
-                    </td>
-                    <td>
-                      <time
-                        dateTime={debt.dueDate ?? undefined}
-                        className={overdue(debt) ? 'overdue-text' : 'debt-due'}
-                      >
-                        {dueLabel(debt)}
-                      </time>
-                    </td>
-                    <td>
-                      <span
-                        className={`status-badge ${overdue(debt) ? 'overdue' : debt.settledAt ? 'settled' : ''}`}
-                      >
-                        {status}
-                      </span>
-                    </td>
-                    <td>
-                      <div className="table-actions">
-                        <button
-                          className="settle-action monexa-action monexa-settle"
-                          aria-label={
-                            debt.settledAt
-                              ? `Mở lại ${debt.title}`
-                              : `Đánh dấu đã thanh toán ${debt.title}`
-                          }
-                          title={debt.settledAt ? 'Mở lại' : 'Đánh dấu đã thanh toán'}
-                          disabled={!ready}
-                          onClick={() => onSettle(debt)}
-                        >
-                          <Icon icon={debt.settledAt ? faRotateLeft : faCheck} />
-                        </button>
-                        <button
-                          className="monexa-action monexa-edit"
-                          aria-label={`Sửa ${debt.title}`}
-                          title="Sửa công nợ"
-                          disabled={!ready}
-                          onClick={() => onEdit(debt)}
-                        >
-                          <Icon icon={faPen} />
-                        </button>
-                        <button
-                          className="monexa-action monexa-delete"
-                          aria-label={`Xóa ${debt.title}`}
-                          title="Xóa công nợ"
-                          disabled={!ready}
-                          onClick={() => onDelete(debt)}
-                        >
-                          <Icon icon={faTrashCan} />
-                        </button>
-                      </div>
-                    </td>
-                  </tr>
-                );
-              })}
-            </tbody>
-          </table>
-        )}
-        <HistoryEnd endRef={endRef} hasMore={hasMore} />
+      <div className="debt-history-scroll-shell">
+        <div
+          className="debt-table-viewport debt-history-viewport"
+          ref={viewportRef}
+          role="region"
+          aria-label="Lịch sử công nợ"
+          tabIndex={0}
+        >
+          {!data.debts.length ? (
+            <div className="compact-empty">
+              <p>Chưa có lịch sử công nợ.</p>
+              <button
+                className="button primary monexa-action monexa-create"
+                disabled={!ready}
+                onClick={onAdd}
+              >
+                + Ghi công nợ
+              </button>
+            </div>
+          ) : (
+            <table className="compact-debt-table">
+              <caption className="sr-only">Lịch sử công nợ</caption>
+              <colgroup>
+                <col />
+                <col className="debt-source-column" />
+                <col className="debt-money-column" />
+                <col className="debt-date-column" />
+                <col className="debt-status-column" />
+                <col className="debt-actions-column" />
+              </colgroup>
+              <thead>
+                <tr>
+                  <th scope="col">Khoản nợ</th>
+                  <th scope="col">{sourceControl}</th>
+                  <th
+                    scope="col"
+                    aria-sort={
+                      sort === 'amountAsc'
+                        ? 'ascending'
+                        : sort === 'amountDesc'
+                          ? 'descending'
+                          : 'none'
+                    }
+                  >
+                    {amountControl}
+                  </th>
+                  <th scope="col" aria-sort={sort === 'dueDesc' ? 'descending' : 'none'}>
+                    {dueControl}
+                  </th>
+                  <th scope="col">{statusControl}</th>
+                  <th scope="col">
+                    <span className="sr-only">Thao tác</span>
+                  </th>
+                </tr>
+              </thead>
+              {historyGroups.map((group, groupIndex) => (
+                <Fragment key={`${group.key}:${groupIndex}`}>
+                  <tbody className="debt-history-marker">
+                    <tr>
+                      <th colSpan={6} scope="rowgroup">
+                        <span className="debt-due-summary">{dueLabel(group.debts[0])}</span>
+                        {group.debts[0].dueDate && (
+                          <time dateTime={group.debts[0].dueDate}>
+                            {dateLabel(group.debts[0].dueDate)}
+                          </time>
+                        )}
+                      </th>
+                    </tr>
+                  </tbody>
+                  <tbody className="debt-history-group">
+                    {group.debts.map((debt) => {
+                      const sourceId = debtSourceIdForDisplay(data, debt);
+                      const source = sourceId
+                        ? data.debtSources.find((item) => item.id === sourceId)
+                        : undefined;
+                      const status = debt.settledAt
+                        ? 'Đã thanh toán'
+                        : overdue(debt)
+                          ? 'Quá hạn'
+                          : 'Đang nợ';
+                      const titleChars = Array.from(debt.title);
+                      const title =
+                        titleChars.length > 40
+                          ? `${titleChars.slice(0, 40).join('')}...`
+                          : debt.title;
+                      return (
+                        <tr key={debt.id}>
+                          <td>
+                            <h3 title={debt.title}>{title}</h3>
+                          </td>
+                          <td>
+                            <span
+                              className="debt-source"
+                              title={source?.name}
+                              style={{ color: source?.color || '#1d4ed8' }}
+                            >
+                              {source && <DebtSourceIcon icon={source.icon} />}
+                              <span>
+                                {source?.name ||
+                                  (!sourceId ? 'Ngân sách' : 'Không rõ nguồn công nợ')}
+                              </span>
+                            </span>
+                          </td>
+                          <td>
+                            <strong className={direction(debt)}>{money(debt.amount)}</strong>
+                            <small>
+                              {direction(debt) === 'receivable' ? 'Phải thu' : 'Phải trả'}
+                            </small>
+                          </td>
+                          <td>
+                            <time
+                              dateTime={debt.dueDate ?? undefined}
+                              className={overdue(debt) ? 'overdue-text' : 'debt-due'}
+                            >
+                              <span className="debt-due-summary">{dueLabel(debt)}</span>
+                              {debt.dueDate && (
+                                <span className="debt-due-date">{dateLabel(debt.dueDate)}</span>
+                              )}
+                            </time>
+                          </td>
+                          <td>
+                            <span
+                              className={`status-badge ${overdue(debt) ? 'overdue' : debt.settledAt ? 'settled' : ''}`}
+                            >
+                              {status}
+                            </span>
+                          </td>
+                          <td>
+                            <div className="table-actions">
+                              <button
+                                className="settle-action monexa-action monexa-settle"
+                                aria-label={
+                                  debt.settledAt
+                                    ? `Mở lại ${debt.title}`
+                                    : `Đánh dấu đã thanh toán ${debt.title}`
+                                }
+                                title={debt.settledAt ? 'Mở lại' : 'Đánh dấu đã thanh toán'}
+                                disabled={!ready}
+                                onClick={() => onSettle(debt)}
+                              >
+                                <Icon icon={debt.settledAt ? faRotateLeft : faCheck} />
+                              </button>
+                              <button
+                                className="monexa-action monexa-edit"
+                                aria-label={`Sửa ${debt.title}`}
+                                title="Sửa công nợ"
+                                disabled={!ready}
+                                onClick={() => onEdit(debt)}
+                              >
+                                <Icon icon={faPen} />
+                              </button>
+                              <button
+                                className="monexa-action monexa-delete"
+                                aria-label={`Xóa ${debt.title}`}
+                                title="Xóa công nợ"
+                                disabled={!ready}
+                                onClick={() => onDelete(debt)}
+                              >
+                                <Icon icon={faTrashCan} />
+                              </button>
+                            </div>
+                          </td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </Fragment>
+              ))}
+            </table>
+          )}
+        </div>
+        <VisibleScrollbar state={scrollbar} />
       </div>
     </>
   );

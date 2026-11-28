@@ -20,12 +20,8 @@ export default function IncomeSkeleton() {
             ))}
           </div>
           <div className="income-charts">
-            <div className="income-chart-select income-mobile-tabs">
-              <LoadingSkeleton style={{ height: 44, width: '100%' }} />
-              <LoadingSkeleton style={{ height: 44, width: '100%' }} />
-            </div>
             {[0, 1].map((index) => (
-              <div className={`income-chart-slot ${index === 0 ? 'is-selected' : ''}`} key={index}>
+              <div className="income-chart-slot" key={index}>
                 <article className="card income-chart">
                   <LoadingSkeleton style={{ height: 20, width: '50%' }} />
                   <ChartSkeleton />

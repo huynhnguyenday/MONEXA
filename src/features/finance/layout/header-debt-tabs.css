@@ -2,7 +2,7 @@ html:root .compact-layout .workspace-header :is(.header-debt-tabs, .workspace-ic
   position: relative;
   isolation: isolate;
   display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-template-columns: repeat(var(--tab-count, 2), minmax(0, 1fr));
   align-items: stretch;
   gap: 0;
   width: 190px;
@@ -26,12 +26,12 @@ html:root .compact-layout .workspace-header :is(.header-debt-tabs, .workspace-ic
   top: 3px;
   bottom: 3px;
   left: 3px;
-  width: calc((100% - 6px) / 2);
+  width: calc((100% - 6px) / var(--tab-count, 2));
   border: 1px solid #173fb1;
   border-radius: 999px;
   background: #1d4ed8;
   box-shadow: 0 2px 4px rgb(29 78 216 / 18%);
-  transform: translateX(var(--debt-tab-position, 0%));
+  transform: translateX(var(--debt-tab-position, var(--tab-active-position, 0%)));
   transition: transform 220ms ease;
   pointer-events: none;
 }
@@ -111,8 +111,55 @@ html:root
 }
 
 html:root .compact-layout .workspace-header .workspace-icon-tabs {
-  width: 100px;
+  width: calc(44px * var(--tab-count, 2) + 12px);
   order: 3;
+}
+html:root .compact-layout .workspace-header .header-debt-tabs .debt-chart-tab {
+  display: none;
+}
+html:root .compact-layout .workspace-header .header-debt-tabs > button > svg {
+  width: 16px;
+  height: 16px;
+}
+@media (max-width: 1023px) {
+  html:root .compact-layout .workspace-header .header-debt-tabs[data-active] {
+    --tab-count: 3;
+    --debt-tab-position: var(--mobile-debt-position, 0%);
+  }
+  html:root .compact-layout .workspace-header .header-debt-tabs .debt-chart-tab {
+    display: block;
+  }
+}
+@media (hover: hover) and (pointer: fine) {
+  html:root
+    .compact-layout
+    .workspace-header
+    :is(.header-debt-tabs, .workspace-icon-tabs):has(> button:nth-child(2):hover) {
+    --debt-tab-position: 100%;
+  }
+  html:root
+    .compact-layout
+    .workspace-header
+    :is(.header-debt-tabs, .workspace-icon-tabs):has(> button:nth-child(3):hover) {
+    --debt-tab-position: 200%;
+  }
+}
+@media (max-width: 400px) {
+  html:root .compact-layout .workspace-header .workspace-icon-tabs {
+    width: calc(34px * var(--tab-count, 2) + 6px);
+  }
+}
+@media (max-width: 360px) {
+  html:root
+    .compact-layout
+    .workspace-header:has(.workspace-icon-tabs[data-tab-count='3'])
+    .header-center
+    .month-picker-button {
+    width: 80px;
+    padding-inline: 3px;
+    gap: 2px;
+    font-size: 10px;
+  }
 }
 html:root .compact-layout .workspace-header .workspace-icon-tabs > button > svg {
   color: inherit;

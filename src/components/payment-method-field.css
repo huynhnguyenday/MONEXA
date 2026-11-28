@@ -1,0 +1,24 @@
+:root .two-option-field:is(.debt-payment-method, .expense-payment-method) label {
+  min-height: 36px;
+  padding: 4px 6px;
+}
+:root .two-option-field:is(.debt-payment-method, .expense-payment-method) label:has(input[value='cash']) {
+  color: #16a34a;
+  border-color: #86efac;
+  background: #f0fdf4;
+  box-shadow: 0 3px 8px #15803d14;
+}
+:root .two-option-field:is(.debt-payment-method, .expense-payment-method) label:has(input[value='cash']:checked) {
+  color: #15803d;
+  border-color: #15803d;
+  background: #dcfce7;
+}
+:root .two-option-field:is(.debt-payment-method, .expense-payment-method) input[value='cash'] {
+  border-color: #86efac;
+}
+:root .two-option-field:is(.debt-payment-method, .expense-payment-method) input[value='cash']:checked {
+  border-color: #15803d;
+}
+:root .two-option-field:is(.debt-payment-method, .expense-payment-method) input[value='cash']:checked::before {
+  background: #15803d;
+}

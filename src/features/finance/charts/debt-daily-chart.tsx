@@ -18,6 +18,8 @@ import ExpenseChartTooltip, { type ExpenseChartSelection } from './expense-chart
 import { dateKey, money, type FinanceData } from '../model';
 import { useVietnamToday } from '../hooks/use-vietnam-today';
 import { debtSourceHistory } from './debt-source-history';
+import './finance-charts.css';
+import './debt-daily-chart.css';
 
 ChartJS.register(CategoryScale, LinearScale, LineElement, PointElement, Filler, Tooltip);
 
@@ -32,6 +34,16 @@ export default function DebtDailyChart({
 }) {
   const initial = month || dateKey().slice(0, 7);
   const [dailyMonth, setDailyMonth] = useState(initial);
+  const [half, setHalf] = useState(0);
+  const [mobile, setMobile] = useState(false);
+  useEffect(() => {
+    const media = window.matchMedia('(max-width: 1023px)');
+    const update = () => setMobile(media.matches);
+    update();
+    media.addEventListener('change', update);
+    return () => media.removeEventListener('change', update);
+  }, []);
+  useEffect(() => setHalf(0), [dailyMonth]);
   const [selection, setSelection] = useState<ExpenseChartSelection | null>(null);
   const today = useVietnamToday();
   const close = useCallback(() => setSelection(null), []);
@@ -39,8 +51,11 @@ export default function DebtDailyChart({
     const next = month || dateKey().slice(0, 7);
     setDailyMonth(next);
   }, [month]);
-  useEffect(close, [data, dailyMonth, direction, today, close]);
-  const daily = debtSourceHistory(data, dailyMonth, direction, today);
+  useEffect(close, [data, dailyMonth, direction, today, half, mobile, close]);
+  const allDaily = debtSourceHistory(data, dailyMonth, direction, today);
+  const daily = mobile
+    ? allDaily.slice(half === 0 ? 0 : 15, half === 0 ? 15 : undefined)
+    : allDaily;
   const label = direction === 'receivable' ? 'Thu nợ' : 'Trả nợ';
   const color = direction === 'receivable' ? '#1d4ed8' : '#dc2626';
   const options: ChartOptions<'line'> = {
@@ -106,14 +121,27 @@ export default function DebtDailyChart({
     <>
       <article className="card category-chart-panel debt-daily-chart daily-expenses-card">
         <div className="category-chart-toolbar">
-          <h2>{label}</h2>
+          <div className="debt-daily-heading">
+            <h2>{label}</h2>
+            <button
+              type="button"
+              className="badge daily-half-toggle"
+              aria-label={`${label}: đang xem ${half === 0 ? 'nửa tháng đầu' : 'nửa tháng sau'}. Chuyển sang ${half === 0 ? 'nửa tháng sau' : 'nửa tháng đầu'}`}
+              onClick={() => {
+                close();
+                setHalf((current) => 1 - current);
+              }}
+            >
+              {half === 0 ? 'Nửa tháng đầu' : 'Nửa tháng sau'}
+            </button>
+          </div>
           <MonthPicker value={dailyMonth} onChange={setDailyMonth} />
         </div>
         <div className="category-chart">
           {daily.length ? (
             <Line
               role="img"
-              aria-label={`${label} theo ngày, tháng ${dailyMonth}. ${daily.map((entry) => `${entry.date}: ${money(entry.amount)}`).join('; ')}`}
+              aria-label={`${label} theo ngày, tháng ${dailyMonth}.${mobile ? ` ${half === 0 ? 'Nửa tháng đầu' : 'Nửa tháng sau'}.` : ''} ${daily.map((entry) => `${entry.date}: ${money(entry.amount)}`).join('; ')}`}
               options={options}
               data={{
                 labels: daily.map((entry) => entry.date.slice(8) + '/' + entry.date.slice(5, 7)),
@@ -136,7 +164,11 @@ export default function DebtDailyChart({
             />
           ) : (
             <div className="compact-empty">
-              <p>Tháng tương lai chưa có dữ liệu thanh toán.</p>
+              <p>
+                {allDaily.length
+                  ? 'Nửa tháng này chưa có dữ liệu thanh toán.'
+                  : 'Tháng tương lai chưa có dữ liệu thanh toán.'}
+              </p>
             </div>
           )}
         </div>

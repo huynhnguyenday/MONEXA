@@ -1,4 +1,5 @@
 'use client';
+import './payment-method-field.css';
 import TwoOptionField from './two-option-field';
 export default function PaymentMethodField({
   value,

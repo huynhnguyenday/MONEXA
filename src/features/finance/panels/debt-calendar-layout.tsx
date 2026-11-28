@@ -15,14 +15,24 @@ export default function DebtCalendarLayout({
   setMonth,
   overview,
   loading = false,
+  history,
+  activePage,
+  onPageChange,
 }: {
   data: FinanceData;
   month: Date | null;
   setMonth: (month: Date) => void;
   overview: ReactNode;
   loading?: boolean;
+  history?: ReactNode;
+  activePage?: number;
+  onPageChange?: (index: number) => void;
 }) {
-  const carousel = useWorkspaceCarousel();
+  const carousel = useWorkspaceCarousel({
+    count: history ? 3 : 2,
+    activeIndex: activePage,
+    onActiveChange: onPageChange,
+  });
   return (
     <div className="debt-calendar-layout">
       <div
@@ -71,6 +81,15 @@ export default function DebtCalendarLayout({
             </div>
           ))}
         </div>
+        {history && (
+          <div
+            className="compact-debts debt-history-screen"
+            style={carousel.paneStyle(2)}
+            inert={carousel.active !== 2}
+          >
+            {history}
+          </div>
+        )}
       </div>
     </div>
   );

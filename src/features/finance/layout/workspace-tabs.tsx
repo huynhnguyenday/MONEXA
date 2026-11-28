@@ -1,5 +1,5 @@
 ﻿'use client';
-import { useEffect, useState } from 'react';
+import { useEffect, useState, type CSSProperties } from 'react';
 import { createPortal } from 'react-dom';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import {
@@ -8,6 +8,7 @@ import {
   faWallet,
   faTags,
   faAddressBook,
+  faChartColumn,
 } from '@fortawesome/free-solid-svg-icons';
 
 export default function WorkspaceTabs({
@@ -33,7 +34,8 @@ export default function WorkspaceTabs({
         ]
       : kind === 'categories' || kind === 'debt-sources'
         ? [
-            { label: 'Biểu đồ', icon: faChartLine },
+            { label: 'Biểu đồ tổng hợp', icon: faChartLine },
+            { label: 'Biểu đồ chi tiết', icon: faChartColumn },
             {
               label: kind === 'categories' ? 'Danh mục' : 'Nguồn công nợ',
               icon: kind === 'categories' ? faTags : faAddressBook,
@@ -47,7 +49,14 @@ export default function WorkspaceTabs({
     ? createPortal(
         <div
           className={`workspace-icon-tabs${loading ? ' is-loading' : ''}`}
-          data-active={active === 0 ? 'calendar' : 'history'}
+          data-active-index={active}
+          data-tab-count={items.length}
+          style={
+            {
+              '--tab-count': items.length,
+              '--tab-active-position': `${active * 100}%`,
+            } as CSSProperties
+          }
           role="group"
           aria-label={`Chuyển nội dung ${kind === 'overview' ? 'tổng quan' : kind === 'income' ? 'thu nhập' : kind === 'categories' ? 'danh mục' : 'nguồn công nợ'}`}
         >

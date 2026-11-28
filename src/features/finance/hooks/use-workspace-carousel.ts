@@ -1,15 +1,42 @@
 ﻿'use client';
-import { useEffect, useRef, useState, type CSSProperties, type TouchEvent } from 'react';
+import {
+  createContext,
+  useContext,
+  useEffect,
+  useRef,
+  useState,
+  type CSSProperties,
+  type TouchEvent,
+} from 'react';
 
-// Both full screens stay mounted; swiping either way reveals the other screen.
+export const WorkspaceEntryContext = createContext<{
+  index: number;
+  onChange: (index: number) => void;
+} | null>(null);
+
+// Keep every screen mounted while swiping around the route in either direction.
 export function useWorkspaceCarousel({
-  handoffForwardSwipeAtEnd = false,
+  handoffAtEdges = false,
+  count = 2,
+  activeIndex,
+  onActiveChange,
 }: {
-  handoffForwardSwipeAtEnd?: boolean;
+  handoffAtEdges?: boolean;
+  count?: number;
+  activeIndex?: number;
+  onActiveChange?: (index: number, direction: number) => void;
 } = {}) {
+  const parent = useContext(WorkspaceEntryContext);
   const ref = useRef<HTMLDivElement>(null);
-  const [active, setActive] = useState(0);
+  const [localActive, setLocalActive] = useState(0);
+  const active = activeIndex ?? parent?.index ?? localActive;
   const [side, setSide] = useState(1);
+  const position = (index: number, direction: number) =>
+    index === active
+      ? 0
+      : direction > 0
+        ? (index - active + count) % count
+        : -((active - index + count) % count);
   const [mobile, setMobile] = useState(false);
   useEffect(() => {
     const media = window.matchMedia('(max-width: 1023px)');
@@ -40,7 +67,7 @@ export function useWorkspaceCarousel({
       if (!(child instanceof HTMLElement)) return;
       child.style.setProperty(
         '--workspace-slide-position',
-        index === active ? '0%' : `${dragSide.current * 100}%`,
+        `${position(index, dragSide.current) * 100}%`,
       );
       child.style.setProperty('--workspace-slide-drag', `${dx}px`);
       child.style.setProperty('--workspace-slide-transition', 'none');
@@ -65,32 +92,43 @@ export function useWorkspaceCarousel({
     settle();
   };
   const move = (direction: 1 | -1) => {
-    const next = active + direction;
-    if (next < 0 || next > 1) return settle();
-    setActive(next);
+    const next = (active + direction + count) % count;
+    change(next, direction);
     setSide(-direction);
     settle();
+  };
+  const change = (index: number, direction: 1 | -1) => {
+    setLocalActive(index);
+    parent?.onChange(index);
+    onActiveChange?.(index, direction);
   };
   return {
     ref,
     active,
     select: (index: number) => {
-      if (index !== active && (index === 0 || index === 1)) {
-        move(index > active ? 1 : -1);
+      if (index !== active && index >= 0 && index < count) {
+        const direction = index > active ? 1 : -1;
+        change(index, direction);
+        setSide(-direction);
+        settle();
       }
     },
     mobile,
     paneStyle: (index: number): CSSProperties => {
-      const position = index === active ? 0 : side;
       return {
-        '--workspace-slide-position': `${position * 100}%`,
+        '--workspace-slide-position': `${position(index, side) * 100}%`,
       } as CSSProperties;
     },
     onTouchStart: (event: TouchEvent<HTMLDivElement>) => {
       suppressClick.current = false;
       if (!mobile || event.touches.length !== 1) return reset();
       const target = event.target as HTMLElement;
-      if (target.closest('input, textarea, select, [contenteditable="true"]')) return reset();
+      if (
+        target.closest(
+          'input, textarea, select, [contenteditable="true"], .react-datepicker-popper, .expense-chart-tooltip',
+        )
+      )
+        return reset();
       for (
         let element = target;
         element && element !== event.currentTarget;
@@ -121,20 +159,11 @@ export function useWorkspaceCarousel({
         dragSide.current = dx < 0 ? 1 : -1;
       }
       const direction = dx < 0 ? 1 : -1;
-      const atBoundary = direction === 1 ? active === 1 : active === 0;
-      if (handoffForwardSwipeAtEnd) {
-        if (atBoundary && direction === 1) {
-          gesture.current = null;
-          return;
-        }
-        event.stopPropagation();
-        if (atBoundary) {
-          start.dx = dx;
-          suppressClick.current = true;
-          return;
-        }
-      }
+      const atBoundary = direction === 1 ? active === count - 1 : active === 0;
       start.dx = dx;
+      // Nested charts hand off both edges; the route's outer carousel wraps.
+      if (handoffAtEdges && atBoundary) return settle();
+      event.stopPropagation();
       if (ref.current) ref.current.dataset.workspaceDragging = 'true';
       suppressClick.current = true;
       // Allow reversing direction during the same slow gesture.
@@ -146,10 +175,16 @@ export function useWorkspaceCarousel({
           paint(pendingDrag.current);
         });
     },
-    onTouchEnd: () => {
+    onTouchEnd: (event: TouchEvent<HTMLDivElement>) => {
       const start = gesture.current;
       gesture.current = null;
       const threshold = Math.min(60, width.current * 0.18);
+      if (start?.horizontal) {
+        const direction = start.dx < 0 ? 1 : -1;
+        const atBoundary = direction === 1 ? active === count - 1 : active === 0;
+        if (handoffAtEdges && atBoundary) return settle();
+        event.stopPropagation();
+      }
       if (start?.horizontal && Math.abs(start.dx) >= threshold) move(start.dx < 0 ? 1 : -1);
       else {
         settle();

@@ -214,6 +214,11 @@
   width: 150px;
   font-size: 12px;
 }
+.expense-category-workspace .category-chart-toolbar .month-picker-button {
+  height: 29.33px;
+  min-height: 29.33px;
+  padding-block: 2px;
+}
 .category-chart {
   position: relative;
   flex: 1;

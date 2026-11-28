@@ -2608,3 +2608,7 @@ dialog .dialog-content textarea {
   outline: 2px solid #1d4ed8;
   outline-offset: 2px;
 }
+
+dialog.compact-dialog form label.expense-category-label {
+  margin-top: 0;
+}

@@ -1,5 +1,6 @@
 'use client';
 import dynamic from 'next/dynamic';
+import { useState } from 'react';
 import Toast from '@/components/toast';
 import AppHeader from './layout/app-header';
 import { useSidebarPresence } from './hooks/use-sidebar-presence';
@@ -22,6 +23,11 @@ const FinanceDialogs = dynamic(() => import('./dialogs/finance-dialogs'), {
 export default function Dashboard({ passwordLoginEnabled }: { passwordLoginEnabled: boolean }) {
   const workspaceRef = useWorkspaceViewport();
   const dashboard = useDashboard();
+  const [debtPage, setDebtPage] = useState(0);
+  const selectDebtPage = (index: number) => {
+    setDebtPage(index);
+    dashboard.setDebtView(index === 2 ? 'history' : 'calendar');
+  };
   const navVisible = useSidebarPresence(dashboard.navOpen);
   const error = (
     <FinanceError
@@ -57,7 +63,8 @@ export default function Dashboard({ passwordLoginEnabled }: { passwordLoginEnabl
         <AppHeader
           view={dashboard.tab}
           debtView={dashboard.debtView}
-          onDebtViewChange={dashboard.setDebtView}
+          debtPage={dashboard.debtView === 'history' ? 2 : debtPage === 2 ? 0 : debtPage}
+          onDebtPageChange={selectDebtPage}
           month={dashboard.month}
           onMonthChange={dashboard.setMonth}
           navOpen={dashboard.navOpen}
@@ -66,7 +73,7 @@ export default function Dashboard({ passwordLoginEnabled }: { passwordLoginEnabl
           ready={dashboard.ready}
           loading={dashboard.loading}
         />
-        <div className="workspace-content" aria-busy={dashboard.loading}>
+        <div key={dashboard.tab} className="workspace-content" aria-busy={dashboard.loading}>
           {dashboard.loading ? (
             <FinanceSkeleton view={dashboard.tab} debtView={dashboard.debtView} />
           ) : !dashboard.snapshot ? (
@@ -106,6 +113,8 @@ export default function Dashboard({ passwordLoginEnabled }: { passwordLoginEnabl
               ready={dashboard.ready}
               onAdd={() => dashboard.open({ type: 'debt' })}
               view={dashboard.debtView}
+              mobilePage={dashboard.debtView === 'history' ? 2 : debtPage === 2 ? 0 : debtPage}
+              onMobilePageChange={selectDebtPage}
               onEdit={(debt) => dashboard.open({ type: 'debt', debt })}
               onDelete={(debt) => void dashboard.deleteDebt(debt)}
               onSettle={(debt) => void dashboard.settle(debt)}

@@ -17,6 +17,8 @@ export default function DebtPanel({
   ready,
   onAdd,
   view,
+  mobilePage,
+  onMobilePageChange,
   onEdit,
   onDelete,
   onSettle,
@@ -25,6 +27,8 @@ export default function DebtPanel({
   ready: boolean;
   onAdd: () => void;
   view: 'calendar' | 'history';
+  mobilePage: number;
+  onMobilePageChange: (index: number) => void;
   onEdit: (debt: Debt) => void;
   onDelete: (debt: Debt) => void;
   onSettle: (debt: Debt) => void;
@@ -113,26 +117,32 @@ export default function DebtPanel({
       </button>
     </div>
   );
-  if (view === 'calendar') {
-    return (
-      <section className="debt-workspace" aria-label="Quản lý công nợ">
-        <DebtCalendarLayout data={data} month={month} setMonth={setMonth} overview={overview} />
-      </section>
-    );
-  }
+  const history = (
+    <article className="card compact-debt-card">
+      <DebtHistory
+        data={data}
+        ready={ready}
+        onAdd={onAdd}
+        onEdit={onEdit}
+        onDelete={onDelete}
+        onSettle={onSettle}
+      />
+    </article>
+  );
   return (
-    <section className="compact-debts" aria-label="Lịch sử công nợ">
-      {overview}
-      <article className="card compact-debt-card">
-        <DebtHistory
-          data={data}
-          ready={ready}
-          onAdd={onAdd}
-          onEdit={onEdit}
-          onDelete={onDelete}
-          onSettle={onSettle}
-        />
-      </article>
+    <section
+      className="debt-workspace"
+      aria-label={view === 'history' ? 'Lịch sử công nợ' : 'Quản lý công nợ'}
+    >
+      <DebtCalendarLayout
+        data={data}
+        month={month}
+        setMonth={setMonth}
+        overview={overview}
+        history={history}
+        activePage={mobilePage}
+        onPageChange={onMobilePageChange}
+      />
     </section>
   );
 }

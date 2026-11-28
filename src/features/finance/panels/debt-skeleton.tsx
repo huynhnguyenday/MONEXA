@@ -60,7 +60,6 @@ export default function DebtSkeleton({ view }: { view: 'calendar' | 'history' })
       aria-label="Đang tải lịch sử công nợ"
       aria-busy="true"
     >
-      {overview}
       <article className="card compact-debt-card" aria-hidden="true">
         <Skeleton className="skeleton-heading" />
         <div className="skeleton-debt-history">

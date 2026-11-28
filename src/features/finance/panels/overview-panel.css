@@ -265,7 +265,13 @@ dialog.expense-filter-dialog {
   border-bottom: 0;
 }
 .overview-panel .expense-day-card tbody + tbody {
-  border-top: 1px solid #edf2f8;
+  border-top: 0;
+}
+.overview-panel .expense-day-card tbody + tbody .expense-summary-row {
+  background-image: linear-gradient(#94a3b8, #94a3b8);
+  background-repeat: no-repeat;
+  background-position: center top;
+  background-size: min(100%, calc(66.667% + 60px)) 1.333px;
 }
 .overview-panel .expense-day-card .expense-summary-row:hover td {
   background: transparent;

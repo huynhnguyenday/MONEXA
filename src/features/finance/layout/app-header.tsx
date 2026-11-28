@@ -1,7 +1,13 @@
 'use client';
-import type { Ref } from 'react';
+import { useEffect, useState, type CSSProperties, type Ref } from 'react';
 import { FontAwesomeIcon as Icon } from '@fortawesome/react-fontawesome';
-import { faBars, faXmark } from '@fortawesome/free-solid-svg-icons';
+import {
+  faBars,
+  faXmark,
+  faCalendarDays,
+  faChartLine,
+  faClockRotateLeft,
+} from '@fortawesome/free-solid-svg-icons';
 import MonthPicker from '@/components/month-picker';
 import { MonthPickerSkeleton } from '../components/loading-skeleton';
 import type { FinanceView } from '../types';
@@ -11,7 +17,8 @@ import './header-debt-tabs.css';
 type Props = {
   view: FinanceView;
   debtView: 'calendar' | 'history';
-  onDebtViewChange: (view: 'calendar' | 'history') => void;
+  debtPage: number;
+  onDebtPageChange: (index: number) => void;
   month: string;
   onMonthChange: (month: string) => void;
   navOpen: boolean;
@@ -23,7 +30,8 @@ type Props = {
 export default function AppHeader({
   view,
   debtView,
-  onDebtViewChange,
+  debtPage,
+  onDebtPageChange,
   month,
   onMonthChange,
   navOpen,
@@ -32,6 +40,14 @@ export default function AppHeader({
   ready,
   loading = false,
 }: Props) {
+  const [mobile, setMobile] = useState(false);
+  useEffect(() => {
+    const media = window.matchMedia('(max-width: 1023px)');
+    const update = () => setMobile(media.matches);
+    update();
+    media.addEventListener('change', update);
+    return () => media.removeEventListener('change', update);
+  }, []);
   return (
     <header className="workspace-header">
       <div className="workspace-navigation">
@@ -58,22 +74,37 @@ export default function AppHeader({
           <div
             className="header-debt-tabs"
             data-active={debtView}
+            style={{ '--mobile-debt-position': `${debtPage * 100}%` } as CSSProperties}
             role="group"
             aria-label="Nội dung công nợ"
           >
             <button
               type="button"
-              aria-pressed={debtView === 'calendar'}
-              onClick={() => onDebtViewChange('calendar')}
+              aria-label="Công nợ"
+              title="Công nợ"
+              aria-pressed={debtView === 'calendar' && (!mobile || debtPage === 0)}
+              onClick={() => onDebtPageChange(0)}
             >
-              Công nợ
+              <Icon icon={faCalendarDays} aria-hidden="true" />
             </button>
             <button
               type="button"
-              aria-pressed={debtView === 'history'}
-              onClick={() => onDebtViewChange('history')}
+              className="debt-chart-tab"
+              aria-label="Biểu đồ công nợ"
+              title="Biểu đồ công nợ"
+              aria-pressed={debtView === 'calendar' && debtPage === 1}
+              onClick={() => onDebtPageChange(1)}
             >
-              Lịch sử
+              <Icon icon={faChartLine} aria-hidden="true" />
+            </button>
+            <button
+              type="button"
+              aria-label="Lịch sử công nợ"
+              title="Lịch sử công nợ"
+              aria-pressed={debtView === 'history'}
+              onClick={() => onDebtPageChange(2)}
+            >
+              <Icon icon={faClockRotateLeft} aria-hidden="true" />
             </button>
           </div>
         ) : null}

@@ -110,7 +110,7 @@ export function ExpenseForm({
             </span>
           </label>
         </div>
-        <label>Danh mục</label>
+        <label className="expense-category-label">Danh mục</label>
         <input type="hidden" name="categoryId" value={categoryId} />
         <div className="expense-category-picker" role="group" aria-label="Chọn danh mục chi tiêu">
           {categories.map((c) => (

@@ -7,7 +7,7 @@ import ClassificationInsights from '../charts/classification-insights-chart';
 import type { BreakdownGroup, BreakdownRecord } from '../charts/group-breakdown';
 import { dateKey, type FinanceData } from '../model';
 import WorkspaceTabs from '../layout/workspace-tabs';
-import { useWorkspaceCarousel } from '../hooks/use-workspace-carousel';
+import { useWorkspaceCarousel, WorkspaceEntryContext } from '../hooks/use-workspace-carousel';
 import '../layout/workspace-carousel.css';
 import './category-panel.css';
 import type { CustomIcon } from '../custom-icon-schema';
@@ -32,7 +32,12 @@ export default function ClassificationScreen({
   const initialMonth = month || dateKey().slice(0, 7);
   const [chartMonth, setChartMonth] = useState(initialMonth);
 
-  const carousel = useWorkspaceCarousel();
+  const [chartPage, setChartPage] = useState(0);
+  const carousel = useWorkspaceCarousel({
+    onActiveChange: (index, direction) => {
+      if (index === 0) setChartPage(direction < 0 ? 1 : 0);
+    },
+  });
   useEffect(() => {
     const next = month || dateKey().slice(0, 7);
     setChartMonth(next);
@@ -41,13 +46,16 @@ export default function ClassificationScreen({
   const chartLabel = kind === 'expense' ? 'Chi tiêu theo danh mục' : 'Công nợ theo nguồn';
   return (
     <section
-      className="category-workspace workspace-swipe"
+      className={`category-workspace workspace-swipe${kind === 'expense' ? ' expense-category-workspace' : ''}`}
       aria-label={`Quản lý ${label.toLocaleLowerCase('vi')}`}
     >
       <WorkspaceTabs
         kind={kind === 'expense' ? 'categories' : 'debt-sources'}
-        active={carousel.active}
-        onSelect={carousel.select}
+        active={carousel.active === 1 ? 2 : chartPage}
+        onSelect={(index) => {
+          carousel.select(index === 2 ? 1 : 0);
+          if (index < 2) setChartPage(index);
+        }}
       />
       <div
         className="category-screen workspace-carousel"
@@ -68,25 +76,27 @@ export default function ClassificationScreen({
           style={carousel.paneStyle(0)}
           inert={carousel.mobile && carousel.active !== 0}
         >
-          <ClassificationInsights
-            lead={
-              <GroupBreakdownChart
-                groups={groups}
-                records={records}
-                period={chartMonth}
-                kind={kind}
-                customIcons={customIcons}
-                title={`${chartLabel} theo tháng`}
-                picker={<MonthPicker value={chartMonth} onChange={setChartMonth} />}
-              />
-            }
-            groups={groups}
-            records={records}
-            month={chartMonth}
-            kind={kind}
-            data={data}
-            customIcons={customIcons}
-          />
+          <WorkspaceEntryContext.Provider value={{ index: chartPage, onChange: setChartPage }}>
+            <ClassificationInsights
+              lead={
+                <GroupBreakdownChart
+                  groups={groups}
+                  records={records}
+                  period={chartMonth}
+                  kind={kind}
+                  customIcons={customIcons}
+                  title={`${chartLabel} theo tháng`}
+                  picker={<MonthPicker value={chartMonth} onChange={setChartMonth} />}
+                />
+              }
+              groups={groups}
+              records={records}
+              month={chartMonth}
+              kind={kind}
+              data={data}
+              customIcons={customIcons}
+            />
+          </WorkspaceEntryContext.Provider>
         </div>
         <div
           className="category-management workspace-carousel-screen"

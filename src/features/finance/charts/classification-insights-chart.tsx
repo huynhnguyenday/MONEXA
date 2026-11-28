@@ -374,7 +374,7 @@ export default function ClassificationInsights({
     'payable',
     'payable',
   ]);
-  const carousel = useWorkspaceCarousel({ handoffForwardSwipeAtEnd: true });
+  const carousel = useWorkspaceCarousel({ handoffAtEdges: true });
   const renderChartPages = (panels: Panel[], control?: ReactNode) => {
     const pages = panels.reduce<[Panel[], Panel[]]>(
       (result, panel, index) => {
